@@ -2,20 +2,14 @@ const invoice = require("./data/invoices.json")
 const plays = require("./data/plays.json")
 
 function statement(invoice, plays) {
-    let totalAmount = 0;
-    let volumeCredits = 0;
     let result = `청구 내역 (고객명: ${invoice.customer})\n`;
-    const format = new Intl.NumberFormat("en-US",
-    { style: "currency", currency: "USD", minimumFractionDigits: 2}).format;
     for (let perf of invoice.performances) {
-        volumeCredits += volumeCreditsFor(perf);
-
         // 청구 내역을 출력
-        result += ` ${playFor(perf).name}: ${format(amountFor(perf) / 100)} (${perf.audience}석)\n`;
-        totalAmount += amountFor(perf);
+        result += ` ${playFor(perf).name}: ${usd(amountFor(perf))} (${perf.audience}석)\n`;
     }
-    result += `총액: ${format(totalAmount / 100)}\n`;
-    result += `적립 포인트: ${volumeCredits}점\n`;
+
+    result += `총액: ${usd(totalAmount())}\n`;
+    result += `적립 포인트: ${totalVolumeCredits()}점\n`;
     return result;
 
     function amountFor(aPerformance) {
@@ -52,9 +46,29 @@ function statement(invoice, plays) {
             result += Math.floor(aPerformance.audience / 5);
         return result
     }
+
+    function usd(aNumber) {
+        return new Intl.NumberFormat("en-US",
+                            { style: "currency", currency: "USD",
+                              minimumFractionDigits: 2}).format(aNumber/100);
+    }
+
+    function totalVolumeCredits() {
+        let result = 0;
+        for (let perf of invoice.performances) {
+            result += volumeCreditsFor(perf);
+        }
+        return result;
+    }
+
+    function totalAmount() {
+        let result = 0;
+        for (let perf of invoice.performances) {
+            result += amountFor(perf);
+        }
+        return result;
+    }
 }
-
-
 
 
 console.log((statement(invoice[0], plays)))
