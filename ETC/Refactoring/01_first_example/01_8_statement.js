@@ -1,6 +1,38 @@
 const invoice = require("./data/invoices.json")
 const plays = require("./data/plays.json")
 
+function createStatementData(invoice, plays) {
+    const result = {};
+    result.customer = invoice.customer;
+    result.performances = invoice.performances.map(enrichPerformance);
+    result.totalAmount = totalAmount(result);
+    result.totalVolumeCredits = totalVolumeCredits(result);
+    return result;
+    
+    function enrichPerformance(aPerformance) {
+        const calculator = createPerformanceCalculator(aPerformance, playFor(aPerformance));
+        const result = Object.assign({}, aPerformance);
+        result.play = playFor(result);
+        result.amount = calculator.amount;
+        result.volumeCredits = calculator.volumeCredits;
+        return result;
+    }
+
+    function playFor(aPerformance) {
+        return plays[aPerformance.playID];
+    }
+    
+    function totalAmount(data) {
+        return data.performances
+            .reduce((total, p) => total + p.amount, 0);
+    }
+
+    function totalVolumeCredits(data) {
+        return data.performances
+            .reduce((total, p) => total + p.volumeCredits, 0);
+    }
+}
+
 function createPerformanceCalculator(aPerformance, aPlay) {
     switch(aPlay.type) {
         case "tragedy": return new TragedyCalculator(aPerformance, aPlay);
@@ -20,11 +52,7 @@ class PerformanceCalculator {
     }
 
     get volumeCredits() {
-        let result = 0;
-        result += Math.max(this.performances.audience - 30, 0);
-        if ("comedy" === this.play.type)
-            result += Math.floor(this.performances.audience / 5);
-        return result
+        return Math.max(this.performances.audience - 30, 0);
     }
 }
 
@@ -47,37 +75,8 @@ class ComedyCalculator extends PerformanceCalculator {
         result += 300 * this.performances.audience
         return result
     }
-}
-
-function createStatementData(invoice, plays) {
-    const result = {};
-    result.customer = invoice.customer;
-    result.performances = invoice.performances.map(enrichPerformance);
-    result.totalAmount = totalAmount(result);
-    result.totalVolumeCredits = totalVolumeCredits(result);
-    return result;
-
-    function totalAmount(data) {
-        return data.performances
-            .reduce((total, p) => total + p.amount, 0);
-    }
-
-    function totalVolumeCredits(data) {
-        return data.performances
-            .reduce((total, p) => total + p.volumeCredits, 0);
-    }
-
-    function enrichPerformance(aPerformance) {
-        const calculator = createPerformanceCalculator(aPerformance, playFor(aPerformance));
-        const result = Object.assign({}, aPerformance);
-        result.play = playFor(result);
-        result.amount = calculator.amount;
-        result.volumeCredits = calculator.volumeCredits;
-        return result;
-    }
-
-    function playFor(aPerformance) {
-        return plays[aPerformance.playID];
+    get volumeCredits() {
+        return super.volumeCredits + Math.floor(this.performances.audience / 5);
     }
 }
 
