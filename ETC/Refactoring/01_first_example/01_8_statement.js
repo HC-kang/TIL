@@ -1,6 +1,10 @@
 const invoice = require("./data/invoices.json")
 const plays = require("./data/plays.json")
 
+function createPerformanceCalculator(aPerformance, aPlay) {
+    return new PerformanceCalculator(aPerformance, aPlay);
+}
+
 class PerformanceCalculator {
     constructor(aPerformance, aPlay) {
         this.performances = aPerformance;
@@ -27,6 +31,14 @@ class PerformanceCalculator {
         }
         return result;
     }
+
+    get volumeCredits() {
+        let result = 0;
+        result += Math.max(this.performances.audience - 30, 0);
+        if ("comedy" === this.play.type)
+            result += Math.floor(this.performances.audience / 5);
+        return result
+    }
 }
 
 function createStatementData(invoice, plays) {
@@ -48,24 +60,12 @@ function createStatementData(invoice, plays) {
     }
 
     function enrichPerformance(aPerformance) {
-        const calculator = new PerformanceCalculator(aPerformance, playFor(aPerformance));
+        const calculator = createPerformanceCalculator(aPerformance, playFor(aPerformance));
         const result = Object.assign({}, aPerformance);
         result.play = playFor(result);
         result.amount = calculator.amount;
-        result.volumeCredits = volumeCreditsFor(result);
+        result.volumeCredits = calculator.volumeCredits;
         return result;
-    }
-
-    function volumeCreditsFor(aPerformance) {
-        let result = 0;
-        result += Math.max(aPerformance.audience - 30, 0);
-        if ("comedy" === aPerformance.play.type)
-            result += Math.floor(aPerformance.audience / 5);
-        return result
-    }
-
-    function amountFor(aPerformance) {
-        return new PerformanceCalculator(aPerformance, playFor(aPerformance)).amount;
     }
 
     function playFor(aPerformance) {
