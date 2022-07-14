@@ -123,6 +123,12 @@ git reset HEAD~2 # 마지막 2개 커밋 취소
 git reset --hard HEAD^
 ```
 
+### 캐시된 파일 gitignore
+
+```bash
+git rm --cached -r .vscode/
+```
+
 ### 새로운 브랜치 생성
 
 ```bash
