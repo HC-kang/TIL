@@ -860,3 +860,81 @@
      - 인프라형 서비스(IaaS; Infrastructure as a Service): 서버, 스토리지 같은 자원을 클라우드로 제공하는 서비스
      - 플랫폼형 서비스(PaaS; Platform as a Service): 애플리케이션 개발, 실행, 관리할 수 있게 하는 플랫폼을 제공하는 서비스
      - 소프트웨어형 서비스(SaaS; Software as a Service): 클라이언트를 통해 접속하여 소프트웨어 서비스 형태로 이용하는 서비스
+
+2. 네트워크 계층 구조 파악(중요도 ★★★)
+   - 네트워크: 원하는 정보를 원하는 수신자 또는 기기에 정확하게 전송하기 위한 기반 인프라
+     - 광대역 네트워크(WAN): LAN에 비해 전송거리가 넓음
+     - 근거리 네트워크(LAN): 한 건물 또는 작은 지역 커버
+   - OSI(Open System Interconnection) 7계층
+     - 응용 계층(Application L.): 사용자와 네트워크간 응용서비스 연결, 데이터 생성
+     - 표현 계층(Presentation L.): 데이터의 형식 설정, 부호 교환, 암/복호화
+     - 세션 계층(Session L.): 송수신 간의 논리적인 연결
+     - 전송 계층(Transport L.): 송수신 프로세스 간의 연결
+     - 네트워크 계층(Network L.): 단말기 간 데이터 전송을 위한 최적화된 경로 제공
+     - 데이터링크 계층(Data Link L.): 인접 시스템 간 데이터 전송, 오류 제어
+     - 물리 계층(Physical L.): 0과 1의 비트 정보를 회선에 보내기 위한 전기적 신호 변환
+   - 프로토콜: 서로 다른 시스템이나 기기들 간의 데이터 교환을 원활이 하기 위한 표준화된 통신 규약
+   - 프로토콜 기본 3요소
+     - 구문(Syntax): 시스템 간의 정보 전송을 위한 데이터 형식, 코딩, 신호 레벨 등의 규정
+     - 의미(Semantic): 시스템 간의 정보 전송을 위한 제어 정보로 조정과 에러 처리를 위한 규정
+     - 타이밍(Timing): 시스템 간의 정보 전송을 위한 속도 조절과 순서 관리 규정
+   - 네트워크 프로토콜(Network Protocol): 컴퓨터나 원거리 통신 장비 사이에서 메시지를 주고받는 양식과 규칙의 체계
+   - 데이터 링크 계층 프로토콜
+     - HDLC(High-level Data Link Control): 점대점 방식이나 다중방식 통신에 사용되며, 동기식 비트 중심
+     - PPP(Point-to-Point Protocol): 네트워크 분야에서 두 통신 노드간의 직접적 연결
+     - 프레임 릴레이(Frame Relay): 프로토콜 처리를 간략화하여 데이터 처리속도의 향상 및 전송 지연을 감소시킨 고속 데이터 전송기술
+     - ATM(Asynchronous Transport Mode): 53바이트 셀 단위로 전달하는 비동기식 시분할 다중화 방식의 패킷형 전송기술
+   - 네트워크 계층 프로토콜
+     - IP(Internet Protocol): 송수신 간의 패킷 단위로 데이터를 교환하는 네트워크에서 정보를 주고받는 데 사용
+     - ARP(Address Resolution Protocol): IP네트워크 상에서 IP주소를 MAC주소(물리주소)로 변환하는 프로토콜
+     - RARP(Reverse Address Resolution Protocol): 서버로부터 IP주소를 요청하기위해 사용하는 프로토콜
+     - ICMP(Internet Control Message Protocol): IP 패킷을 처리 할 때 발생되는 문제를 알려주는 프로토콜
+     - IGMP(Internet Group Management Protocol): 호스트 컴퓨터와 인접 라우터가 멀티캐스트 그룹 멤버십을 구성하는데 사용하는 통신 프로토콜
+     - 라우팅 프로토콜(Routing Protocol): 데이터 전송을 위해 최적의 경로를 설정해주는 라우터 간의 상호 통신 프로토콜
+   - IPv4(Internet Protocol version 4): 인터넷에서 사용되는 패킷 교환 네트워크상에서 데이터를 교환하기 위한 32비트 주소체계를 갖는 네트워크 계층 프로토콜
+     - 8비트씩 4부분으로 나뉜 10진수
+     - 0~255까지 3자리수 표현
+     - 유니캐스트, 멀티캐스트, 브로드캐스트
+   - IPv4 클래스 분류
+     - A클래스: 국가나 대형 통신망에 사용(1~127), 네트워크 사용자에게 부여가 가능한 IP
+     - B클래스: 중대형 통신망에 사용(128~191)
+     - C클래스: 소규모 통신망에 사용(192~223)
+     - D클래스: 멀티캐스트 용도로 에약된 주소(224~239)
+     - E클래스: 연구를 위해 예약된 주소(공용 사용 불가)
+   - IPv6(Internet Protocol version 6): IPv4의 주소 부족 문제를 해결하기 위해 개발
+     - IPv4에 비해 자료 전송속도가 빠름
+     - 128비트 주소체계
+     - 16비트씩 8개 부분으로 나눈 16진수
+     - 유니캐스트, 멀티캐스트, 애니캐스트
+   - IPv4에서 IPv6로 전환 방법: 듀얼 스택, 터널링, 주소 변환 방식
+   - 라우팅 프로토콜
+     - 내부 라우팅 프로토콜(IGP)
+       - RIP(Routing Information Protocol): AS(자율 시스템) 내에서 사용하는 거리 벡터 알고리즘에 기초하여 개발
+       - OSPF(Open Shortest Path First): 자신을 기준으로 링크 상태 알고리즘을 적용하여 최단경로를 찾는 라우팅 프로토콜
+     - 외부 라우팅 프로토콜(EGP)
+       - BGP(Border Gateway Protocol): AS 상호간에 경로 정보를 교환하기 위한 라우팅 프로토콜
+     - TCP(Transmission Control Protocol)
+       - TCP 특징: 신뢰성 보장, 연결 지향적 특징, 흐름 제어, 혼잡 제어
+     - UDP(User Datagram Protocol)
+       - UDP 특징: 비신뢰성, 순서화되지 않은 데이터그램 서비스 제공, 실시간 응용 및 멀티캐스트 가능
+     - 표현계층 프로토콜
+       - JPEG: 이미지를 위해 만들어진 표준 규격
+       - MPEG: 멀티미디어(비디오, 오디오)를 위해 만들어진 표준 규격
+     - 응용계층 프로토콜
+       - HTTP(Hyper Text Transfer Protocol): 텍스트 기반의 통신규약. 하이퍼텍스트를 빠르게 교환하기 위한 프로토콜
+       - FTP(File Transfer Protocol): TCP/IP를 갖고 서버와 클라이언트 사이의 파일을 전송하기 위한 프로토콜
+       - SMTP(Simple Mail Transfer Protocol): 인터넷에서 TCP 포트 25번을 사용하여 이메일을 보내기 위해 이용되는 프로토콜
+       - POP3(Post Office Protocol Version 3): 원격 서버로부터 TCP/IP연결을 통해 이메일을 가져오는 데 사용하는 프로토콜
+       - IMAP(Internet Messaging Access Protocol): 원격 서버로부터 TCP/IP연결을 통해 이메일을 가져오는 데 사용하는 프로토콜
+       - Telnet: 인터넷이나 로컬 영역에서 네트워크 연결에 사용되는 네트워크 프로토콜
+       - SSH(Secure Shell): 서로 연결되어있는 컴퓨터 간 원격 명령 실행이나 쉘 서비스 등을 수행. Telnet보다 강력한 보안 제공
+       - SNMP(Simple Network Management Protocol): 라우터나 허브 등 네트워크 장치로부터 정보를 수집 및 관리
+     - 패킷 교환 방식(Packet Switching): 작은 블록의 패킷으로 데이터를 전송하여 데이터를 전송하는 동안만 네트워크 자원을 사용하도록 하는 통신 방식
+       - 활용: 이메일, 메시지
+     - 패킷 교환 방식 기술
+       - X.25: 통신을 원하는 두 단말장치가 패킷 교환망을 통해 패킷을 원활히 전달하기 위한 통신 프로토콜
+       - 프레임 릴레이: ISDN을 사용하기 위한 프로토콜로서 ITU-T에 의해 표준으로 작성
+       - ATM(Asynchronous Transfer Mode): 비동기 전송모드, 광대역 전송에 쓰이는 스위칭 기법
+     - 서킷 교환 방식(Circuit Switching): 네트워크 리소스를 특정 사용층이 독점하도록 하는 통신 방식
+       - 활용: 영상, 비디오
+     - 애드 혹 네트워크(Ad-hoc Network): 노드들에 의해 자율적으로 구성되는 기반 구조가 없는 네트워크
