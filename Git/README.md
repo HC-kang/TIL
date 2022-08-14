@@ -203,3 +203,24 @@ git stash
 
 ```bash
 git stash pop
+```
+
+### remote branch 이름 변경하기
+
+1. Local에 있는 branch 이름 변경하기
+
+```bash
+git branch -m oldbranch newbranch
+```
+
+2. Remote에 존재하는 oldbranch 삭제하기
+
+```bash
+git push origin :oldbranch
+```
+
+3. newbranch push 하기
+
+```bash
+git push origin newbranch
+```
