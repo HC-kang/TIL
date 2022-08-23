@@ -56,3 +56,63 @@ class DatabaseSeeder extends Seeder
 > php artisan db:seed --class=ScheduleTimeSeeder
 - 특정 seeder만 선택해서 실행
 
+## Carbon
+
+1. Day, Hour 등등.. 시간대의 시작 및 종료시점을 반환
+
+    ```php
+    startOfDay()
+    startOfHour()
+    endOfDay()
+    endOfHour()
+    ```
+
+2. format('Y-m-d') 없이도 시간 포멧 변환
+
+    ```php
+    toDateString()
+    ```
+
+## schedule
+
+> php artisan schedule:work
+
+- 보통 로컬에서는 스케줄러를 가동하지 않음. 그러나 필요시 위 명령어로 작동할 수 있음
+
+> php artisan {signature} {flags}
+
+- 개별 커맨드로도 쉘처럼 활용 가능
+
+
+## Enum
+
+- Laravel 9부터 Enum이 추가되었음.
+
+### AS-IS
+```php
+<?php
+
+namespace Enum;
+
+class UserRoleStatusFlag
+{
+    const ADMIN = 'admin';
+    const VISITOR = 'visitor';
+    const EDITOR = 'editor';
+}
+```
+
+### TO-BE
+
+```php
+<?php
+
+namespace Enum;
+
+enum UserRoleEnum: string
+{
+    case ADMIN = 'admin';
+    case VISITOR = 'visitor';
+    case EDITOR = 'editor';
+}
+```
