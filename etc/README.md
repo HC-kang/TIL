@@ -41,5 +41,33 @@
 - 네이티브 광고(Native Advertising): 언론 기사와 유사하게 보이도록 디자인된 온라인 광고 형태
 
 - DA(Display Advertising): 인터넷을 통해 진행할 수 있는 가장 기본적인 온라인 광고
-- SA(Search Advertising): 특정 키워드 검색 시 결과에 노출되는 광고
+- 온라인 광고
+- SA(vertising): 특정 키워드 검색 시 결과에 노출되는 광고
 - RTB(Real Time Bidding): 실시간 광고 입찰 시스템
+
+
+## Vim
+
+- h, j, k, l
+- i(insert), a(append), I, A // 시작, 끝 이동+수정
+- 0, $ // 문장 시작, 끝 이동
+- w, b // 3w, 3b
+- H(high), M(middle), L(low) // 화면상 이동
+- gg, G, 10G // 맨위, 맨 아래, 줄번호 지정
+- ctrl u, ctrl d // 위아래 스크롤
+- {, } // 문단 시작, 끝
+- x // 글자 삭제
+- dd // 문장 삭제
+- yy // 문장 복사
+- p // 붙여넣기
+- *p // 클립보드
+
+- d + it // delete + inner tags
+- command: d, y, c
+- object: it, aw, at, ap, as, i", ip, i(, i{, ... 
+- object: j, k
+- .
+- /, ? // 검색
+
+- v // 선택 -> vaw...
+- ctrl v //

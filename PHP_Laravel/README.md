@@ -73,6 +73,12 @@ class DatabaseSeeder extends Seeder
     toDateString()
     ```
 
+3. Others
+
+    ```php
+    diffInDays()
+    ```
+
 ## schedule
 
 > php artisan schedule:work
@@ -116,3 +122,11 @@ enum UserRoleEnum: string
     case EDITOR = 'editor';
 }
 ```
+
+### Eloquent
+
+1. ->count() vs ->get()->count()
+    - ->get()->count()
+        - Eloquent model object를 메모리에 올리고 count
+    - ->count()
+        - DB상에서 count -> 대체로 성능이 더 우수함.
