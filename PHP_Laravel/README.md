@@ -130,3 +130,23 @@ enum UserRoleEnum: string
         - Eloquent model object를 메모리에 올리고 count
     - ->count()
         - DB상에서 count -> 대체로 성능이 더 우수함.
+
+2. attach() & detach()
+
+```php
+$Branch->Days()->attach($input['DayIds']);
+```
+
+attach, detach 메소드를 활용해서 다대다 연관관계를 표현 할 수 있음.
+
+```php
+$Branch->Days()->detach();
+```
+
+필요없어진 경우 detach로 삭제 가능
+
+```php
+$Branch->Days()->sync();
+```
+
+수정소요가 있을땐 sync로 수정도 가능
