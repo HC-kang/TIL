@@ -17,6 +17,93 @@
   - 유저 시나리오에 따라 테스트 실시
   - 최종 사용자인 유저의 입장에서 테스트. 본질적으로 가장 중요함.
 
+## 테스트 더블
+
+- 테스트 더블의 종류
+  - Dummy
+    - 실제 동작은 구현하지 않은 채, 객체의 인터페이스만 구현한 테스트 더블 객체.
+    - 메서드가 동작하지 않아도 문제가 없을 시에 사용.
+
+    ```python
+    class DummyRepository(Repository):
+        def insert(self, data):
+            return True
+        
+        def find_by_id(self, user_id):
+            return "ford"
+    ```
+
+  - Stub
+    - 더미 테스트 객체에서 테스트에 필요한 최소한의 구현만 해 둔 객체.
+    - 테스트에서 호출될 요청에 대해 미리 준비해둔 결과만 반환.
+
+    ```python
+
+    ```
+
+  - Spy
+    - stub에 테스트에 필요한 정보를 기록하는 기능을 추가한 객체
+    - 보통 stub의 역할을 포함함.
+    - 실제로 내부가 잘 작동했는지 등을 별도 인스턴스 변수로 기록함.
+
+    ```python
+    class SpyUserRepository(Repository):
+      insert_called = 0
+
+      def insert(self, data):
+          SpyUserRepository.insert_called += 1
+          return "OK"
+      
+      @property
+      def get_insert_called(self):
+          return SpyUserRepository.insert_called
+    ```
+
+  - Fake
+    - 동작의 구현은 갖추고있지만, 테스트에서만 활용 할 수 있는 객체.
+    - 대체할 객체가 복잡한 내부 로직이나 외부 의존성이 있을때 사용
+
+    ```python
+    class FakeUserRepository(Repository):
+        def __init__(self):
+            self.users = []
+        
+        def insert(self, data):
+            self.users.append(data)
+        
+        def find_by_id(self, user_id):
+            return [user for user in self.users if user.id == user_id]
+    ```
+
+  - Mock
+    - 테스트에 필요한 인터페이스와 반환 값을 제공해주는 객체
+    - 해당 메서드가 제대로 호출되었는지 확인하는 행위검증의 기능을 가짐.
+    - 다른 테스트더블과 다르게 보통 객체를 직접 정의하지 않고, 보통 Mock 객체로 반환값을 미리 정해둠.
+      - 대부분의 테스트 프레임워크는 Mocking을 정밀하게 할 수 있도록 지원 해 줌.
+
+    ```python
+    @mock.patch.object(UserRepository, 'insert')
+    def test(insert_method):
+        insert_method.return_value = "OK" # stub처럼 기댓값을 반환
+        insert_method({"id": 1, "name": "ford"})
+        insert_method.assert_called_once() # 해당 메서드가 호출되었는지 확인(행위검증)
+    
+    # 서드파티 라이브러리에 mocking하는 사례
+    @mock.patch("request.get")
+    def test_get_user(mock_get):
+      response = mock_get.return_value # 해당 mock 객체를 받아서 자유롭게 mocking
+      response.status_code = 200
+      response.json.return_value = {
+        "name": "Test User",
+        "email": "user@test.com"
+      }
+      user = get_user(1)
+
+      assert user["name"] == "Test User"
+      # 해당 메서드와 인자가 제대로 불렸는지 행위를 검증합니다.
+      mock_get.assert_called_once_with("https://api-server.com/users/1")
+    ```
+
 ### TDD 경험 정리
 
 1. 모든 분기를 확인하되, 모든 값을 확인 할 수는 없다.
