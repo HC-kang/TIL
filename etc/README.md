@@ -71,3 +71,72 @@
 
 - v // 선택 -> vaw...
 - ctrl v //
+
+
+## Redis
+
+
+#### 접속
+
+- 사용법 : redis-cli -h [접속 IP] -p [포트] -a [패스워드] -n [DB번호] -c(클러스터)
+  - redis-cli -h 127.0.0.1 -p 6379 -a foobared -n 0
+
+#### 셋
+
+- 사용법 : SET [Key] [Value]
+  - 127.0.0.1:6379> SET redis cacheserver
+
+#### 겟
+
+- 사용법 : GET [Key]
+  - 127.0.0.1:6379> GET redis
+
+#### 삭제
+
+- 사용법 : DEL [Key]
+  - 127.0.0.1:6379> DEL redis
+
+#### 잔류시간
+
+- 사용법 : TTL [Key]
+  - 127.0.0.1:6379> ttl redis -> 사라지지 않으면 -1
+
+#### 존재여부
+
+- 127.0.0.1:6379> EXIST [Key]
+
+#### 랜덤확인
+
+- 127.0.0.1:6379> RANDOMKEY [Key]
+
+#### 타입 확인
+
+- 127.0.0.1:6379> TYPE [Key]
+
+#### key의 전체 개수
+
+- 127.0.0.1:6379> DBSIZE [Key]
+
+#### 전체조회
+
+- 127.0.0.1:6379> KEYS *  
+  *: 다수 문자  
+  ?: 하나의 문자
+
+#### 모두삭제
+
+- 127.0.0.1:6379> FLUSHALL
+
+
+### 외부
+
+#### 정보 확인
+
+redis-cli -p 1111 info
+
+#### 모니터링
+
+redis-cli -p 1111 monitor
+
+
+참고: http://redisgate.kr/redis/command/common.php
