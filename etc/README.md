@@ -138,7 +138,8 @@ redis-cli -p 1111 info
 
 redis-cli -p 1111 monitor
 
-참고: http://redisgate.kr/redis/command/common.php
+참고: [redisgate](http://redisgate.kr/redis/command/common.php)
+
 
 ## curl
 
@@ -146,4 +147,4 @@ redis-cli -p 1111 monitor
 - -H : header 지정, bearer token 등도 가능
 - -d : form 등 데이터. 추가 시 자동으로 POST로 인식
 
-참고: https://www.lesstif.com/software-architect/curl-http-get-post-rest-api-14745703.html
+참고: [Software Architect](https://www.lesstif.com/software-architect/curl-http-get-post-rest-api-14745703.html)
