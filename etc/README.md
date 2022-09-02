@@ -1,3 +1,5 @@
+# 기타 알아둘것들
+
 ## 마케팅 도메인 용어
 
 - 노출(Impression): 콘텐츠가 소비된 횟수(건)
@@ -10,7 +12,7 @@
 - CTA(Call to Action): 소비자의 반응을 유도하는 행위 또는 요소
 - CPC(Cost Per Click): 1회 클릭 당 비용
 - CPM(Cost Per Mile): 1,000회 노출 당 비용
-- CPT(Cost Per Time): 
+- CPT(Cost Per Time): 시간당 비용
 - CPA(Cost Per Action): 참여당 과금
 - 전환: 사용자가 구매 등 유의미한 행동을 하는 것
 - 전환 당 비용: 사용자가 전환하게 만드는 데 드는 비용
@@ -45,7 +47,6 @@
 - SA(vertising): 특정 키워드 검색 시 결과에 노출되는 광고
 - RTB(Real Time Bidding): 실시간 광고 입찰 시스템
 
-
 ## Vim
 
 - h, j, k, l
@@ -64,7 +65,7 @@
 
 - d + it // delete + inner tags
 - command: d, y, c
-- object: it, aw, at, ap, as, i", ip, i(, i{, ... 
+- object: it, aw, at, ap, as, i", ip, i(, i{,
 - object: j, k
 - .
 - /, ? // 검색
@@ -72,74 +73,70 @@
 - v // 선택 -> vaw...
 - ctrl v //
 
-
 ## Redis
 
-
-#### 접속
+### 접속
 
 - 사용법 : redis-cli -h [접속 IP] -p [포트] -a [패스워드] -n [DB번호] -c(클러스터)
   - redis-cli -h 127.0.0.1 -p 6379 -a foobared -n 0
 
-#### 셋
+### 셋
 
 - 사용법 : SET [Key] [Value]
   - 127.0.0.1:6379> SET redis cacheserver
 
-#### 겟
+### 겟
 
 - 사용법 : GET [Key]
   - 127.0.0.1:6379> GET redis
 
-#### 삭제
+### 삭제
 
 - 사용법 : DEL [Key]
   - 127.0.0.1:6379> DEL redis
 
-#### 잔류시간
+### 잔류시간
 
 - 사용법 : TTL [Key]
   - 127.0.0.1:6379> ttl redis -> 사라지지 않으면 -1
 
-#### 존재여부
+### 존재여부
 
 - 127.0.0.1:6379> EXIST [Key]
 
-#### 랜덤확인
+### 랜덤확인
 
 - 127.0.0.1:6379> RANDOMKEY [Key]
 
-#### 타입 확인
+### 타입 확인
 
 - 127.0.0.1:6379> TYPE [Key]
 
-#### key의 전체 개수
+### key의 전체 개수
 
 - 127.0.0.1:6379> DBSIZE [Key]
 
-#### 전체조회
+### 전체조회
 
 - 127.0.0.1:6379> KEYS *  
   *: 다수 문자  
   ?: 하나의 문자
 
-#### 모두삭제
+### 모두삭제
 
 - 127.0.0.1:6379> FLUSHALL
 
-
 ### 외부
 
-#### 정보 확인
+### 정보 확인
 
 redis-cli -p 1111 info
 
-#### 모니터링
+### 모니터링
 
 redis-cli -p 1111 monitor
 
 참고: [redisgate](http://redisgate.kr/redis/command/common.php)
-
 
 ## curl
 
