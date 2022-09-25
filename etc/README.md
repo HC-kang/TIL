@@ -144,4 +144,55 @@ redis-cli -p 1111 monitor
 - -H : header 지정, bearer token 등도 가능
 - -d : form 등 데이터. 추가 시 자동으로 POST로 인식
 
-참고: [Software Architect](https://www.lesstif.com/software-architect/curl-http-get-post-rest-api-14745703.html)
+참고: [Software Architect](https://www.lesstif.com/software-architect/curl-http-get-post-rest-api-14745703.html)  
+
+## Postman
+
+- bearer token 자동화 방법
+  1. 매 API에 pre-request script 적용
+     1. 장점
+        1. 로그인이 필요없다.
+        2. 간단하다.
+     2. 단점
+        1. API 응답시간이 길어진다.
+        2. 정확한 API 응답시간 측정이 불가능해진다.
+     3. 예시
+
+        ```javascript
+        // Pre-request Script
+        const tokenUrl = 'http://{로그인 URL}}';
+        const clientId = '0000';
+        const clientSecret = '0000';
+
+        const getTokenRequest = {
+          method: 'POST',
+          url: tokenUrl,
+          body: {
+              mode: 'formdata',
+              formdata: [
+                  { key: 'email', value: clientId },
+                  { key: 'password', value: clientSecret }
+              ]
+          }
+        };
+
+        pm.sendRequest(getTokenRequest, (err, response) => {
+          const jsonResponse = response.json();
+          const newAccessToken = jsonResponse.access_token;
+
+          pm.variables.set('token', newAccessToken);
+        });
+        ```
+
+  2. 로그인 API 작동시 환경변수 최신화
+     1. 장점
+        1. 다른 API 작동 시간에 영향이 없다.
+     2. 단점
+        1. 로그인을 세션이 죽을 때 마다 매번 새로 해줄 필요가 있다.
+     3. 예시
+
+        ```javascript
+        // login API's test script
+        var data = JSON.parse(responseBody);
+        pm.environment.set("token", data.access_token);
+        ```
