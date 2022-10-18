@@ -1,7 +1,7 @@
 # 자주 쓰는 명령어
 
 ```None
-# $ Dollar symbol: normal user
+# Dollar symbol: normal user
 # # hash: administrator(root)
 # | 파이프: 이전 커맨드의 결과를 이후 커맨드에 사용
 # > 앵글 브래킷: 이전 커맨드를 다음 파일에 쓰기
@@ -25,6 +25,11 @@ cat '파일' | grep '파일내에 찾을 문자열'
 ```zsh
 echo "hello" > README.md
 echo "hello2" >> README.md
+
+echo "alias _별명_='_원래 명령어_'" >> ~/.zshrc
+echo "alias gb='git branch'" >> ~/.zshrc
+echo "alias gs='git status'" >> ~/.zshrc
+echo "alias gd='git diff'" >> ~/.zshrc
 ```
 
 ## 세션 종료 후에도 실행 유지 ... 백그라운드로 실행
