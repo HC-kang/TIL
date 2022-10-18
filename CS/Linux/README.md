@@ -26,8 +26,10 @@ cat '파일' | grep '파일내에 찾을 문자열'
 echo "hello" > README.md
 echo "hello2" >> README.md
 
-echo "alias _별명_='_원래 명령어_'" >> ~/.zshrc
+# echo "alias _별명_='_원래 명령어_'" >> ~/.zshrc
 echo "alias gb='git branch'" >> ~/.zshrc
+echo "alias gp='git push'" >> ~/.zshrc
+echo "alias gl='git pull'" >> ~/.zshrc
 echo "alias gs='git status'" >> ~/.zshrc
 echo "alias gd='git diff'" >> ~/.zshrc
 ```
