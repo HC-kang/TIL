@@ -60,10 +60,257 @@
     6. Mapping
         - 스키마 정의
 
-## test
+## 자주쓰는 명령어
+
+### Pending task 확인
+
+- 일반적인 상황에서는 empty list 반환
+- pending 되어 있는 작업이 있는 경우 그 리스트 반환
+
+```json
+GET _cluster/pending_tasks
+```
+
+### hot threads 확인
+
+- GC가 비정상적이거나 CPU가 높거나 검색이 밀리는 등 대부분의 문제의 원인을 유추할 수 있음
+
+```json
+GET _nodes/hot_threads?pretty
+
+GET _nodes/node-01/hot_threads
+GET _nodes/node-02/hot_threads
+GET _nodes/node-03/hot_threads
+```
+
+### Cluster & Node 상태 확인
+
+```json
+GET _cluster/health
+GET /_cat/nodes
+
+# curl 명령어
+# 인증서 미적용
+curl -i http://x.x.x.x:9202
+curl -XGET "x.x.x.x:9202/_cat/nodes?v"
+curl http://x.x.x.x:9202/_cluster/health
+
+# 인증서 적용시
+curl -i -k -u elastic https://x.x.x.x:9202
+curl -k -u elastic -XGET "https://x.x.x.x:9202/_cat/nodes?v"
+curl -k -u elastic https://x.x.x.x:9202/_cluster/health?pretty
+```
+
+### Index 정보 확인
+
+```json
+# 모든 인덱스 확인
+GET _cat/indices?v&s=index
+
+# 특정 인덱스 확인
+GET _cat/indices/hunet-app-b2b-2019-*?v&s=index
+
+# 인덱스 health 확인
+GET _cat/indices?health=yellow
+
+# 인덱스 생성
+PUT travel-log
+{
+  "settings": {
+    "index": {
+      "number_of_shards": "3",
+      "number_of_replicas": "1"
+    }
+  },
+  "mappings": {
+    "properties": {
+      "start_date": {
+        "type": "keyword"
+      },
+      "end_date": {
+        "type": "keyword"
+      },
+      "place": {
+        "type": "keyword"
+      },
+      "word": {
+        "type": "keyword"
+      }
+    }
+  }
+}
+
+# 인덱스 내 데이터 검색
+GET travel-log/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        { "match_phrase": { "word": "여행" } },
+        { "match_phrase": { "word": "제주도" } },   
+        { "match_phrase": { "word": "바다" } }
+      ]
+    }
+  }
+}
+
+# 인덱스 내 데이터 삭제
+POST travel-log/_delete_by_query?wait_for_completion=true
+{
+  "query": {
+    "bool": {
+      "should": [
+        { "match_phrase": { "word": "여행" } },
+        { "match_phrase": { "word": "제주도" } },   
+        { "match_phrase": { "word": "바다" } }
+      ]
+    }
+  }
+}
+```
+
+### template 정보 확인
+
+```json
+# 전체 template 확인
+GET _cat/templates?v&s=name
+
+# 특정 template 상세정보
+GET _template/travel-log-template
+
+# default template 확인
+GET _template/default
+
+# template 삭제
+DELETE _template/travel-log-template
+l
+# template 생성
+PUT _template/travel-log-template
+{
+  "order": 2,
+  "index_patterns": [
+    "travel-log-*"
+  ],
+  "settings": {
+    "index": {
+      "number_of_shards": "3",
+      "number_of_replicas": "1"
+    }
+  },
+  "mappings": {
+    "dynamic_templates": [
+      {
+        "strings_as_keywords": {
+          "mapping": {
+            "type": "keyword"
+          },
+          "match_mapping_type": "string"
+        }
+      }
+    ]
+  },
+  "aliases": {}
+}
+
+# ilm template 생성
+PUT _template/daily-log-template
+{
+  "order": 2,
+  "index_patterns": [
+    "daily-log-*"
+  ],
+  "settings": {
+    "index": {
+      "number_of_shards": "3",
+      "number_of_replicas": "1",
+      "lifecycle": {
+        "name": "daily-log-lim",
+        "rollover_alias": "daily-log"
+      }
+    }
+  },
+  "mappings": {
+    "dynamic_templates": [
+      {
+        "strings_as_keywords": {
+          "mapping": {
+            "type": "keyword"
+          },
+          "match_mapping_type": "string"
+        }
+      }
+    ]
+  }
+}
+```
+
+### 샤드 할당 확인 및 강제 할당
+
+```json
+GET /_cluster/allocation/explain
+
+POST /_cluster/reroute?retry_failed=true
+```
+
+### 스냅샷
+
+```
+# 스냅샷 확인
+GET /_snapshot
+GET /_snapshot/*20210612
+GET /_snapshot/_all
+
+# 스냅샷 리스트 및 스냅샷 시작/종료시간 확인
+GET _snapshot/all_backup/all_backup_20210513
+
+# 스냅샷 진행 상태
+GET _snapshot/all_backup/all_backup_20210513/_status
+
+# 스냅샷 삭제(종료)
+DELETE _snapshot/all_backup/all_backup_20210513
+
+# 스냅샷 확인
+GET _snapshot/travel-log-20210714/_all
+
+# 복원
+POST _snapshot/travel-log-20210714/travel-log-2021.07.28/_restore?wait_for_completion=false
+{
+  "indices": ["travel-2021.07.28"]
+}
+
+# 복원 확인
+GET _cat/recovery/lms-app-logging-audit-2020.07.28?v
+```
+
+### Task
+
+```json
+# 실행중인 Task 확인
+GET _tasks
+GET _cat/tasks?v
+GET _tasks?nodes=node-1, node-2
+GET _tasks/vIYMDSJ3TGCGFtcu3Btp6w:521843726
+GET _cat/tasks?detailed
+GET _tasks?actions=*reindex
+GET _tasks?actions=*reindex&wait_for_completion=true&timeout=10s
+
+# Task 취소
+POST _tasks/vIYMDSJ3TGCGFtcu3Btp6w:521843726/_cancel
+Task Management API | Elasticsearch Reference [6.8] | Elastic
+```
+
+### Index open & close
+
+- 서버 검색성능을 위해 사용하지 않는 인덱스를 언제든 열고닫을 수 있음.
+
+```json
+POST travel-log/_close
+POST travel-log/_open
+```
 
 ---
 
 참고: [Elastic 가이드북](https://esbook.kimjmin.net/05-search/5.2-bool)  
 참고: [elasic docs](https://www.elastic.co/guide/kr/elasticsearch/reference/current/getting-started.html)  
 참고: [Jaemun Jung님 블로그](https://jaemunbro.medium.com/elastic-search-%EA%B8%B0%EC%B4%88-%EC%8A%A4%ED%84%B0%EB%94%94-ff01870094f0)
+참고: [data-traveler님 블로그](https://velog.io/@data-traveler/Elasticsearch-%EC%9E%90%EC%A3%BC-%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94-%EB%AA%85%EB%A0%B9%EC%96%B4)
