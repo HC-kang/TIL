@@ -28,10 +28,14 @@ echo "hello2" >> README.md
 
 # echo "alias _별명_='_원래 명령어_'" >> ~/.zshrc
 echo "alias gb='git branch'" >> ~/.zshrc
-echo "alias gp='git push'" >> ~/.zshrc
-echo "alias gl='git pull'" >> ~/.zshrc
+echo "alias gpu='git push'" >> ~/.zshrc
+echo "alias gpl='git pull'" >> ~/.zshrc
 echo "alias gs='git status'" >> ~/.zshrc
 echo "alias gd='git diff'" >> ~/.zshrc
+echo "alias gc='git checkout'" >> ~/.zshrc
+echo "alias ga='git add'" >> ~/.zshrc
+echo "alias gcm='git commit'" >> ~/.zshrc
+echo "alias gl='git log'" >> ~/.zshrc
 ```
 
 ## 세션 종료 후에도 실행 유지 ... 백그라운드로 실행
