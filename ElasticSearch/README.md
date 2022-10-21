@@ -314,3 +314,4 @@ POST travel-log/_open
 참고: [elasic docs](https://www.elastic.co/guide/kr/elasticsearch/reference/current/getting-started.html)  
 참고: [Jaemun Jung님 블로그](https://jaemunbro.medium.com/elastic-search-%EA%B8%B0%EC%B4%88-%EC%8A%A4%ED%84%B0%EB%94%94-ff01870094f0)
 참고: [data-traveler님 블로그](https://velog.io/@data-traveler/Elasticsearch-%EC%9E%90%EC%A3%BC-%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94-%EB%AA%85%EB%A0%B9%EC%96%B4)
+참고: [soyeon207님 블로그](https://velog.io/@soyeon207/ES-5.-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EA%B2%80%EC%83%89%ED%95%98%EA%B8%B0)
