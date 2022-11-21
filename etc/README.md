@@ -196,3 +196,35 @@ redis-cli -p 1111 monitor
         var data = JSON.parse(responseBody);
         pm.environment.set("token", data.access_token);
         ```
+
+## Nginx
+
+```shell
+    server {
+        listen 80;
+        listen [::]:80;
+
+        server_name server1 www.server1.com;
+
+        access_log /var/log/nginx/server1.access.log;
+        error_log /aar/log/nginx/server1.error.log;
+
+        location / {
+            include /etc/nginx/proxy_params;
+            proxy_pass http://127.0.0.1:3000/;
+        }
+        location / {
+            include /etc/nginx/proxy_params;
+            proxy_pass http://127.0.0.1:3000/;
+        }
+        location / {
+            root /static/;
+            # try_files $uri $uri =404;
+        }
+    }
+```
+
+---
+
+참고: [멍개님 블로그](https://blog.naver.com/PostView.nhn?blogId=pjt3591oo&logNo=222242046633&parentCategoryNo=&categoryNo=92&viewDate=&isShowPopularPosts=false&from=postView)  
+참고: [nginx docs](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#var_upstream_addr)
