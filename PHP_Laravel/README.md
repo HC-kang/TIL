@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
     diffInDays()
     ```
 
-## schedule
+## Schedule
 
 > php artisan schedule:work
 
@@ -89,6 +89,39 @@ class DatabaseSeeder extends Seeder
 
 - 개별 커맨드로도 쉘처럼 활용 가능
 
+## Queue
+
+> php artisan queue:work
+
+- queue에 등록된 job들을 순차적으로 실행하는 워커를 작동시키는 명령어
+- 타임아웃 등의 이유로 종료되기 때문에, Supervisor에 의해 지속적으로 감시와 상태관리가 필요함
+- long-lived process이기에 관련 옵션을 메모리에 저장하고, 이로인해 옵션 변경시에는 재시작을 꼭 해줘야 적용됨.
+- 옵션
+  
+  ```php
+  {connection? : The name of the queue connection to work}
+  {--name=default : The name of the worker}
+  {--queue= : The names of the queues to work}
+  {--daemon : Run the worker in daemon mode (Deprecated)}
+  {--once : Only process the next job on the queue}
+  {--stop-when-empty : Stop when the queue is empty}
+  {--delay=0 : The number of seconds to delay failed jobs (Deprecated)}
+  {--backoff=0 : The number of seconds to wait before retrying a job that encountered an uncaught exception}
+  {--max-jobs=0 : The number of jobs to process before stopping}
+  {--max-time=0 : The maximum number of seconds the worker should run}
+  {--force : Force the worker to run even in maintenance mode}
+  {--memory=128 : The memory limit in megabytes}
+  {--sleep=3 : Number of seconds to sleep when no job is available}
+  {--rest=0 : Number of seconds to rest between jobs}
+  {--timeout=60 : The number of seconds a child process can run}
+  {--tries=1 : Number of times to attempt a job before logging it failed}';
+  ```
+
+> php artisan queue:listen
+
+- work와 같은 기능을 하지만, 로컬에서 사용하기 위한 기능
+- 재시작 없이도 변경사항이 적용됨
+- **prod 환경에서 사용 금지**
 
 ## Enum
 

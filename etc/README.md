@@ -224,7 +224,69 @@ redis-cli -p 1111 monitor
     }
 ```
 
+  참고: [멍개님 블로그](https://blog.naver.com/PostView.nhn?blogId=pjt3591oo&logNo=222242046633&parentCategoryNo=&categoryNo=92&viewDate=&isShowPopularPosts=false&from=postView)  
+  ngx_http_upstream_module.html#var_upstream_addr)
+
 ---
 
-참고: [멍개님 블로그](https://blog.naver.com/PostView.nhn?blogId=pjt3591oo&logNo=222242046633&parentCategoryNo=&categoryNo=92&viewDate=&isShowPopularPosts=false&from=postView)  
-참고: [nginx docs](http://nginx.org/en/docs/http/ngx_http_upstream_module.html#var_upstream_addr)
+## Supervisor
+
+### install
+
+- ubuntu
+
+  ```shell
+  sudo apt-get install supervisor
+  ```
+
+- centOS
+
+  ```shell
+  yum install supervisor
+  ```
+
+- python pip
+
+  ```shell
+  sudo pip install supervisor
+  ```
+
+### Configure
+
+  ```shell
+  [program:laravel-worker]
+  process_name=%(program_name)s_%(process_num)02d
+  command=php /home/forge/app.com/artisan queue:work sqs --sleep=3 --tries=3 --max-time=3600
+  autostart=true
+  autorestart=true
+  stopasgroup=true
+  killasgroup=true
+  user=forge
+  numprocs=8
+  redirect_stderr=true
+  stdout_logfile=/home/forge/app.com/worker.log
+  stopwaitsecs=3600
+  ```
+
+- 필요시 sudo -u USER로 유저 변경
+
+- 이후 supervisord.conf에 include 추가
+
+  ```shell
+  [include]
+  files = /etc/supervisor/laravel-worker.conf
+  ```
+
+### Start
+
+```shell
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start laravel-worker:*
+```
+
+### Check
+
+```shell
+sudo supervisorctl status
+```
