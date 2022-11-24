@@ -225,7 +225,6 @@ redis-cli -p 1111 monitor
 ```
 
   참고: [멍개님 블로그](https://blog.naver.com/PostView.nhn?blogId=pjt3591oo&logNo=222242046633&parentCategoryNo=&categoryNo=92&viewDate=&isShowPopularPosts=false&from=postView)  
-  ngx_http_upstream_module.html#var_upstream_addr)
 
 ---
 
@@ -290,3 +289,16 @@ sudo supervisorctl start laravel-worker:*
 ```shell
 sudo supervisorctl status
 ```
+
+---
+
+## Ansible
+
+참고: [wikidocs 개발자가 앤시블 시작하기](https://wikidocs.net/book/6350)  
+
+## Terraform
+
+- 프로비저닝 도구
+
+참고: [테라폼이란?](https://www.44bits.io/ko/keyword/terraform)  
+참고: [테라폼 튜토리얼](https://www.44bits.io/ko/post/terraform_introduction_infrastrucute_as_code)  
