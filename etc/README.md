@@ -302,3 +302,25 @@ sudo supervisorctl status
 
 참고: [테라폼이란?](https://www.44bits.io/ko/keyword/terraform)  
 참고: [테라폼 튜토리얼](https://www.44bits.io/ko/post/terraform_introduction_infrastrucute_as_code)  
+
+## wrk & wrk2
+
+```zsh
+wrk -c 10 -d S http://127.0.0.1:8000/random_user
+```
+
+```zsh
+wrk -c 100 -d S http://127.0.0.1:8000/random_user
+```
+
+```zsh
+# 좀 더 자세한 결과 확인(latency)
+wrk -c 100 -d S --latency http://127.0.0.1:8000/random_user
+```
+
+```zsh
+wrk2 -c 100 -d 30 -R 100 --latency http://127.0.0.1:8000/random_user
+```
+
+참고: [wrk2 github](https://github.com/giltene/wrk2)
+참고: [엘리스 코딩](https://www.youtube.com/watch?v=HSNyJnobBws)
