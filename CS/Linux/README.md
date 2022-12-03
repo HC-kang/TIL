@@ -156,3 +156,33 @@ whereis
 ```zsh
 service sshd status
 ```
+
+## 파일 속성 확인/관리
+
+```zsh
+lsattr [ -RVadv ] {target_file}
+# ex) lsattr -R / | grep +i
+chattr [ options ] [+/-/=] [ property ] {target_file}
+# ex) charrt +i test.txt
+```
+
+|Flag|속성|설명|
+|-|-|-|
+|A|No atime Update|- atime 레코드가 수정되지 않음|
+|a|Append only|- 파일을 append mode로만 열 수 있기 때문에, 파일을 쓰는 것은 가능하지만 삭제할 수는 없음
+|c|Compressed|- 파일이 커널에 의해 자동적으로 압축됨<br>- 파일을 읽을 때는 압축을 해제하여 보여주며, 쓰기 작업 시에는 디스크에 저장하기 전에 압축부터 진행
+|D|Synchronous directory updates|- 디렉터리의 변경 사항이 디스크에 동기식으로 저장됨
+|d|No dump|- dump 프로그램을 실행 중일 때에는 해당 파일이 백업되지 않음
+|E|Compression error|- Experimental compression patch에 사용되며, 압축된 데이터가 오류를 가지고 있음을 의미
+|e|Extent format|- 파일이 디스크 블록에 매핑될 때 Extents를 사용
+|I|Indexed directory|- 디렉터리가 htree(Hashed tree)로 인덱싱 중
+|h|Huge file|- 파일을 저장할 때 섹터 단위 대신에 블록사이즈 단위로 저장<br>- 또한 파일이 2TB 이상의 크기를 가지고 있음을 의미
+|i|Immutable|- 파일을 수정할 수 없음 - 쓰기, 삭제, 이름변경은 물론 링크를 생성할 수도 없음
+|j|Data journaling|- 파일에 데이터를 쓰기 전에 ext3 journal에 먼저 씀
+|s|Secure deletion|- 파일을 제거했을 때 해당 블록은 zeroed되며, 디스크에 쓰여짐
+|S|Synchronous updates|- 파일의 변경 사항이 디스크에 동기식으로 저장됨
+|T|Top of directory hierarchy|- T 속성이 부여된 디렉터리는 가장 상위 디렉터리로 여겨짐<br>- Home 디렉터리에 설정하면 좋음
+|t|No tail-merging|- 파일에 Partial block fragmentation이 발생하지 않음 (tail-merging이 발생하지 않음)
+|u|Undeletable|- 파일이 삭제되더라도 내용은 저장되어 있으며, 복구 가능
+|X|Compression raw access|- Experimental compression patch에 사용되며, 압축된 파일의 실제 내용을 직접 접근할 수 있음을 의미
+|Z|Compressed dirty file|- Experimental compression patch에 사용되며, 압축된 데이터가 손상되었음을 의미
