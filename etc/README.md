@@ -319,3 +319,36 @@ brew install hey
   ```zsh
   # ex) hey -z 10s -z 3m -c 9 http://localhost:8080/
   ```
+
+## wrk & wrk2
+
+```zsh
+wrk -c 10 -d S http://127.0.0.1:8000/random_user
+```
+
+```zsh
+wrk -c 100 -d S http://127.0.0.1:8000/random_user
+```
+
+```zsh
+# 좀 더 자세한 결과 확인(latency)
+wrk -c 100 -d S --latency http://127.0.0.1:8000/random_user
+```
+
+```zsh
+wrk2 -c 100 -d 30 -R 100 --latency http://127.0.0.1:8000/random_user
+```
+
+참고: [wrk2 github](https://github.com/giltene/wrk2)
+참고: [엘리스 코딩](https://www.youtube.com/watch?v=HSNyJnobBws)
+
+---
+
+### 참고하면 좋은 사이트 목록
+
+- [레딧](https://www.reddit.com/r/learnprogramming/)
+- [Just Five News](https://www.justfive.news/)
+- [AnandTech](https://www.anandtech.com/)
+- [Tom's Hardware](https://www.tomshardware.com/)
+- [Digital Trends](https://www.digitaltrends.com/)
+- [Digital Ocean](https://www.digitalocean.com/community/tutorials)
