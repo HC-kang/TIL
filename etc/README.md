@@ -302,3 +302,20 @@ sudo supervisorctl status
 
 참고: [테라폼이란?](https://www.44bits.io/ko/keyword/terraform)  
 참고: [테라폼 튜토리얼](https://www.44bits.io/ko/post/terraform_introduction_infrastrucute_as_code)  
+
+## Hey
+
+- 매우 간단한 웹서버 벤치마킹 툴
+
+```zsh
+brew install hey
+```
+
+- 옵션
+  > -n: Request의 총 개수  
+  > -c: Worker의 개수 지정(n >= c)  
+  > -z: Duration, 지정 시 n옵션 무시  
+  
+  ```zsh
+  # ex) hey -z 10s -z 3m -c 9 http://localhost:8080/
+  ```
