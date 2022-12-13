@@ -335,3 +335,39 @@ wrk2 -c 100 -d 30 -R 100 --latency http://127.0.0.1:8000/random_user
 - [Tom's Hardware](https://www.tomshardware.com/)
 - [Digital Trends](https://www.digitaltrends.com/)
 - [Digital Ocean](https://www.digitalocean.com/community/tutorials)
+
+### 구글 검색 팁
+
+- 따옴표 사용
+  - 특정 문구를 반드시 포함하는 검색결과 확인용. 특히 에러코드, 에러메시지 검색 시 용이 
+  - ex) "python" "django"
+- site: 사용
+  - 특정 사이트에서만 검색결과 확인용.
+  - ex) 사이트 내부 검색, 특정 도메인 검색, 도메인 내 https 미적용 사이트 검색
+    - site:stackoverflow.com python django
+    - site:*.kbstar.com/
+    - site:*.kbstar.com/ -inurl:https
+- link: 사용
+  - 특정 사이트에서 링크된 페이지 검색결과 확인용.
+  - ex) link:stackoverflow.com python django
+- \* 사용 (와일드카드)
+  - 특정 단어로 시작하는 검색결과 확인용.
+  - ex) come * right now * me(비틀즈 노래가사)
+- related: 사용
+  - 특정 사이트와 관련된 사이트 검색결과 확인용.
+  - ex) related:stackoverflow.com python django
+- OR 사용 ('|'도 가능)
+  - 두 단어 중 하나라도 포함된 검색결과 확인용.
+  - ex) python OR django
+- .. 사용 (점 두개)
+  - 특정 범위의 검색결과 확인용.
+  - ex) python 2019..2022
+- \- 사용 (대시)
+  - 특정 단어를 제외한 검색결과 확인용.
+  - ex) python -django
+- \+ 사용 (플러스)
+  - 특정 단어를 반드시 포함한 검색결과 확인용.
+  - ex) python +django
+- AROUND(X) 사용
+  - 특정 단어를 포함하고, 주변 단어가 X개 이내인 검색결과 확인용.
+  - ex) python AROUND(2) django
