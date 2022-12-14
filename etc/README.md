@@ -388,3 +388,38 @@ wrk2 -c 100 -d 30 -R 100 --latency http://127.0.0.1:8000/random_user
 - AROUND(X) 사용
   - 특정 단어를 포함하고, 주변 단어가 X개 이내인 검색결과 확인용.
   - ex) python AROUND(2) django
+
+### VSCode Tips
+
+#### 단축키 목록
+
+1. 다중선택 cmd + d
+2. 탐색기 cmd + b
+3. 탐색기 포커스 cmd + shift + e
+   1. 화살표, 스페이스바
+4. 검색 cmd + f
+5. 전체검색 cmd + shift + f
+6. 분할/포커스 이동 cmd + 1~9
+7. 에디터 이동 cmd + shift + [, ]
+8. 에디터 종료 cmd + w
+9. 새 에디터 cmd + n
+10. 에디터 언어 설정 cmd + k, m
+11. 포멧팅 cmd + k,f
+12. 전체삭제 cmd + k, w
+13. 최근 디렉토리 ctrl + r
+14. 터미널 cmd + j
+
+#### 커맨드라인 활용
+
+1. 파일검색 cmd + p
+
+2. 실행 cmd + shift + p
+   1. Snake ↔ Camel (or Pascal… kebab….)
+
+3. 심볼 cmd + shift + o || '@' || '@:'
+
+4. 글로벌 심볼 cmd + t || '#'
+
+5. 라인이동 ctrl + g || ':'
+
+***이 모든건 ‘?’ 로 확인 가능***
