@@ -183,3 +183,18 @@ $Branch->Days()->sync();
 ```
 
 수정소요가 있을땐 sync로 수정도 가능
+
+
+### Tinker
+
+- php artisan tinker
+- 간단한 데이터 등을 tinker에서 직접 생성 할 수도 있음.
+
+```php
+use App\User;
+$u = new User();
+$u->name = "foo";
+$u->email = "foo@bar.com";
+$u->password = Hash::make('secret');
+$u->save();
+```
