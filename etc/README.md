@@ -415,6 +415,7 @@ wrk2 -c 100 -d 30 -R 100 --latency http://127.0.0.1:8000/random_user
 
 2. 실행 cmd + shift + p
    1. Snake ↔ Camel (or Pascal… kebab….)
+   2. Developer: Reload Window
 
 3. 심볼 cmd + shift + o || '@' || '@:'
 
