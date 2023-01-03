@@ -198,3 +198,11 @@ $u->email = "foo@bar.com";
 $u->password = Hash::make('secret');
 $u->save();
 ```
+
+### valet 특정버전 php에 모듈 설치
+
+```zsh
+/opt/homebrew/Cellar/php@7.4/7.4.32/bin/pecl install redis
+```
+
+- 위와 같이 해당버전 pecl에 직접 설치
