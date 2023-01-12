@@ -148,7 +148,8 @@ redis-cli -p 1111 monitor
 
 ## Postman
 
-- bearer token 자동화 방법
+### bearer token 자동화 방법
+
   1. 매 API에 pre-request script 적용
      1. 장점
         1. 로그인이 필요없다.
@@ -197,23 +198,25 @@ redis-cli -p 1111 monitor
         pm.environment.set("token", data.access_token);
         ```
 
-- post json body에 주석처리하기
+### post json body에 주석처리하기
 
-```javascript
-if (pm?.request?.body?.options?.raw?.language === 'json') {
-    const rawData = pm.request.body.toString();
-    const strippedData = rawData.replace(
-        /\\"|"(?:\\"|[^"])*"|(\/\/.*|\/\*[\s\S]*?\*\/)/g,
-        (m, g) => g ? "" : m
-    );        
-    pm.request.headers.add("application/json", "Content-Type")
-    pm.request.body.update(JSON.stringify(JSON.parse(strippedData)));
+- pre-request script
 
-}
-```
+  ```javascript
+  if (pm?.request?.body?.options?.raw?.language === 'json') {
+      const rawData = pm.request.body.toString();
+      const strippedData = rawData.replace(
+          /\\"|"(?:\\"|[^"])*"|(\/\/.*|\/\*[\s\S]*?\*\/)/g,
+          (m, g) => g ? "" : m
+      );        
+      pm.request.headers.add("application/json", "Content-Type")
+      pm.request.body.update(JSON.stringify(JSON.parse(strippedData)));
+  }
+  ```
 
-pre-request script에 위 코드 추가.
-컬렉션 단위로도 적용 가능
+  - pre-request script에 위 코드 추가.
+  - 컬렉션 단위로도 적용 가능
+
 ## Nginx
 
 ```shell
