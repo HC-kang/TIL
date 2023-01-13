@@ -217,6 +217,20 @@ redis-cli -p 1111 monitor
   - pre-request script에 위 코드 추가.
   - 컬렉션 단위로도 적용 가능
 
+  - 위 코드는 빈 body에서 에러. 아래 코드 활용
+
+  ```javascript
+  if (pm?.request?.body.raw && pm?.request?.body?.options?.raw?.language === 'json') {
+  const rawData = pm.request.body.toString();
+  const strippedData = rawData.replace(
+      /\\"|"(?:\\"|[^"])*"|(\/\/.*|\/\*[\s\S]*?\*\/)/g,
+      (m, g) => g ? "" : m
+  );        
+  pm.request.headers.add("application/json", "Content-Type")
+  pm.request.body.update(JSON.stringify(JSON.parse(strippedData)));
+  }
+  ```
+
 ## Nginx
 
 ```shell
