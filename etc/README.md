@@ -444,3 +444,209 @@ wrk2 -c 100 -d 30 -R 100 --latency http://127.0.0.1:8000/random_user
 5. 라인이동 ctrl + g || ':'
 
 ***이 모든건 ‘?’ 로 확인 가능***
+
+### Naming Convention
+
+#### 메소드명
+
+- remove vs delete
+  - remove
+    - 객체를 삭제하는 것이 아니라, 객체를 참조하는 것을 삭제하는 것.
+    - **객체 삭제게 실패하면 에러가 발생함**
+    - 하나의 아이템을 삭제할 때 DB에 두 번 접근함.
+  - delete
+    - 객체를 삭제하는 것.
+
+- get vs find - [reference](https://tuhrig.de/find-vs-get/)
+  - get
+    - 객체 혹은 exception을 반환하는 것.
+    - 객체를 가져오는데 짧은 시간이 소요됨
+  - find
+    - 객체를 반환하되, null일 수 있는 것.
+    - 객체를 가져오는데 상대적으로 긴 시간이 소요됨
+
+- create vs new - 별 차이 없음
+  - create
+    - 객체를 생성하고 초기화 하는것
+  - new
+    - 객체를 생성하는 것.
+
+---
+
+- add vs append
+  - add
+    - 객체를 추가하는 것.
+  - append
+    - 객체를 추가하는 것.
+
+- update vs modify
+  - update
+    - 객체를 수정하는 것.
+  - modify
+    - 객체를 수정하는 것.
+
+- set vs put
+  - set
+    - 객체를 설정하는 것.
+  - put
+    - 객체를 설정하는 것.
+
+- save vs store
+  - save
+    - 객체를 저장하는 것.
+  - store
+    - 객체를 저장하는 것.
+
+- load vs fetch
+  - load
+    - 객체를 불러오는 것.
+  - fetch
+    - 객체를 불러오는 것.
+
+- check vs validate
+  - check
+    - 객체를 검사하는 것.
+  - validate
+    - 객체를 검사하는 것.
+
+- is vs has
+  - is
+    - 객체가 어떤 것인지 확인하는 것.
+  - has
+    - 객체가 어떤 것을 가지고 있는지 확인하는 것.
+
+- count vs length
+  - count
+    - 객체의 개수를 세는 것.
+    - 연결 리스트
+  - length
+    - 객체의 길이를 세는 것.
+    - 어레이
+
+- clear vs reset
+  - clear
+    - 객체를 초기화하는 것.
+  - reset
+    - 객체를 초기화하는 것.
+
+- start vs begin
+  - start
+    - 객체를 시작하는 것.
+  - begin
+    - 객체를 시작하는 것.
+
+- end vs finish
+  - end
+    - 객체를 끝내는 것.
+  - finish
+    - 객체를 끝내는 것.
+
+- stop vs pause
+  - stop
+    - 객체를 멈추는 것.
+  - pause
+    - 객체를 멈추는 것.
+
+- resume vs continue
+  - resume
+    - 객체를 재개하는 것.
+  - continue
+    - 객체를 재개하는 것.
+
+- open vs close
+  - open
+    - 객체를 열어주는 것.
+  - close
+    - 객체를 닫아주는 것.
+
+- show vs hide
+  - show
+    - 객체를 보여주는 것.
+  - hide
+    - 객체를 숨겨주는 것.
+
+- enable vs disable
+  - enable
+    - 객체를 활성화하는 것.
+  - disable
+    - 객체를 비활성화하는 것.
+
+- select vs choose
+  - select
+    - 객체를 선택하는 것.
+  - choose
+    - 객체를 선택하는 것.
+
+- move vs shift
+  - move
+    - 객체를 이동시키는 것.
+  - shift
+    - 객체를 이동시키는 것.
+
+- copy vs clone
+  - copy
+    - 객체를 복사하는 것.
+  - clone
+    - 객체를 복사하는 것.
+
+- destroy vs kill
+  - destroy
+    - 객체를 파괴하는 것.
+  - kill
+    - 객체를 파괴하는 것.
+
+- create vs make
+  - create
+    - 객체를 만드는 것.
+  - make
+    - 객체를 만드는 것.
+
+- add vs plus
+  - add
+    - 객체를 더하는 것.
+  - plus
+    - 객체를 더하는 것.
+
+- subtract vs minus
+  - subtract
+    - 객체를 빼는 것.
+  - minus
+    - 객체를 빼는 것.
+
+- multiply vs times
+  - multiply
+    - 객체를 곱하는 것.
+  - times
+    - 객체를 곱하는 것.
+
+- divide vs by
+  - divide
+    - 객체를 나누는 것.
+  - by
+    - 객체를 나누는 것.
+
+- increment vs decrement
+  - increment
+    - 객체를 증가시키는 것.
+  - decrement
+    - 객체를 감소시키는 것.
+
+- increase vs decrease
+  - increase
+    - 객체를 증가시키는 것.
+  - decrease
+    - 객체를 감소시키는 것.
+
+- raise vs lower
+  - raise
+    - 객체를 높이는 것.
+  - lower
+    - 객체를 낮추는 것.
+
+- increase vs decrease
+  - increase
+    - 객체를 증가시키는 것.
+  - decrease
+    - 객체를 감소시키는 것.
+
+#### 변수명
