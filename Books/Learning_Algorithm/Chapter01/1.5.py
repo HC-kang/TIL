@@ -8,7 +8,7 @@ def largest_two(A):
             my_max, second = A[idx], my_max
         elif second < A[idx]:
             second = A[idx]
-        return (my_max, second)
+    return (my_max, second)
 
 # -----------------------------------------
 
