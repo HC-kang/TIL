@@ -144,6 +144,7 @@ A추가 C변경 D삭제
 ```docker build [options] [path]```  
 dockerfile 을 이용해서 이미지를 생성
     -t : 이미지 이름과 태그를 설정할 수 있음
+    이때, docker hub에 push해서 사용하기 위해서는, tag명을 <dockerID>/tag:version 형식으로 지정해주어야 함
 
 ### 18. network
 
@@ -268,3 +269,27 @@ Enable access/linked directory between the container and the host machine.
 ## 참고  
 
 [portainer docs](https://docs.portainer.io/)
+
+---
+
+## docker buildx
+
+docker buildx는 docker build 명령어를 확장한 명령어로, 다양한 플랫폼에서 이미지를 빌드할 수 있게 해준다.
+
+docker buildx를 사용하기 위해서는 docker 19.03 버전 이상이 필요하고,(실험적))
+docker 20 버전부터 정식으로 포함되어 배포되었고, arm64 계열에서 도커를 사용하기 위해 사용한다.
+
+docker buildx create --use 명령어를 통해 빌드 플랫폼을 먼저 만들어야 한다.
+
+이후
+docker buildx inspect --bootstrap
+를 통해 가능한 플랫폼을 확인 할 수 있다.
+
+플랫폼이 생성되었다면,
+
+docker buildx build . --platform=linux/amd64,linux/arm64 --tag <도커 계정>/<이미지 이름>:<태그 버전> --push
+위 명령어를 통해 빌드 후, 도커 허브로 바로 푸시가 가능하다
+
+## 참고
+
+[구루미님 블로그](https://gurumee92.tistory.com/311)
