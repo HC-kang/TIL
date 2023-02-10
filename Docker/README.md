@@ -293,3 +293,4 @@ docker buildx build . --platform=linux/amd64,linux/arm64 --tag <도커 계정>/<
 ## 참고
 
 [구루미님 블로그](https://gurumee92.tistory.com/311)
+[baeyuna97님 블로그](https://velog.io/@baeyuna97/exec-user-process-caused-exec-format-error-%EC%97%90%EB%9F%AC%ED%95%B4%EA%B2%B0)
