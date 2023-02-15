@@ -186,3 +186,22 @@ chattr [ options ] [+/-/=] [ property ] {target_file}
 |u|Undeletable|- 파일이 삭제되더라도 내용은 저장되어 있으며, 복구 가능
 |X|Compression raw access|- Experimental compression patch에 사용되며, 압축된 파일의 실제 내용을 직접 접근할 수 있음을 의미
 |Z|Compressed dirty file|- Experimental compression patch에 사용되며, 압축된 데이터가 손상되었음을 의미
+
+## telnet, nc
+
+```zsh
+- nc -z localhost 8080
+```
+
+- 옵션
+  > -u : UDP 모드
+  > -z : zero-I/O 모드(스캔용)
+  > -p port : 로컬포트 지정
+  > -l : 서버 열기
+  > -v : verbose 모드
+
+- 멀티포트 스캔
+
+```zsh
+- nc -z localhost 80 81 82
+```
