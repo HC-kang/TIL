@@ -10,17 +10,17 @@ def is_palindrome2(w):
         if w[0] != w[-1]:
             return False
         w = w[1:-1]
-    
+
     return True
 
 
 # ----------------------------------
 
-word = 'level'
-word2 = 'algorithm'
+word = "level"
+word2 = "algorithm"
 
-is_palindrome(word) # True
-is_palindrome(word2) # False
+is_palindrome(word)  # True
+is_palindrome(word2)  # False
 
-is_palindrome2(word) # True
-is_palindrome2(word2) # False
+is_palindrome2(word)  # True
+is_palindrome2(word2)  # False

@@ -45,12 +45,12 @@ def linear_median(A):
         if j < mid:
             lo = j + 1
         else:
-            hi = j-1
+            hi = j - 1
     return A[lo]
 
 
 # ----------------------------
 
-lst = [1,2,3,4,5,6,7,8,9]
+lst = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 linear_median(lst)
