@@ -78,6 +78,14 @@
       canvas.addEventListener("mousedown", function (e) {
         console.log("mouseDown");
         var pressPoint = relativePosition(e, canvas);
+
+        // register mousemove event listener
+        var mousemoveEventListener = function (e) {
+          // get current mouse position
+          var movePoint = relativePosition(e, canvas);
+        };
+
+        document.addEventListener("mousemove", mousemoveEventListener, false);
       }, false)
     };
 
