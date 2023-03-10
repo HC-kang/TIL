@@ -73,6 +73,12 @@
       btnFreePath.addEventListener("click", function (e) {
         setDrawType(FREE_PATH_DRAW_TYPE);
       }, false)
+
+      // add mouseDown event listener on canvas
+      canvas.addEventListener("mousedown", function (e) {
+        console.log("mouseDown");
+        var pressPoint = relativePosition(e, canvas);
+      }, false)
     };
 
     function createButton(imagePath, id) {
@@ -90,6 +96,15 @@
       console.log(drawType);
       g_DrawType = drawType;
     };
+
+    // get relative position of mouse event
+    function relativePosition(event, element) {
+      var rect = element.getBoundingClientRect();
+      return {
+        x: Math.floor(event.clientX - rect.left),
+        y: Math.floor(event.clientY - rect.top)
+      };
+    }
 
   </script>
 </head>
