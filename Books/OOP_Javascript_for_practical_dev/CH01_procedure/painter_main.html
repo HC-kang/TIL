@@ -5,6 +5,15 @@
   <title>Painter</title>
   <script>
 
+    // drawing tool values
+    var LINE_DRAW_TYPE      = 0;
+    var RECTANGLE_DRAW_TYPE = 1;
+    var ELLIPSE_DRAW_TYPE   = 2;
+    var FREE_PATH_DRAW_TYPE = 3;
+
+    // current drawing tool type value
+    var g_DrawType = LINE_DRAW_TYPE;
+
     window.onload = function () {
       // bring toolbar components
       var toolbar = document.getElementById("toolbar");
@@ -45,6 +54,25 @@
       ctx.fillRect(x, y, w, h);
 
       ctx.strokeRect(x, y, w, h);
+
+      // add event listeners on draw tool select button
+      var btnLine      = document.getElementById("btnLine");
+      var btnRectangle = document.getElementById("btnRectangle");
+      var btnEllipse   = document.getElementById("btnEllipse");
+      var btnFreePath  = document.getElementById("btnFreePath");
+
+      btnLine.addEventListener("click", function (e) {
+        setDrawType(LINE_DRAW_TYPE);
+      }, false)
+      btnRectangle.addEventListener("click", function (e) {
+        setDrawType(RECTANGLE_DRAW_TYPE);
+      }, false)
+      btnEllipse.addEventListener("click", function (e) {
+        setDrawType(ELLIPSE_DRAW_TYPE);
+      }, false)
+      btnFreePath.addEventListener("click", function (e) {
+        setDrawType(FREE_PATH_DRAW_TYPE);
+      }, false)
     };
 
     function createButton(imagePath, id) {
@@ -54,7 +82,15 @@
       inputImage.setAttribute("id", id);
 
       return inputImage;
-    }
+
+    };
+
+    // set current drawing tool
+    function setDrawType(drawType) {
+      console.log(drawType);
+      g_DrawType = drawType;
+    };
+
   </script>
 </head>
 
