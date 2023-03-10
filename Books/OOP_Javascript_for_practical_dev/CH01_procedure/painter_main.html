@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Painter</title>
+    <script>
+
+      window.onload = function() {
+        // bring toolbar components
+        var toolbar = document.getElementById("toolbar");
+
+        var inputImage = createButton("./images/line.gif", "btnLine");
+        toolbar.appendChild(inputImage);
+
+        inputImage = createButton("./images/rectangle.gif", "btnRectangle");
+        toolbar.appendChild(inputImage);
+
+        inputImage = createButton("./images/ellipse.gif", "btnEllipse");
+        toolbar.appendChild(inputImage);
+
+        inputImage = createButton("./images/free_path.gif", "btnFreePath");
+        toolbar.appendChild(inputImage);
+
+        // bring canvas components
+        var canvas = document.getElementById("mycanvas");
+        canvas.width = 600;
+        canvas.height = 400;
+        canvas.style.border = "1px solid gray";
+        canvas.style.cursor = "pointer";
+      };
+
+      function createButton(imagePath, id) {
+        var inputImage = document.createElement("input");
+        inputImage.setAttribute("type", "image");
+        inputImage.setAttribute("src", imagePath);
+        inputImage.setAttribute("id", id);
+
+        return inputImage;
+      }
+    </script>
+  </head>
+  <body>
+    <div id="painter">
+      <div id="toolbar"></div>
+      <canvas id="mycanvas"></canvas>
+    </div>
+  </body>
+</html>
