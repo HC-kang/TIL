@@ -1,47 +1,68 @@
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Painter</title>
-    <script>
 
-      window.onload = function() {
-        // bring toolbar components
-        var toolbar = document.getElementById("toolbar");
+<head>
+  <meta charset="UTF-8">
+  <title>Painter</title>
+  <script>
 
-        var inputImage = createButton("./images/line.gif", "btnLine");
-        toolbar.appendChild(inputImage);
+    window.onload = function () {
+      // bring toolbar components
+      var toolbar = document.getElementById("toolbar");
 
-        inputImage = createButton("./images/rectangle.gif", "btnRectangle");
-        toolbar.appendChild(inputImage);
+      var inputImage = createButton("./images/line.gif", "btnLine");
+      toolbar.appendChild(inputImage);
 
-        inputImage = createButton("./images/ellipse.gif", "btnEllipse");
-        toolbar.appendChild(inputImage);
+      inputImage = createButton("./images/rectangle.gif", "btnRectangle");
+      toolbar.appendChild(inputImage);
 
-        inputImage = createButton("./images/free_path.gif", "btnFreePath");
-        toolbar.appendChild(inputImage);
+      inputImage = createButton("./images/ellipse.gif", "btnEllipse");
+      toolbar.appendChild(inputImage);
 
-        // bring canvas components
-        var canvas = document.getElementById("mycanvas");
-        canvas.width = 600;
-        canvas.height = 400;
-        canvas.style.border = "1px solid gray";
-        canvas.style.cursor = "pointer";
-      };
+      inputImage = createButton("./images/free_path.gif", "btnFreePath");
+      toolbar.appendChild(inputImage);
 
-      function createButton(imagePath, id) {
-        var inputImage = document.createElement("input");
-        inputImage.setAttribute("type", "image");
-        inputImage.setAttribute("src", imagePath);
-        inputImage.setAttribute("id", id);
+      // bring canvas components
+      var canvas = document.getElementById("mycanvas");
+      canvas.width = 600;
+      canvas.height = 400;
+      canvas.style.border = "1px solid gray";
+      canvas.style.cursor = "pointer";
 
-        return inputImage;
-      }
-    </script>
-  </head>
-  <body>
-    <div id="painter">
-      <div id="toolbar"></div>
-      <canvas id="mycanvas"></canvas>
-    </div>
-  </body>
+      // bring canvas rendering context
+      var ctx = canvas.getContext("2d");
+
+      // set canvas graphic attributes
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = "red";
+      ctx.fillStyle = "blue";
+
+      // draw a rectangle
+      var x = 100;
+      var y = 50;
+      var w = 120;
+      var h = 80;
+
+      ctx.fillRect(x, y, w, h);
+
+      ctx.strokeRect(x, y, w, h);
+    };
+
+    function createButton(imagePath, id) {
+      var inputImage = document.createElement("input");
+      inputImage.setAttribute("type", "image");
+      inputImage.setAttribute("src", imagePath);
+      inputImage.setAttribute("id", id);
+
+      return inputImage;
+    }
+  </script>
+</head>
+
+<body>
+  <div id="painter">
+    <div id="toolbar"></div>
+    <canvas id="mycanvas"></canvas>
+  </div>
+</body>
+
 </html>
