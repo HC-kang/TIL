@@ -14,6 +14,9 @@
     // current drawing tool type value
     var g_DrawType = LINE_DRAW_TYPE;
 
+    // set global variable for mousedown event coordinates
+    var g_pressPoint = null;
+
     window.onload = function () {
       // bring toolbar components
       var toolbar = document.getElementById("toolbar");
@@ -45,16 +48,6 @@
       ctx.strokeStyle = "red";
       ctx.fillStyle = "blue";
 
-      // draw a rectangle
-      var x = 100;
-      var y = 50;
-      var w = 120;
-      var h = 80;
-
-      ctx.fillRect(x, y, w, h);
-
-      ctx.strokeRect(x, y, w, h);
-
       // add event listeners on draw tool select button
       var btnLine      = document.getElementById("btnLine");
       var btnRectangle = document.getElementById("btnRectangle");
@@ -77,13 +70,22 @@
       // add mouseDown event listener on canvas
       canvas.addEventListener("mousedown", function (e) {
         console.log("mouseDown");
-        var pressPoint = relativePosition(e, canvas);
+        var canvasImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        // set current mouse position
+        g_pressPoint = relativePosition(e, canvas);
 
         // register mousemove event listener
         var mousemoveEventListener = function (e) {
           console.log("mouseMove");
+          // restore canvas image data
+          ctx.putImageData(canvasImageData, 0, 0);
+
           // get current mouse position
           var movePoint = relativePosition(e, canvas);
+
+          // draw line
+          drawing(ctx, movePoint);
         };
 
         document.addEventListener("mousemove", mousemoveEventListener, false);
@@ -93,6 +95,12 @@
           console.log("mouseUp");
           // relative position of mouseup pointer on canvas
           var upPoint = relativePosition(e, canvas);
+
+          // restore canvas image data
+          ctx.putImageData(canvasImageData, 0, 0);
+
+          // draw line
+          drawing(ctx, upPoint);
 
           // remove mousemove event listener
           document.removeEventListener("mousemove", mousemoveEventListener, false);
@@ -126,6 +134,14 @@
         x: Math.floor(event.clientX - rect.left),
         y: Math.floor(event.clientY - rect.top)
       };
+    };
+
+    // define drawing function
+    function drawing(ctx, p) {
+      ctx.beginPath();
+      ctx.moveTo(g_pressPoint.x, g_pressPoint.y);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
     }
 
   </script>
