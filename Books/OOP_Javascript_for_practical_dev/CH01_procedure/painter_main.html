@@ -81,11 +81,25 @@
 
         // register mousemove event listener
         var mousemoveEventListener = function (e) {
+          console.log("mouseMove");
           // get current mouse position
           var movePoint = relativePosition(e, canvas);
         };
 
         document.addEventListener("mousemove", mousemoveEventListener, false);
+
+        // add mouseUp event listener on canvas
+        document.addEventListener("mouseup", function (e) {
+          console.log("mouseUp");
+          // relative position of mouseup pointer on canvas
+          var upPoint = relativePosition(e, canvas);
+
+          // remove mousemove event listener
+          document.removeEventListener("mousemove", mousemoveEventListener, false);
+
+          // remove mouseup event listener
+          document.removeEventListener("mouseup", arguments.callee, false);
+      })
       }, false)
     };
 
