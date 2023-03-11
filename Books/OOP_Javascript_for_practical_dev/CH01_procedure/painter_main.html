@@ -151,6 +151,34 @@
         ctx.fillRect(g_pressPoint.x, g_pressPoint.y, w, h);
         ctx.strokeRect(g_pressPoint.x, g_pressPoint.y, w, h);
       }
+      else if (g_DrawType === ELLIPSE_DRAW_TYPE) {
+        var w = p.x - g_pressPoint.x;
+        var h = p.y - g_pressPoint.y;
+
+        drawEllipseByBezierCurve(ctx, g_pressPoint.x, g_pressPoint.y, w, h);
+      }
+    }
+
+    // draw ellipse by bezier curve
+    function drawEllipseByBezierCurve(ctx, x, y, w, h) {
+      var kappa = .5522848,
+        ox = (w / 2) * kappa,
+        oy = (h / 2) * kappa,
+        xe = x + w,
+        ye = y + h,
+        xm = x + w / 2,
+        ym = y + h / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(x, ym);
+      ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+      ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+      ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+      ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+
+      ctx.fill();
+
+      ctx.stroke();
     }
 
   </script>
