@@ -120,7 +120,35 @@
           // remove mouseup event listener
           document.removeEventListener("mouseup", arguments.callee, false);
       })
-      }, false)
+      }, false);
+
+      // register event listener for canvas line thickness
+      var strokeWidthChangeEventListener = function (e) {
+        ctx.lineWidth = this.value;
+      }
+
+      // add a combo box in toolbar for modifying line thickness
+      var size = [1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16, 20, 24, 28]
+      var select = document.createElement("select");
+      for (var i = 0; i < size.length; i++) {
+        var option = document.createElement("option");
+        option.setAttribute("value", size[i].toString());
+        var optionText = document.createTextNode(size[i].toString());
+        option.appendChild(optionText);
+
+        select.appendChild(option);
+      }
+      select.selectedIndex = 7;
+
+      // register event listener for change
+      select.addEventListener("change", strokeWidthChangeEventListener, false);
+
+      var labelStrokeWidth = document.createElement("label");
+      var labelStrokeWidthText = document.createTextNode("선 너비: ");
+
+      labelStrokeWidth.appendChild(labelStrokeWidthText);
+      labelStrokeWidth.appendChild(select);
+      toolbar.appendChild(labelStrokeWidth);
     };
 
     function createButton(imagePath, id) {
