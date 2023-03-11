@@ -138,10 +138,19 @@
 
     // define drawing function
     function drawing(ctx, p) {
-      ctx.beginPath();
-      ctx.moveTo(g_pressPoint.x, g_pressPoint.y);
-      ctx.lineTo(p.x, p.y);
-      ctx.stroke();
+      if (g_DrawType === LINE_DRAW_TYPE) {
+        ctx.beginPath();
+        ctx.moveTo(g_pressPoint.x, g_pressPoint.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      }
+      else if (g_DrawType === RECTANGLE_DRAW_TYPE) {
+        var w = p.x - g_pressPoint.x;
+        var h = p.y - g_pressPoint.y;
+
+        ctx.fillRect(g_pressPoint.x, g_pressPoint.y, w, h);
+        ctx.strokeRect(g_pressPoint.x, g_pressPoint.y, w, h);
+      }
     }
 
   </script>
