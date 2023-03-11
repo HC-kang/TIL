@@ -149,6 +149,16 @@
       labelStrokeWidth.appendChild(labelStrokeWidthText);
       labelStrokeWidth.appendChild(select);
       toolbar.appendChild(labelStrokeWidth);
+
+      // register event listener for canvas line color
+      var strokeColorChangeEventListener = function (e) {
+        ctx.strokeStyle = this.value;
+      };
+
+      // add a color selector to toolbar
+      var labelForStrokeColor = createLabelForColor(" 선 색: ", "#FF0000", strokeColorChangeEventListener);
+
+      toolbar.appendChild(labelForStrokeColor);
     };
 
     function createButton(imagePath, id) {
@@ -158,8 +168,25 @@
       inputImage.setAttribute("id", id);
 
       return inputImage;
-
     };
+
+    // add label component for color selector
+    function createLabelForColor(text, defaultValue, changeEventListener) {
+      var labelForColor = document.createElement("label");
+      var labelText = document.createTextNode(text);
+
+      var inputColor = document.createElement("input");
+      inputColor.setAttribute("type", "color");
+
+      inputColor.value = defaultValue;
+
+      inputColor.addEventListener("change", changeEventListener, false);
+
+      labelForColor.appendChild(labelText);
+      labelForColor.appendChild(inputColor);
+
+      return labelForColor;
+    }
 
     // set current drawing tool
     function setDrawType(drawType) {
