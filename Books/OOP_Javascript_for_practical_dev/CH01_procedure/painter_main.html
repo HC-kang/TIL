@@ -159,6 +159,16 @@
       var labelForStrokeColor = createLabelForColor(" 선 색: ", "#FF0000", strokeColorChangeEventListener);
 
       toolbar.appendChild(labelForStrokeColor);
+
+      // add a color selector for filling to toolbar
+      var fillColorChangeEventListener = function (e) {
+        ctx.fillStyle = this.value;
+      };
+
+      // add label component for filling color selector to toolbar
+      var labelForFillColor = createLabelForColor(" 채우기 색: ", "#0000FF", fillColorChangeEventListener);
+
+      toolbar.appendChild(labelForFillColor);
     };
 
     function createButton(imagePath, id) {
