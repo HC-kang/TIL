@@ -17,6 +17,9 @@
     // set global variable for mousedown event coordinates
     var g_pressPoint = null;
 
+    // set global variable for free path pointer coordinates
+    var g_freePathPointArray = null;
+
     window.onload = function () {
       // bring toolbar components
       var toolbar = document.getElementById("toolbar");
@@ -75,6 +78,9 @@
         // set current mouse position
         g_pressPoint = relativePosition(e, canvas);
 
+        // init free path mouse pointer coordinates
+        g_freePathPointArray = new Array();
+
         // register mousemove event listener
         var mousemoveEventListener = function (e) {
           console.log("mouseMove");
@@ -83,6 +89,9 @@
 
           // get current mouse position
           var movePoint = relativePosition(e, canvas);
+
+          // add current mouse position to free path mouse pointer coordinates
+          g_freePathPointArray.push(movePoint);
 
           // draw line
           drawing(ctx, movePoint);
@@ -95,6 +104,9 @@
           console.log("mouseUp");
           // relative position of mouseup pointer on canvas
           var upPoint = relativePosition(e, canvas);
+
+          // add current mouse position to free path mouse pointer coordinates
+          g_freePathPointArray.push(upPoint);
 
           // restore canvas image data
           ctx.putImageData(canvasImageData, 0, 0);
@@ -156,6 +168,16 @@
         var h = p.y - g_pressPoint.y;
 
         drawEllipseByBezierCurve(ctx, g_pressPoint.x, g_pressPoint.y, w, h);
+      }
+      else if (g_DrawType === FREE_PATH_DRAW_TYPE) {
+        ctx.beginPath();
+        ctx.moveTo(g_pressPoint.x, g_pressPoint.y);
+
+        for (var i = 0; i < g_freePathPointArray.length; i++) {
+          ctx.lineTo(g_freePathPointArray[i].x, g_freePathPointArray[i].y);
+        }
+
+        ctx.stroke();
       }
     }
 
