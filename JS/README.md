@@ -35,3 +35,21 @@
 - clearInterval();
 - clearImediate();
 
+## Context
+
+- hoisting
+
+- creation phase
+- execution phase
+
+- decleration
+- initialation
+
+- temporal dead zone
+
+- function decleration
+- function expression
+
+- identifier resolution
+- scope chain
+- variable shadowing
