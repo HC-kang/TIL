@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Painter</title>
+  <script src="./js/common/painter_common.js"></script>
+  <script src="./js/app/painter_constants.js"></script>
+  <script src="./js/app/painter_main.js"></script>
+  <script src="./js/view/painter_view.js"></script>
+  <script src="./js/view/panel/tool_button_panel.js"></script>
+  <script>
+
+    window.onload = function () {
+      var painterMain = new PAINTER.app.PainterMain();
+    }
+
+  </script>
+</head>
+
+<body>
+  <div id="painter">
+    <div id="toolbar"></div>
+    <canvas id="mycanvas"></canvas>
+  </div>
+</body>
+
+</html>
