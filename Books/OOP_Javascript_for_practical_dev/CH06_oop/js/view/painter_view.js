@@ -7,9 +7,10 @@ PAINTER.view.PainterView = (function () {
     var PainterConstants = PAINTER.app.PainterConstants;
 
     var PainterModel = PAINTER.model.PainterModel;
-    var LinePiece = PAINTER.model.piece.LinePiece;
 
+    var LinePiece = PAINTER.model.piece.LinePiece;
     var RectanglePiece = PAINTER.model.piece.RectanglePiece;
+    var EllipsePiece = PAINTER.model.piece.EllipsePiece;
 
     var canvas = document.getElementById("mycanvas");
     canvas.width = PainterConstants.PAINTER_WIDTH;
@@ -20,17 +21,13 @@ PAINTER.view.PainterView = (function () {
 
     var ctx = canvas.getContext("2d");
 
-    ctx.lineWidth = 10;
-    ctx.strokeStyle = "red";
-    ctx.fillStyle = "blue";
-
     this.ctx = ctx;
 
     this.painterModel = new PainterModel();
 
     this.painterModel.addPiece(new LinePiece(50, 50, 100, 80));
-
     this.painterModel.addPiece(new RectanglePiece(110, 20, 100, 50));
+    this.painterModel.addPiece(new EllipsePiece(110, 120, 100, 80));
   };
 
   PainterView.prototype.repaint = function () {

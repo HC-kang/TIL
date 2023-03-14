@@ -11,6 +11,8 @@ PAINTER.model.PainterModel = (function () {
     var RectanglePiece = PAINTER.model.piece.RectanglePiece;
     var LinePiece = PAINTER.model.piece.LinePiece;
 
+    let EllipsePiece = PAINTER.model.piece.EllipsePiece;
+
     var size = this.pieces.length;
 
     for (var i = 0; i < size; i++) {
@@ -18,6 +20,8 @@ PAINTER.model.PainterModel = (function () {
         this.pieces[i].drawLine(ctx);
       } else if (this.pieces[i] instanceof RectanglePiece) {
         this.pieces[i].drawRect(ctx);
+      } else if (this.pieces[i] instanceof EllipsePiece) {
+        this.pieces[i].drawEllipse(ctx);
       }
     }
   };
