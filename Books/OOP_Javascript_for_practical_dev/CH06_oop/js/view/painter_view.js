@@ -6,6 +6,9 @@ PAINTER.view.PainterView = (function () {
   PainterView = function () {
     var PainterConstants = PAINTER.app.PainterConstants;
 
+    var PainterModel = PAINTER.model.PainterModel;
+    var LinePiece = PAINTER.model.piece.LinePiece;
+
     var canvas = document.getElementById("mycanvas");
     canvas.width = PainterConstants.PAINTER_WIDTH;
     canvas.height = PainterConstants.PAINTER_HEIGHT;
@@ -20,17 +23,15 @@ PAINTER.view.PainterView = (function () {
     ctx.fillStyle = "blue";
 
     this.ctx = ctx;
+
+    this.painterModel = new PainterModel();
+
+    this.painterModel.addPiece(new LinePiece(50, 50, 100, 80));
   };
 
   PainterView.prototype.repaint = function () {
-    var x = 10;
-    var y = 20;
-    var w = 100;
-    var h = 50;
 
-    this.ctx.fillRect(x, y, w, h);
-
-    this.ctx.strokeRect(x, y, w, h);
+    this.painterModel.drawPieces(this.ctx);
   };
 
   PainterView.prototype.toString = function () {

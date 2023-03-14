@@ -3,11 +3,22 @@ PAINTER.createNameSpace("PAINTER.app.PainterMain");
 PAINTER.app.PainterMain = (function () {
   var PainterMain;
 
-  PainterMain = function () {
+  PainterMain = function (painterDivId) {
+    var painter = document.getElementById(painterDivId);
+
+    var toolbar = document.createElement("div");
+    toolbar.setAttribute("id", "toolbar");
+
+    var mycanvas = document.createElement("canvas");
+    mycanvas.setAttribute("id", "mycanvas");
+
+    painter.appendChild(toolbar);
+    painter.appendChild(mycanvas);
+
     var painterView = new PAINTER.view.PainterView();
     painterView.repaint();
 
-    var toolButtonPanel = new PAINTER.view.panel.ToolButtonPanel();
+    var toolButtonPanel = new PAINTER.view.panel.ToolButtonPanel(painterView);
     toolButtonPanel.initLayout();
   };
 
