@@ -16,13 +16,7 @@ PAINTER.model.PainterModel = (function () {
     var size = this.pieces.length;
 
     for (var i = 0; i < size; i++) {
-      if (this.pieces[i] instanceof LinePiece) {
-        this.pieces[i].drawLine(ctx);
-      } else if (this.pieces[i] instanceof RectanglePiece) {
-        this.pieces[i].drawRect(ctx);
-      } else if (this.pieces[i] instanceof EllipsePiece) {
-        this.pieces[i].drawEllipse(ctx);
-      }
+      this.pieces[i].draw(ctx);
     }
   };
 

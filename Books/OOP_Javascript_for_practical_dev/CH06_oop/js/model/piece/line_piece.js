@@ -1,11 +1,11 @@
 PAINTER.createNameSpace("PAINTER.model.piece.LinePiece");
 
 PAINTER.model.piece.LinePiece = (function () {
+  var AbstractPiece = PAINTER.model.piece.AbstractPiece;
   var LinePiece;
 
   LinePiece = function (startX, startY, endX, endY) {
-    this.strokeColor = "green";
-    this.strokeWidth = 10;
+    AbstractPiece.call(this);
 
     this.startX = startX;
     this.startY = startY;
@@ -13,7 +13,16 @@ PAINTER.model.piece.LinePiece = (function () {
     this.endY = endY;
   };
 
-  LinePiece.prototype.drawLine = function (ctx) {
+  LinePiece.prototype = Object.create(AbstractPiece.prototype, {
+    constructor: {
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value: LinePiece,
+    }
+  });
+
+  LinePiece.prototype.draw = function (ctx) {
     ctx.lineWidth = this.strokeWidth;
     ctx.strokeStyle = this.strokeColor;
 

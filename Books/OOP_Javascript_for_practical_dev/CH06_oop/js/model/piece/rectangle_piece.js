@@ -1,13 +1,11 @@
 PAINTER.createNameSpace("PAINTER.model.piece.RectanglePiece");
 
 PAINTER.model.piece.RectanglePiece = (function () {
+  var AbstractPiece = PAINTER.model.piece.AbstractPiece;
   var RectanglePiece;
 
   RectanglePiece = function (x, y, width, height) {
-    this.strokeColor = "red";
-    this.strokeWidth = 10;
-
-    this.fillColor = "blue";
+    AbstractPiece.call(this);
 
     this.x = x;
     this.y = y;
@@ -15,7 +13,16 @@ PAINTER.model.piece.RectanglePiece = (function () {
     this.height = height;
   };
 
-  RectanglePiece.prototype.drawRect = function (ctx) {
+  RectanglePiece.prototype = Object.create(AbstractPiece.prototype, {
+    constructor: {
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value: RectanglePiece,
+    }
+  });
+
+  RectanglePiece.prototype.draw = function (ctx) {
     ctx.lineWidth = this.strokeWidth;
     ctx.strokeStyle = this.strokeColor;
     ctx.fillStyle = this.fillColor;

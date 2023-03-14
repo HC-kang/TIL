@@ -1,13 +1,11 @@
 PAINTER.createNameSpace("PAINTER.model.piece.Ellipse");
 
 PAINTER.model.piece.EllipsePiece = (function () {
+  var AbstractPiece = PAINTER.model.piece.AbstractPiece;
   var EllipsePiece;
 
   EllipsePiece = function (x, y, width, height) {
-    this.strokeColor = "green";
-    this.strokeWidth = 10;
-
-    this.fillColor = "yellow";
+    AbstractPiece.call(this);
 
     this.x = x;
     this.y = y;
@@ -15,7 +13,16 @@ PAINTER.model.piece.EllipsePiece = (function () {
     this.height = height;
   };
 
-  EllipsePiece.prototype.drawEllipse = function (ctx) {
+  EllipsePiece.prototype = Object.create(AbstractPiece.prototype, {
+    constructor: {
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value: EllipsePiece,
+    },
+  });
+
+  EllipsePiece.prototype.draw = function (ctx) {
     ctx.lineWidth = this.strokeWidth;
     ctx.strokeStyle = this.strokeColor;
     ctx.fillStyle = this.fillColor;
