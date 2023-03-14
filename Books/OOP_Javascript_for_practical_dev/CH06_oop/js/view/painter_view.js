@@ -9,6 +9,8 @@ PAINTER.view.PainterView = (function () {
     var PainterModel = PAINTER.model.PainterModel;
     var LinePiece = PAINTER.model.piece.LinePiece;
 
+    var RectanglePiece = PAINTER.model.piece.RectanglePiece;
+
     var canvas = document.getElementById("mycanvas");
     canvas.width = PainterConstants.PAINTER_WIDTH;
     canvas.height = PainterConstants.PAINTER_HEIGHT;
@@ -27,10 +29,11 @@ PAINTER.view.PainterView = (function () {
     this.painterModel = new PainterModel();
 
     this.painterModel.addPiece(new LinePiece(50, 50, 100, 80));
+
+    this.painterModel.addPiece(new RectanglePiece(110, 20, 100, 50));
   };
 
   PainterView.prototype.repaint = function () {
-
     this.painterModel.drawPieces(this.ctx);
   };
 

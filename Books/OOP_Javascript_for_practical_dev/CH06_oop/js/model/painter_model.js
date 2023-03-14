@@ -8,10 +8,17 @@ PAINTER.model.PainterModel = (function () {
   };
 
   PainterModel.prototype.drawPieces = function (ctx) {
+    var RectanglePiece = PAINTER.model.piece.RectanglePiece;
+    var LinePiece = PAINTER.model.piece.LinePiece;
+
     var size = this.pieces.length;
 
     for (var i = 0; i < size; i++) {
-      this.pieces[i].drawLine(ctx);
+      if (this.pieces[i] instanceof LinePiece) {
+        this.pieces[i].drawLine(ctx);
+      } else if (this.pieces[i] instanceof RectanglePiece) {
+        this.pieces[i].drawRect(ctx);
+      }
     }
   };
 

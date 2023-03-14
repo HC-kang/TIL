@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<meta charset="UTF-8">
 	<title>Painter</title>
@@ -8,21 +9,18 @@
 	<script src="./js/app/painter_main.js"></script>
 	<script src="./js/model/painter_model.js"></script>
 	<script src="./js/model/piece/line_piece.js"></script>
+	<script src="./js/model/piece/rectangle_piece.js"></script>
 	<script src="./js/view/painter_view.js"></script>
 	<script src="./js/view/panel/tool_button_panel.js"></script>
 	<script>
-		window.onload = function() {
+		window.onload = function () {
 			var painterMain = new PAINTER.app.PainterMain("painter");
 		}
 	</script>
 </head>
+
 <body>
-	<!--
-	<div id = "painter">
-		<div id = "toolbar"></div>
-		<canvas id="mycanvas"></canvas>
-	</div>
-	-->
-	<div id = "painter"></div>
+	<div id="painter"></div>
 </body>
+
 </html>
