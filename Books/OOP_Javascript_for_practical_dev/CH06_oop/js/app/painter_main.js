@@ -16,7 +16,6 @@ PAINTER.app.PainterMain = (function () {
     painter.appendChild(mycanvas);
 
     var painterView = new PAINTER.view.PainterView();
-    painterView.repaint();
 
     var toolButtonPanel = new PAINTER.view.panel.ToolButtonPanel(painterView);
     toolButtonPanel.initLayout();

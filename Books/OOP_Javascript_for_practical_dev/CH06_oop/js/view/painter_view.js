@@ -1,4 +1,4 @@
-PAINTER.createNameSpace("PAINTER.view.PainterView");
+PAINTER.createNameSpace('PAINTER.view.PainterView');
 
 PAINTER.view.PainterView = (function () {
   var PainterView;
@@ -8,59 +8,72 @@ PAINTER.view.PainterView = (function () {
 
     var PainterModel = PAINTER.model.PainterModel;
 
-    var LinePiece = PAINTER.model.piece.LinePiece;
-    var RectanglePiece = PAINTER.model.piece.RectanglePiece;
-    var EllipsePiece = PAINTER.model.piece.EllipsePiece;
-    var FreePathPiece = PAINTER.model.piece.FreePathPiece;
-
-    var canvas = document.getElementById("mycanvas");
+    var canvas = document.getElementById('mycanvas');
     canvas.width = PainterConstants.PAINTER_WIDTH;
     canvas.height = PainterConstants.PAINTER_HEIGHT;
 
-    canvas.style.border = "1px solid gray";
-    canvas.style.cursor = "pointer";
+    canvas.style.border = '1px solid gray';
+    canvas.style.cursor = 'pointer';
 
-    var ctx = canvas.getContext("2d");
+    this.canvas = canvas;
+
+    var ctx = canvas.getContext('2d');
 
     this.ctx = ctx;
 
     this.painterModel = new PainterModel();
 
-    var linePiece = new LinePiece(50, 50, 100, 80);
-    linePiece.setStrokeColor("pink");
+    canvas.addEventListener(
+      'mousedown',
+      this.handleMouseEvent.bind(this),
+      false
+    );
+  };
 
-    this.painterModel.addPiece(linePiece);
+  PainterView.prototype.handleMouseEvent = function (e) {
+    console.log('mousedownEventListner');
+    var canvas = this.canvas;
+    var painterViewThis = this;
 
-    var rectanglePiece = new RectanglePiece(110, 20, 100, 50);
-    rectanglePiece.setStrokeColor("red");
-    rectanglePiece.setFillColor("blue");
+    var pressPoint = this.relativePosition(e, canvas);
 
-    this.painterModel.addPiece(rectanglePiece);
+    var mousemoveEventListner = function (e) {
+      var movePoint = painterViewThis.relativePosition(
+        e,
+        painterViewThis.canvas
+      );
+      console.log('mousemoveEventListner');
+    };
 
-    var ellipsePiece = new EllipsePiece(110, 120, 100, 80);
-    ellipsePiece.setStrokeColor("green");
-    ellipsePiece.setFillColor("yellow");
+    document.addEventListener('mousemove', mousemoveEventListner, false);
 
-    this.painterModel.addPiece(ellipsePiece);
+    document.addEventListener(
+      'mouseup',
+      function (e) {
+        var upPoint = painterViewThis.relativePosition(e, canvas);
 
-    var points = [];
+        console.log('mouseupEventListner');
 
-    points.push({ x: 10, y: 20 });
-    points.push({ x: 30, y: 140 });
-    points.push({ x: 50, y: 60 });
+        document.removeEventListener('mousemove', mousemoveEventListner, false);
 
-    var freePathPiece = new FreePathPiece(points);
-    freePathPiece.setStrokeColor("black");
-
-    this.painterModel.addPiece(freePathPiece);
+        document.removeEventListener('mouseup', arguments.callee, false);
+      },
+      false
+    );
   };
 
   PainterView.prototype.repaint = function () {
     this.painterModel.drawPieces(this.ctx);
   };
 
+  PainterView.prototype.relativePosition = function (event, element) {
+    var rect = element.getBoundingClientRect();
+    return { x: Math.floor(event.clientX - rect.left),
+             y: Math.floor(event.clientY - rect.top) };
+  };
+
   PainterView.prototype.toString = function () {
-    return "PainterView";
+    return 'PainterView';
   };
 
   return PainterView;
