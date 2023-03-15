@@ -23,12 +23,9 @@ PAINTER.model.piece.RectanglePiece = (function () {
   });
 
   RectanglePiece.prototype.draw = function (ctx) {
-    ctx.lineWidth = this.strokeWidth;
-    ctx.strokeStyle = this.strokeColor;
-    ctx.fillStyle = this.fillColor;
+    this.applyStyle(ctx);
 
     ctx.fillRect(this.x, this.y, this.width, this.height);
-
     ctx.strokeRect(this.x, this.y, this.width, this.height);
   };
 

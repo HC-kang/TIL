@@ -25,9 +25,22 @@ PAINTER.view.PainterView = (function () {
 
     this.painterModel = new PainterModel();
 
-    this.painterModel.addPiece(new LinePiece(50, 50, 100, 80));
-    this.painterModel.addPiece(new RectanglePiece(110, 20, 100, 50));
-    this.painterModel.addPiece(new EllipsePiece(110, 120, 100, 80));
+    var linePiece = new LinePiece(50, 50, 100, 80);
+    linePiece.setStrokeColor('pink');
+
+    this.painterModel.addPiece(linePiece);
+
+    var rectanglePiece = new RectanglePiece(110, 20, 100, 50);
+    rectanglePiece.setStrokeColor('red');
+    rectanglePiece.setFillColor('blue');
+
+    this.painterModel.addPiece(rectanglePiece);
+
+    var ellipsePiece = new EllipsePiece(110, 120, 100, 80);
+    ellipsePiece.setStrokeColor('green');
+    ellipsePiece.setFillColor('yellow');
+
+    this.painterModel.addPiece(ellipsePiece);
   };
 
   PainterView.prototype.repaint = function () {
