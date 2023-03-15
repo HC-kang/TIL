@@ -16,8 +16,10 @@
 ## Undefined, Null, Empty
 
 - 선언만 되고 할당이 되지 않은 변수는 자동으로 undefined가 부여?
-  - Nope. 다만 할당되지 않은 변수 호출 시, undefined가 호출될 뿐. 단순히 메모리 참조 주소가 비어있다는 의미
+  - Nope. 다만 할당되지 않은 변수 접근 시, undefined가 호출될 뿐. 단순히 메모리 참조 주소가 비어있다는 의미
 - 반면에 Null은 '비어있음'을 명시한것.
+- empty의 경우, array length를 명시해서 사용하는 경우 등에서 발생함.
+  - 위의 undefined처럼 참조 주소가 비어있는것을 넘어, 참조에 대한 참조만 존재하고 대상 공간에는 undefined조차도 할당되어있지 않은 것.
 - **주의**: typeof null은 object를 반환함
 
 ## Console
