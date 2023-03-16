@@ -115,6 +115,13 @@ PAINTER.view.PainterView = (function () {
       ctx.moveTo(this.startX, this.startY);
       ctx.lineTo(this.endX, this.endY);
       ctx.stroke();
+    } else if (this.pieceType === PainterConstants.RECTANGLE) {
+      var w = this.endX - this.startX;
+      var h = this.endY - this.startY;
+
+      ctx.fillRect(this.startX, this.startY, w, h);
+
+      ctx.strokeRect(this.startX, this.startY, w, h);
     }
   }
 
