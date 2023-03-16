@@ -19,9 +19,21 @@ PAINTER.view.PainterView = (function () {
 
     var ctx = canvas.getContext('2d');
 
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = "red";
+    ctx.fillStyle = "blue";
+
     this.ctx = ctx;
 
     this.painterModel = new PainterModel();
+
+    this.pieceType = PainterConstants.LINE;
+
+    this.startX = 0;
+    this.startY = 0;
+
+    this.endX = 0;
+    this.endY = 0;
 
     canvas.addEventListener(
       'mousedown',
@@ -35,13 +47,25 @@ PAINTER.view.PainterView = (function () {
     var canvas = this.canvas;
     var painterViewThis = this;
 
+    var canvasImageData = this.ctx.getImageData(0, 0, canvas.width, canvas.height);
+
     var pressPoint = this.relativePosition(e, canvas);
+
+    painterViewThis.startX = pressPoint.x;
+    painterViewThis.startY = pressPoint.y;
 
     var mousemoveEventListner = function (e) {
       var movePoint = painterViewThis.relativePosition(
         e,
         painterViewThis.canvas
       );
+
+      painterViewThis.endX = movePoint.x;
+      painterViewThis.endY = movePoint.y;
+
+      painterViewThis.ctx.putImageData(canvasImageData, 0, 0);
+
+      painterViewThis.drawing(painterViewThis.ctx);
       console.log('mousemoveEventListner');
     };
 
@@ -51,6 +75,13 @@ PAINTER.view.PainterView = (function () {
       'mouseup',
       function (e) {
         var upPoint = painterViewThis.relativePosition(e, canvas);
+
+        painterViewThis.endX = upPoint.x;
+        painterViewThis.endY = upPoint.y;
+
+        painterViewThis.ctx.putImageData(canvasImageData, 0, 0);
+
+        painterViewThis.drawing(painterViewThis.ctx);
 
         console.log('mouseupEventListner');
 
@@ -71,6 +102,21 @@ PAINTER.view.PainterView = (function () {
     return { x: Math.floor(event.clientX - rect.left),
              y: Math.floor(event.clientY - rect.top) };
   };
+
+  PainterView.prototype.setPieceType = function (pieceType) {
+    this.pieceType = pieceType;
+  }
+
+  PainterView.prototype.drawing = function (ctx) {
+    var PainterConstants = PAINTER.app.PainterConstants;
+
+    if (this.pieceType === PainterConstants.LINE) {
+      ctx.beginPath();
+      ctx.moveTo(this.startX, this.startY);
+      ctx.lineTo(this.endX, this.endY);
+      ctx.stroke();
+    }
+  }
 
   PainterView.prototype.toString = function () {
     return 'PainterView';
