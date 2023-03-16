@@ -35,6 +35,8 @@ PAINTER.view.PainterView = (function () {
     this.endX = 0;
     this.endY = 0;
 
+    this.points = [];
+
     canvas.addEventListener(
       'mousedown',
       this.handleMouseEvent.bind(this),
@@ -54,6 +56,8 @@ PAINTER.view.PainterView = (function () {
     painterViewThis.startX = pressPoint.x;
     painterViewThis.startY = pressPoint.y;
 
+    this.points = [];
+
     var mousemoveEventListner = function (e) {
       var movePoint = painterViewThis.relativePosition(
         e,
@@ -62,6 +66,8 @@ PAINTER.view.PainterView = (function () {
 
       painterViewThis.endX = movePoint.x;
       painterViewThis.endY = movePoint.y;
+
+      painterViewThis.points.push(movePoint);
 
       painterViewThis.ctx.putImageData(canvasImageData, 0, 0);
 
@@ -78,6 +84,8 @@ PAINTER.view.PainterView = (function () {
 
         painterViewThis.endX = upPoint.x;
         painterViewThis.endY = upPoint.y;
+
+        painterViewThis.points.push(upPoint);
 
         painterViewThis.ctx.putImageData(canvasImageData, 0, 0);
 
@@ -128,6 +136,14 @@ PAINTER.view.PainterView = (function () {
 
       var EllipsePiece = PAINTER.model.piece.EllipsePiece;
       EllipsePiece.drawEllipseByBezierCurve(ctx, this.startX, this.startY, w, h);
+    } else if (this.pieceType === PainterConstants.FREE_PATH) {
+      ctx.beginPath();
+      ctx.moveTo(this.startX, this.startY);
+
+      for (var i = 0; i < this.points.length; i++) {
+        ctx.lineTo(this.points[i].x, this.points[i].y);
+      }
+      ctx.stroke();
     }
   }
 
