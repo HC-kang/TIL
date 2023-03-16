@@ -25,10 +25,10 @@ PAINTER.model.piece.EllipsePiece = (function () {
   EllipsePiece.prototype.draw = function (ctx) {
     this.applyStyle(ctx);
 
-    this.drawEllipseByBezierCurve(ctx, this.x, this.y, this.width, this.height);
+    EllipsePiece.drawEllipseByBezierCurve(ctx, this.x, this.y, this.width, this.height);
   };
 
-  EllipsePiece.prototype.drawEllipseByBezierCurve = function (ctx, x, y, w, h) {
+  EllipsePiece.drawEllipseByBezierCurve = function (ctx, x, y, w, h) {
     var kappa = 0.5522848,
       ox = (w / 2) * kappa,
       oy = (h / 2) * kappa,
