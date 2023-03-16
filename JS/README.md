@@ -81,18 +81,39 @@
   - es5까지는 함수에 의해서만 스코프가 생성되었음
   - es6부터는 let, const, class, strict mode 등으로 블록스코프를 사용 가능
 
+## Callback
+
+- 함수 foo가 함수 bar에게 제어권을 넘겨주어, 함수 bar가 함수 foo를 실행할 권한을 가지게 되는것.
+
+## this
+
+- 함수와 메서드를 구분하는 기준
+- 기본적으로 전역객체를 가리키며, 브라우저에서는 Window, 노드에서는 global을 가리킴.
+- 함수로서 실행되는 경우: this는 전역 객체를 가리킴. 개발자가 직접 코드를 통해 실행한 것으로, 실행의 주체를 알 수 없기 때문.
+- 메서드로서 실행되는 경우: this는 상위 객체를 가리킴. 어떤 주체가 메서드를 실행시켰는지 알 수 있으므로, 그 주체를 this로 가리킴.
+- self등의 방법을 통해 this를 우회해 사용 가능
+- 또는 화살표 함수(()=>{})를 통해 this를 바인딩하지 않고, 상위 객체의 this를 그대로 전달받아 사용.
+
+## 기타 주요 개념
 
 - creation phase
 - execution phase
 
-- decleration
-- initialation
+- decleration: 선언
+- initialation: 할당, 초기화
 
-- temporal dead zone
+- temporal dead zone: var 변수 사용시 호이스팅으로 인해 수집된 변수가 아직 할당되지 않았을 때, 의도치않게 undefined를 반환하는 구간.
 
-- function decleration
-- function expression
+- function decleration: 함수 선언문
+- function expression: 함수 표현식
 
 - identifier resolution
 - scope chain
-- variable shadowing
+- variable shadowing: 스코프 체이닝 시, 하위 스코프에 선언된 변수가 상위 스코프에 선언된 변수로 인해 덮어씌워져, 접근이 불가능해지는 현상
+
+- 전역변수의 사용 최소화 방법들
+  - 즉시실행함수
+  - 네임스페이스
+  - 모듈 패턴
+  - 샌드박스 패턴
+  - 기타 모듈관리도구 활용 등..
