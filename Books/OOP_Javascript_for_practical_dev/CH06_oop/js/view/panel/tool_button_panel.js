@@ -3,8 +3,8 @@ PAINTER.createNameSpace("PAINTER.view.panel.ToolButtonPanel");
 PAINTER.view.panel.ToolButtonPanel = (function () {
   var ToolButtonPanel;
 
-  ToolButtonPanel = function (painterView) {
-    this.painterView = painterView;
+  ToolButtonPanel = function () {
+    this.painterController = null;
   };
 
   ToolButtonPanel.prototype.initLayout = function () {
@@ -27,23 +27,19 @@ PAINTER.view.panel.ToolButtonPanel = (function () {
     var btnEllipse = document.getElementById("btnEllipse");
     var btnFreePath = document.getElementById("btnFreePath");
 
-    var painterViewThis = this.painterView;
+    var painterController = this.painterController;
 
     btnLine.addEventListener("click", function (e) {
-      console.log('btnLine clicked');
-      painterViewThis.setPieceType(1);
+      painterController.setPieceType(1);
     }, false);
     btnRectangle.addEventListener("click", function (e) {
-      console.log('btnRectangle clicked')
-      painterViewThis.setPieceType(2);
+      painterController.setPieceType(2);
     }, false);
     btnEllipse.addEventListener("click", function (e) {
-      console.log('btnEllipse clicked');
-      painterViewThis.setPieceType(3);
+      painterController.setPieceType(3);
     }, false);
     btnFreePath.addEventListener("click", function (e) {
-      console.log('btnFreePath clicked');
-      painterViewThis.setPieceType(4);
+      painterController.setPieceType(4);
     }, false);
   };
 
@@ -55,6 +51,10 @@ PAINTER.view.panel.ToolButtonPanel = (function () {
 
     return inputImage;
   };
+
+  ToolButtonPanel.prototype.setPainterController = function (painterController) {
+    this.painterController = painterController;
+  }
 
   ToolButtonPanel.prototype.toString = function () {
     return "ToolButtonPanel";

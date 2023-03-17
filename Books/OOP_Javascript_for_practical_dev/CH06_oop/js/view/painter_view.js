@@ -25,17 +25,11 @@ PAINTER.view.PainterView = (function () {
 
     this.ctx = ctx;
 
-    this.painterModel = new PainterModel();
+    this.painterModel = null;
 
-    this.pieceType = PainterConstants.LINE;
+    this.painterController = null;
 
-    this.startX = 0;
-    this.startY = 0;
-
-    this.endX = 0;
-    this.endY = 0;
-
-    this.points = [];
+    this.canvasImageData = null;
 
     canvas.addEventListener(
       'mousedown',
@@ -45,63 +39,48 @@ PAINTER.view.PainterView = (function () {
   };
 
   PainterView.prototype.handleMouseEvent = function (e) {
-    console.log('mousedownEventListner');
+    console.log('mousedownEventListener');
     var canvas = this.canvas;
     var painterViewThis = this;
 
-    var canvasImageData = this.ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var painterController = this.painterController;
+
+    // NOTE: ???
+    // var canvasImageData = this.ctx.getImageData(0, 0, canvas.width, canvas.height);
+    this.saveImageData();
 
     var pressPoint = this.relativePosition(e, canvas);
 
-    painterViewThis.startX = pressPoint.x;
-    painterViewThis.startY = pressPoint.y;
+    painterController.controlPress(pressPoint.x, pressPoint.y);
 
-    this.points = [];
-
-    var mousemoveEventListner = function (e) {
+    var mouseMoveEventListener = function (e) {
+      console.log('mousemoveEventListener');
       var movePoint = painterViewThis.relativePosition(
         e,
-        painterViewThis.canvas
+        canvas
       );
 
-      painterViewThis.endX = movePoint.x;
-      painterViewThis.endY = movePoint.y;
-
-      painterViewThis.points.push(movePoint);
-
-      painterViewThis.ctx.putImageData(canvasImageData, 0, 0);
-
-      painterViewThis.drawing(painterViewThis.ctx);
-      console.log('mousemoveEventListner');
+      painterController.controlDrag(movePoint.x, movePoint.y);
     };
 
-    document.addEventListener('mousemove', mousemoveEventListner, false);
+    document.addEventListener('mousemove', mouseMoveEventListener, false);
 
-    document.addEventListener(
-      'mouseup',
-      function (e) {
-        var upPoint = painterViewThis.relativePosition(e, canvas);
+    var mouseUpEventListener = function (e) {
+      console.log('mouseupEventListener');
+      var upPoint = painterViewThis.relativePosition(e, canvas);
 
-        painterViewThis.endX = upPoint.x;
-        painterViewThis.endY = upPoint.y;
+      painterController.controlRelease(upPoint.x, upPoint.y);
 
-        painterViewThis.points.push(upPoint);
+      document.removeEventListener('mousemove', mouseMoveEventListener, false);
+      document.removeEventListener('mouseup', arguments.callee, false);
+    };
 
-        painterViewThis.ctx.putImageData(canvasImageData, 0, 0);
-
-        painterViewThis.drawing(painterViewThis.ctx);
-
-        console.log('mouseupEventListner');
-
-        document.removeEventListener('mousemove', mousemoveEventListner, false);
-
-        document.removeEventListener('mouseup', arguments.callee, false);
-      },
-      false
-    );
+    document.addEventListener('mouseup', mouseUpEventListener, false);
   };
 
   PainterView.prototype.repaint = function () {
+    this.ctx.putImageData(this.canvasImageData, 0, 0);
+
     this.painterModel.drawPieces(this.ctx);
   };
 
@@ -115,37 +94,27 @@ PAINTER.view.PainterView = (function () {
     this.pieceType = pieceType;
   }
 
-  PainterView.prototype.drawing = function (ctx) {
-    var PainterConstants = PAINTER.app.PainterConstants;
+  PainterView.prototype.drawing = function () {
+    this.ctx.putImageData(this.canvasImageData, 0, 0);
 
-    if (this.pieceType === PainterConstants.LINE) {
-      ctx.beginPath();
-      ctx.moveTo(this.startX, this.startY);
-      ctx.lineTo(this.endX, this.endY);
-      ctx.stroke();
-    } else if (this.pieceType === PainterConstants.RECTANGLE) {
-      var w = this.endX - this.startX;
-      var h = this.endY - this.startY;
-
-      ctx.fillRect(this.startX, this.startY, w, h);
-
-      ctx.strokeRect(this.startX, this.startY, w, h);
-    } else if (this.pieceType === PainterConstants.ELLIPSE) {
-      var w = this.endX - this.startX;
-      var h = this.endY - this.startY;
-
-      var EllipsePiece = PAINTER.model.piece.EllipsePiece;
-      EllipsePiece.drawEllipseByBezierCurve(ctx, this.startX, this.startY, w, h);
-    } else if (this.pieceType === PainterConstants.FREE_PATH) {
-      ctx.beginPath();
-      ctx.moveTo(this.startX, this.startY);
-
-      for (var i = 0; i < this.points.length; i++) {
-        ctx.lineTo(this.points[i].x, this.points[i].y);
+    if (this.painterController !== null) {
+      if (this.painterController.isValidDrawing()) {
+        this.painterController.drawing(this.ctx);
       }
-      ctx.stroke();
     }
-  }
+  };
+
+  PainterView.prototype.saveImageData = function () {
+    this.canvasImageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+  };
+
+  PainterView.prototype.setPainterModel = function (painterModel) {
+    this.painterModel = painterModel;
+  };
+
+  PainterView.prototype.setPainterController = function (painterController) {
+    this.painterController = painterController;
+  };
 
   PainterView.prototype.toString = function () {
     return 'PainterView';

@@ -15,10 +15,24 @@ PAINTER.app.PainterMain = (function () {
     painter.appendChild(toolbar);
     painter.appendChild(mycanvas);
 
-    var painterView = new PAINTER.view.PainterView();
+    this.painterModel = new PAINTER.model.PainterModel();
+    this.painterView = new PAINTER.view.PainterView();
+    this.painterController = new PAINTER.controller.PainterController();
 
-    var toolButtonPanel = new PAINTER.view.panel.ToolButtonPanel(painterView);
-    toolButtonPanel.initLayout();
+    this.toolButtonPanel = new PAINTER.view.panel.ToolButtonPanel();
+    this.setup();
+
+    this.toolButtonPanel.initLayout();
+  };
+
+  PainterMain.prototype.setup = function () {
+    this.painterController.setPainterModel(this.painterModel);
+    this.painterController.setPainterView(this.painterView);
+
+    this.painterView.setPainterModel(this.painterModel);
+    this.painterView.setPainterController(this.painterController);
+
+    this.toolButtonPanel.setPainterController(this.painterController);
   };
 
   PainterMain.prototype.toString = function () {
