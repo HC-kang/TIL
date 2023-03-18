@@ -1,12 +1,11 @@
 PAINTER.createNameSpace('PAINTER.view.PainterView');
 
 PAINTER.view.PainterView = (function () {
+  var IPainterObserver = PAINTER.controller.observer.IPainterObserver;
   var PainterView;
 
   PainterView = function () {
     var PainterConstants = PAINTER.app.PainterConstants;
-
-    var PainterModel = PAINTER.model.PainterModel;
 
     var canvas = document.getElementById('mycanvas');
     canvas.width = PainterConstants.PAINTER_WIDTH;
@@ -37,6 +36,15 @@ PAINTER.view.PainterView = (function () {
       false
     );
   };
+
+  PainterView.prototype = Object.create(IPainterObserver.prototype, {
+    constructor: {
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value: PainterView,
+    }
+  });
 
   PainterView.prototype.handleMouseEvent = function (e) {
     console.log('mousedownEventListener');
@@ -115,6 +123,10 @@ PAINTER.view.PainterView = (function () {
   PainterView.prototype.setPainterController = function (painterController) {
     this.painterController = painterController;
   };
+
+  PainterView.prototype.update = function () {
+    this.repaint();
+  }
 
   PainterView.prototype.toString = function () {
     return 'PainterView';

@@ -33,6 +33,8 @@ PAINTER.app.PainterMain = (function () {
     this.painterView.setPainterController(this.painterController);
 
     this.toolButtonPanel.setPainterController(this.painterController);
+
+    this.painterModel.registerObserver(this.painterView);
   };
 
   PainterMain.prototype.toString = function () {

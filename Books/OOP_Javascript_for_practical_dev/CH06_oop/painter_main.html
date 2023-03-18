@@ -6,17 +6,20 @@
 	<title>Painter</title>
 	<script src="./js/common/painter_common.js"></script>
 	<script src="./js/app/painter_constants.js"></script>
+	<script src="./js/controller/observer/ipainter_observer.js"></script>
+	<script src="./js/controller/observer/ipainter_subject.js"></script>
 	<script src="./js/app/painter_main.js"></script>
 	<script src="./js/model/painter_model.js"></script>
 	<script src="./js/model/piece/abstract_piece.js"></script>
-	<script src="./js/model/piece/line_piece.js"></script>
-	<script src="./js/model/piece/rectangle_piece.js"></script>
 	<script src="./js/model/piece/ellipse_piece.js"></script>
 	<script src="./js/model/piece/free_path_piece.js"></script>
+	<script src="./js/model/piece/line_piece.js"></script>
+	<script src="./js/model/piece/rectangle_piece.js"></script>
 	<script src="./js/model/struct/point.js"></script>
 	<script src="./js/view/painter_view.js"></script>
 	<script src="./js/view/panel/tool_button_panel.js"></script>
 	<script src="./js/controller/painter_controller.js"></script>
+
 	<script>
 		window.onload = function () {
 			var painterMain = new PAINTER.app.PainterMain("painter");
