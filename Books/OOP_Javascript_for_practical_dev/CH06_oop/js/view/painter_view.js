@@ -106,9 +106,7 @@ PAINTER.view.PainterView = (function () {
     this.ctx.putImageData(this.canvasImageData, 0, 0);
 
     if (this.painterController !== null) {
-      if (this.painterController.isValidDrawing()) {
-        this.painterController.drawing(this.ctx);
-      }
+      this.painterController.drawing(this.ctx);
     }
   };
 
