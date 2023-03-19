@@ -1,25 +1,21 @@
 PAINTER.createNameSpace('PAINTER.controller.state.LineState');
 
 PAINTER.controller.state.LineState = (function () {
-  var IState = PAINTER.controller.state.IState;
+  var ImplState = PAINTER.controller.state.ImplState;
 
   var LineState;
 
   LineState = function () {
-    var LinePieceManager = PAINTER.controller.manager.LinePieceManager;
-
-    IState.call(this);
+    ImplState.call(this);
 
     if (LineState._instance) {
       return LineState._instance;
     }
 
-    this.lineManager = new LinePieceManager();
-
     LineState._instance = this;
   };
 
-  LineState.prototype = Object.create(IState.prototype, {
+  LineState.prototype = Object.create(ImplState.prototype, {
     constructor: {
       configurable: true,
       enumerable: true,
@@ -36,28 +32,8 @@ PAINTER.controller.state.LineState = (function () {
     return LineState._instance;
   };
 
-  LineState.prototype.press = function (context, mouseX, mouseY) {
-    this.lineManager.setStartXY(mouseX, mouseY);
-  };
-
-  LineState.prototype.drag = function (context, mouseX, mouseY) {
-    this.lineManager.setEndXY(mouseX, mouseY);
-
-    context.repaintView();
-  };
-
-  LineState.prototype.release = function (context, mouseX, mouseY) {
-    this.lineManager.setEndXY(mouseX, mouseY);
-    var piece = this.lineManager.createPiece();
-    this.lineManager.reset();
-
-    context.addPiece(piece);
-  };
-
-  LineState.prototype.drawing = function (context, ctx) {
-    if (this.lineManager.isValid()) {
-      this.lineManager.drawing(ctx);
-    }
+  LineState.prototype.createPieceManager = function () {
+    return new PAINTER.controller.manager.LinePieceManager();
   };
 
   LineState.prototype.toString = function () {
