@@ -5,12 +5,12 @@ PAINTER.model.PainterModel = (function () {
   var PainterModel;
 
   PainterModel = function () {
-    var LinePieceManager = PAINTER.controller.manager.LinePieceManager;
+    var LineState = PAINTER.controller.state.LineState;
 
     this.pieces = [];
     this.observers = [];
 
-    this.pieceManager = new LinePieceManager();
+    this.state = LineState.getInstance();
   };
 
   PainterModel.prototype = Object.create(IPainterSubject.prototype, {
@@ -56,12 +56,12 @@ PAINTER.model.PainterModel = (function () {
     }
   };
 
-  PainterModel.prototype.getPieceManager = function () {
-    return this.pieceManager;
+  PainterModel.prototype.getState = function () {
+    return this.state;
   };
 
-  PainterModel.prototype.setPieceManager = function (pieceManager) {
-    this.pieceManager = pieceManager;
+  PainterModel.prototype.setState = function (state) {
+    this.state = state;
   }
 
   PainterModel.prototype.toString = function () {

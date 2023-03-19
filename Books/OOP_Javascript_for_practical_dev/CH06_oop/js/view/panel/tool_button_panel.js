@@ -29,22 +29,22 @@ PAINTER.view.panel.ToolButtonPanel = (function () {
 
     var painterController = this.painterController;
 
-    var LinePieceManager = PAINTER.controller.manager.LinePieceManager;
-    var RectanglePieceManager = PAINTER.controller.manager.RectanglePieceManager;
-    var EllipsePieceManager = PAINTER.controller.manager.EllipsePieceManager;
-    var FreePathPieceManager = PAINTER.controller.manager.FreePathPieceManager;
+    var LineState = PAINTER.controller.state.LineState;
+    var RectangleState = PAINTER.controller.state.RectangleState;
+    var EllipseState = PAINTER.controller.state.EllipseState;
+    var FreePathState = PAINTER.controller.state.FreePathState;
 
     btnLine.addEventListener('click', function (e) {
-      painterController.setPieceManager(new LinePieceManager());
+      painterController.setState(LineState.getInstance());
     }, false);
     btnRectangle.addEventListener('click', function (e) {
-      painterController.setPieceManager(new RectanglePieceManager());
+      painterController.setState(RectangleState.getInstance());
     }, false);
     btnEllipse.addEventListener('click', function (e) {
-      painterController.setPieceManager(new EllipsePieceManager());
+      painterController.setState(EllipseState.getInstance());
     }, false);
     btnFreePath.addEventListener('click', function (e) {
-      painterController.setPieceManager(new FreePathPieceManager());
+      painterController.setState(FreePathState.getInstance());
     }, false);
   };
 
