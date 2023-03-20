@@ -33,6 +33,14 @@ PAINTER.controller.state.IContext = (function () {
     throw new Error('You have to implement the method setStrokeColor!');
   };
 
+  IContext.prototype.getFillColor = function () {
+    throw new Error('You have to implement the method getFillColor!');
+  };
+
+  IContext.prototype.setFillColor = function (value) {
+    throw new Error('You have to implement the method setFillColor!');
+  };
+
   IContext.prototype.toString = function () {
     return 'IContext';
   };

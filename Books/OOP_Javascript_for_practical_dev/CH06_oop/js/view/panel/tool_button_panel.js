@@ -101,6 +101,14 @@ PAINTER.view.panel.ToolButtonPanel = (function () {
     );
 
     toolbar.appendChild(labelForStrokeColor);
+
+    var fillColorChangeEventListener = function (e) {
+      painterController.setFillColor(this.value);
+    };
+
+    var labelForFillColor = this.createLabelForColor(' Fill Color: ', '#0000FF', fillColorChangeEventListener);
+
+    toolbar.appendChild(labelForFillColor);
   };
 
   ToolButtonPanel.prototype.createButton = function (imagePath, id) {

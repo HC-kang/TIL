@@ -15,6 +15,8 @@ PAINTER.model.PainterModel = (function () {
     this.strokeWidth = 10;
 
     this.strokeColor = 'red';
+
+    this.fillColor = 'blue';
   };
 
   PainterModel.prototype = Object.create(IPainterSubject.prototype, {
@@ -82,6 +84,14 @@ PAINTER.model.PainterModel = (function () {
 
   PainterModel.prototype.setStrokeColor = function (strokeColor) {
     this.strokeColor = strokeColor;
+  };
+
+  PainterModel.prototype.getFillColor = function () {
+    return this.fillColor;
+  };
+
+  PainterModel.prototype.setFillColor = function (fillColor) {
+    this.fillColor = fillColor;
   };
 
   PainterModel.prototype.toString = function () {
