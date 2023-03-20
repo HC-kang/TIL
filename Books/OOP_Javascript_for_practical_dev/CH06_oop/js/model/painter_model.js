@@ -11,6 +11,8 @@ PAINTER.model.PainterModel = (function () {
     this.observers = [];
 
     this.state = LineState.getInstance();
+
+    this.strokeWidth = 10;
   };
 
   PainterModel.prototype = Object.create(IPainterSubject.prototype, {
@@ -62,7 +64,15 @@ PAINTER.model.PainterModel = (function () {
 
   PainterModel.prototype.setState = function (state) {
     this.state = state;
-  }
+  };
+
+  PainterModel.prototype.getStrokeWidth = function () {
+    return this.strokeWidth;
+  };
+
+  PainterModel.prototype.setStrokeWidth = function (strokeWidth) {
+    this.strokeWidth = strokeWidth;
+  };
 
   PainterModel.prototype.toString = function () {
     return "PainterModel";

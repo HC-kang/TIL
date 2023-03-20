@@ -1,7 +1,7 @@
 PAINTER.createNameSpace('PAINTER.controller.state.RectangleState');
 
 PAINTER.controller.state.RectangleState = (function () {
-  var IState = PAINTER.controller.state.IState;
+  var ImplState = PAINTER.controller.state.ImplState;
 
   var RectangleState;
 
@@ -9,18 +9,16 @@ PAINTER.controller.state.RectangleState = (function () {
     var RectanglePieceManager =
       PAINTER.controller.manager.RectanglePieceManager;
 
-    IState.call(this);
+    ImplState.call(this);
 
     if (RectangleState._instance) {
       return RectangleState._instance;
     }
 
-    this.rectangleManager = new RectanglePieceManager();
-
     RectangleState._instance = this;
   };
 
-  RectangleState.prototype = Object.create(IState.prototype, {
+  RectangleState.prototype = Object.create(ImplState.prototype, {
     constructor: {
       configurable: true,
       enumerable: true,
@@ -36,30 +34,10 @@ PAINTER.controller.state.RectangleState = (function () {
     return RectangleState._instance;
   };
 
-  RectangleState.prototype.press = function (context, mouseX, mouseY) {
-    this.rectangleManager.setStartXY(mouseX, mouseY);
-  };
-
-  RectangleState.prototype.drag = function (context, mouseX, mouseY) {
-    this.rectangleManager.setEndXY(mouseX, mouseY);
-
-    context.repaintView();
-  };
-
-  RectangleState.prototype.release = function (context, mouseX, mouseY) {
-    this.rectangleManager.setEndXY(mouseX, mouseY);
-    var piece = this.rectangleManager.createPiece();
-    this.rectangleManager.reset();
-
-    context.addPiece(piece);
-  };
-
-  RectangleState.prototype.drawing = function (context, ctx) {
-    if (this.rectangleManager.isValid()) {
-      this.rectangleManager.drawing(ctx);
-    }
-  };
-
+  RectangleState.prototype.createPieceManager = function () {
+    return new PAINTER.controller.manager.RectanglePieceManager();
+  }
+  
   RectangleState.prototype.toString = function () {
     return 'RectangleState';
   };

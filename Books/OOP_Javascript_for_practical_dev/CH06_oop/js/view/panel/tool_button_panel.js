@@ -1,4 +1,4 @@
-PAINTER.createNameSpace("PAINTER.view.panel.ToolButtonPanel");
+PAINTER.createNameSpace('PAINTER.view.panel.ToolButtonPanel');
 
 PAINTER.view.panel.ToolButtonPanel = (function () {
   var ToolButtonPanel;
@@ -8,24 +8,24 @@ PAINTER.view.panel.ToolButtonPanel = (function () {
   };
 
   ToolButtonPanel.prototype.initLayout = function () {
-    var toolbar = document.getElementById("toolbar");
+    var toolbar = document.getElementById('toolbar');
 
-    var inputImage = this.createButton("./images/line.gif", "btnLine");
+    var inputImage = this.createButton('./images/line.gif', 'btnLine');
     toolbar.appendChild(inputImage);
 
-    inputImage = this.createButton("./images/rectangle.gif", "btnRectangle");
+    inputImage = this.createButton('./images/rectangle.gif', 'btnRectangle');
     toolbar.appendChild(inputImage);
 
-    inputImage = this.createButton("./images/ellipse.gif", "btnEllipse");
+    inputImage = this.createButton('./images/ellipse.gif', 'btnEllipse');
     toolbar.appendChild(inputImage);
 
-    inputImage = this.createButton("./images/free_path.gif", "btnFreePath");
+    inputImage = this.createButton('./images/free_path.gif', 'btnFreePath');
     toolbar.appendChild(inputImage);
 
-    var btnLine = document.getElementById("btnLine");
-    var btnRectangle = document.getElementById("btnRectangle");
-    var btnEllipse = document.getElementById("btnEllipse");
-    var btnFreePath = document.getElementById("btnFreePath");
+    var btnLine = document.getElementById('btnLine');
+    var btnRectangle = document.getElementById('btnRectangle');
+    var btnEllipse = document.getElementById('btnEllipse');
+    var btnFreePath = document.getElementById('btnFreePath');
 
     var painterController = this.painterController;
 
@@ -34,35 +34,80 @@ PAINTER.view.panel.ToolButtonPanel = (function () {
     var EllipseState = PAINTER.controller.state.EllipseState;
     var FreePathState = PAINTER.controller.state.FreePathState;
 
-    btnLine.addEventListener('click', function (e) {
-      painterController.setState(LineState.getInstance());
-    }, false);
-    btnRectangle.addEventListener('click', function (e) {
-      painterController.setState(RectangleState.getInstance());
-    }, false);
-    btnEllipse.addEventListener('click', function (e) {
-      painterController.setState(EllipseState.getInstance());
-    }, false);
-    btnFreePath.addEventListener('click', function (e) {
-      painterController.setState(FreePathState.getInstance());
-    }, false);
+    btnLine.addEventListener(
+      'click',
+      function (e) {
+        painterController.setState(LineState.getInstance());
+      },
+      false
+    );
+    btnRectangle.addEventListener(
+      'click',
+      function (e) {
+        painterController.setState(RectangleState.getInstance());
+      },
+      false
+    );
+    btnEllipse.addEventListener(
+      'click',
+      function (e) {
+        painterController.setState(EllipseState.getInstance());
+      },
+      false
+    );
+    btnFreePath.addEventListener(
+      'click',
+      function (e) {
+        painterController.setState(FreePathState.getInstance());
+      },
+      false
+    );
+    var size = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 20, 24, 28];
+    var select = document.createElement('select');
+    for (var i = 0; i < size.length; i++) {
+      var option = document.createElement('option');
+      option.setAttribute('value', size[i].toString());
+      var optionText = document.createTextNode(size[i].toString());
+      option.appendChild(optionText);
+
+      select.appendChild(option);
+    }
+    select.selectedIndex = 7;
+
+    var labelStrokeWidth = document.createElement('label');
+    var labelStrokeWidthText = document.createTextNode('Stroke Width: ');
+
+    labelStrokeWidth.appendChild(labelStrokeWidthText);
+    labelStrokeWidth.appendChild(select);
+
+    toolbar.appendChild(labelStrokeWidth);
+
+    select.addEventListener(
+      'change',
+      function (e) {
+        painterController.setStrokeWidth(this.value);
+      },
+      false
+    );
   };
 
   ToolButtonPanel.prototype.createButton = function (imagePath, id) {
-    var inputImage = document.createElement("input");
-    inputImage.setAttribute("type", "image");
-    inputImage.setAttribute("src", imagePath);
-    inputImage.setAttribute("id", id);
+    var inputImage = document.createElement('input');
+    inputImage.setAttribute('type', 'image');
+    inputImage.setAttribute('src', imagePath);
+    inputImage.setAttribute('id', id);
 
     return inputImage;
   };
 
-  ToolButtonPanel.prototype.setPainterController = function (painterController) {
+  ToolButtonPanel.prototype.setPainterController = function (
+    painterController
+  ) {
     this.painterController = painterController;
-  }
+  };
 
   ToolButtonPanel.prototype.toString = function () {
-    return "ToolButtonPanel";
+    return 'ToolButtonPanel';
   };
 
   return ToolButtonPanel;
