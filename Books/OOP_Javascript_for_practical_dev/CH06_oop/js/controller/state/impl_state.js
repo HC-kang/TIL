@@ -41,6 +41,9 @@ PAINTER.controller.state.ImplState = (function () {
     var strokeWidth = context.getStrokeWidth();
     piece.setStrokeWidth(strokeWidth);
 
+    var strokeColor = context.getStrokeColor();
+    piece.setStrokeColor(strokeColor);
+
     context.addPiece(piece);
   };
 

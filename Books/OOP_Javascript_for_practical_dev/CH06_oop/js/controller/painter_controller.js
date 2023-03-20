@@ -39,6 +39,7 @@ PAINTER.controller.PainterController = (function () {
     var state = this.painterModel.getState();
 
     ctx.lineWidth = this.painterModel.getStrokeWidth();
+    ctx.strokeStyle = this.painterModel.getStrokeColor();
 
     state.drawing(this, ctx);
   };
@@ -71,6 +72,14 @@ PAINTER.controller.PainterController = (function () {
 
   PainterController.prototype.setStrokeWidth = function (value) {
     this.painterModel.setStrokeWidth(value);
+  };
+
+  PainterController.prototype.getStrokeColor = function () {
+    return this.painterModel.getStrokeColor();
+  };
+
+  PainterController.prototype.setStrokeColor = function (value) {
+    this.painterModel.setStrokeColor(value);
   };
 
   PainterController.prototype.toString = function () {

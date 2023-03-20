@@ -89,6 +89,18 @@ PAINTER.view.panel.ToolButtonPanel = (function () {
       },
       false
     );
+
+    var strokeColorChangeEventListener = function (e) {
+      painterController.setStrokeColor(this.value);
+    };
+
+    var labelForStrokeColor = this.createLabelForColor(
+      ' Stroke Color: ',
+      '#FF0000',
+      strokeColorChangeEventListener
+    );
+
+    toolbar.appendChild(labelForStrokeColor);
   };
 
   ToolButtonPanel.prototype.createButton = function (imagePath, id) {
@@ -98,6 +110,27 @@ PAINTER.view.panel.ToolButtonPanel = (function () {
     inputImage.setAttribute('id', id);
 
     return inputImage;
+  };
+
+  ToolButtonPanel.prototype.createLabelForColor = function (
+    text,
+    defaultValue,
+    changeEventListener
+  ) {
+    var labelForColor = document.createElement('label');
+    var labelText = document.createTextNode(text);
+
+    var inputColor = document.createElement('input');
+    inputColor.setAttribute('type', 'color');
+
+    inputColor.value = defaultValue;
+
+    inputColor.addEventListener('change', changeEventListener, false);
+
+    labelForColor.appendChild(labelText);
+    labelForColor.appendChild(inputColor);
+
+    return labelForColor;
   };
 
   ToolButtonPanel.prototype.setPainterController = function (

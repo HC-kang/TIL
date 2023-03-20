@@ -1,4 +1,4 @@
-PAINTER.createNameSpace("PAINTER.model.PainterModel");
+PAINTER.createNameSpace('PAINTER.model.PainterModel');
 
 PAINTER.model.PainterModel = (function () {
   var IPainterSubject = PAINTER.controller.observer.IPainterSubject;
@@ -13,6 +13,8 @@ PAINTER.model.PainterModel = (function () {
     this.state = LineState.getInstance();
 
     this.strokeWidth = 10;
+
+    this.strokeColor = 'red';
   };
 
   PainterModel.prototype = Object.create(IPainterSubject.prototype, {
@@ -21,7 +23,7 @@ PAINTER.model.PainterModel = (function () {
       enumerable: true,
       writable: true,
       value: PainterModel,
-    }
+    },
   });
 
   PainterModel.prototype.drawPieces = function (ctx) {
@@ -39,7 +41,7 @@ PAINTER.model.PainterModel = (function () {
 
   PainterModel.prototype.getPieces = function () {
     return this.pieces;
-  }
+  };
 
   PainterModel.prototype.notifyObservers = function () {
     for (var i = 0; i < this.observers.length; i++) {
@@ -74,8 +76,16 @@ PAINTER.model.PainterModel = (function () {
     this.strokeWidth = strokeWidth;
   };
 
+  PainterModel.prototype.getStrokeColor = function () {
+    return this.strokeColor;
+  };
+
+  PainterModel.prototype.setStrokeColor = function (strokeColor) {
+    this.strokeColor = strokeColor;
+  };
+
   PainterModel.prototype.toString = function () {
-    return "PainterModel";
+    return 'PainterModel';
   };
 
   return PainterModel;
