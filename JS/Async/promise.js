@@ -1,14 +1,14 @@
-console.log("hi, this is promise.js");
+console.log('hi, this is promise.js');
 
 // State: pending -> fulfilled or rejected
 // Producer vs Consumer
 
 // 1. Producer
 const promise = new Promise((resolve, reject) => {
-  console.log("doing something...");
+  console.log('doing something...');
   setTimeout(() => {
-    resolve("test");
-    reject(new Error("no network"));
+    resolve('test');
+    reject(new Error('no network'));
   }, 2000);
 });
 
@@ -16,13 +16,13 @@ const promise = new Promise((resolve, reject) => {
 promise
   .then((value) => {
     console.log(value);
-    console.log("success");
+    console.log('success');
   })
   .catch((error) => {
     console.log(error);
   })
   .finally(() => {
-    console.log("finally");
+    console.log('finally');
   });
 
 // 3. Promise chaining
@@ -43,7 +43,7 @@ fetchNumber
 // 4. Error Handling
 const getHen = () =>
   new Promise((resolve, reject) => {
-    setTimeout(() => resolve("🐔"), 1000);
+    setTimeout(() => resolve('🐔'), 1000);
   });
 const getEgg = (hen) =>
   new Promise((resolve, reject) => {
@@ -62,7 +62,7 @@ const cook = (egg) =>
 getHen() //
   .then(getEgg)
   .catch((error) => {
-    return "🍞";
+    return '🍞';
   })
   .then(cook)
   .then(console.log)

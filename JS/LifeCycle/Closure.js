@@ -1,9 +1,8 @@
 function makeUnit(unit) {
   return function (value) {
-    return (`${value}${unit}`);
-  }
+    return `${value}${unit}`;
+  };
 }
-
 
 let px = makeUnit('px');
 let em = makeUnit('em');
@@ -15,7 +14,7 @@ console.log(em(45));
 
 // ---------------------------------------------
 
-let mkUnit = unit => value => (`${value}${unit}`)
+let mkUnit = (unit) => (value) => `${value}${unit}`;
 
 let px2 = makeUnit('px');
 let em2 = makeUnit('em');
