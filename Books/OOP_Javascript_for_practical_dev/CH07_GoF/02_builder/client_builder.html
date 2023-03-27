@@ -1,0 +1,35 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>builder</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/abstract_operation_builder.js"></script>
+  <script src="./js/add_operation_builder.js"></script>
+  <script src="./js/subtract_operation_builder.js"></script>
+  <script src="./js/multiply_operation_builder.js"></script>
+  <script src="./js/divide_operation_builder.js"></script>
+  <script src="./js/operation_director.js"></script>
+  <script>
+    var firstNumber = 100,
+      secondNumber = 20,
+      operationDirector;
+
+    var operationBuilders = [];
+
+    operationBuilders[0] = new CALC.builder.AddOperationBuilder(firstNumber, secondNumber);
+    operationBuilders[1] = new CALC.builder.SubtractOperationBuilder(firstNumber, secondNumber);
+    operationBuilders[2] = new CALC.builder.MultiplyOperationBuilder(firstNumber, secondNumber);
+    operationBuilders[3] = new CALC.builder.DivideOperationBuilder(firstNumber, secondNumber);
+
+    for (var i = 0, len = operationBuilders.length; i < len; i++) {
+      operationDirector = new CALC.builder.OperationDirector(operationBuilders[i]);
+      operationDirector.construct();
+    }
+  </script>
+</body>
+
+</html>
