@@ -1,12 +1,12 @@
 const personBuilder = (name, age) => {
-  return person = {
+  return (person = {
     name,
     age,
     sayHello() {
       console.log(`Hello, my name is ${this.name}`);
-    }
-  }
-}
+    },
+  });
+};
 
 const ford = personBuilder('ford', 31);
 const stella = personBuilder('stella', 30);
@@ -19,17 +19,17 @@ stella.sayHello.call(ford); // Hello, my name is ford -> this를 ford 가져감
 // ----------------------------------------------------------------
 
 const personBuilderArrow = (name, age) => {
-  return person = {
+  return (person = {
     name,
     age,
     sayHello: () => {
       console.log(`Hello, my name is ${this.name}`);
-    }
-  }
-}
+    },
+  });
+};
 
 const fordArrow = personBuilderArrow('ford', 31);
 const stellaArrow = personBuilderArrow('stella', 30);
 
-fordArrow.sayHello();
-stellaArrow.sayHello();
+fordArrow.sayHello(); // Hello, my name is undefined
+stellaArrow.sayHello(); // Hello, my name is undefined

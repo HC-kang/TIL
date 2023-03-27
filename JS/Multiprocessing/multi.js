@@ -1,4 +1,9 @@
-const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
+const {
+  Worker,
+  isMainThread,
+  parentPort,
+  workerData,
+} = require('worker_threads');
 
 const min = 2;
 let primes = [];
@@ -30,12 +35,20 @@ if (isMainThread) {
   console.time('multi');
   for (let i = 0; i < threadCount - 1; i++) {
     const wStart = start;
-    threads.add(new Worker(__filename, { workerData: { start: wStart, range } }));
+    threads.add(
+      new Worker(__filename, { workerData: { start: wStart, range } })
+    );
     start += range;
   }
-  threads.add(new Worker(__filename, { workerData: { start, range: range + ((max - min + 1) % threadCount) } }));
+  threads.add(
+    new Worker(__filename, {
+      workerData: { start, range: range + ((max - min + 1) % threadCount) },
+    })
+  );
   for (let worker of threads) {
-    worker.on('error', (err) => { throw err; });
+    worker.on('error', (err) => {
+      throw err;
+    });
     worker.on('exit', () => {
       threads.delete(worker);
       if (threads.size === 0) {

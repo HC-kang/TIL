@@ -1,11 +1,11 @@
-console.log("hi, this is async.js");
+console.log('hi, this is async.js');
 
 // async & await
 
 // 1. async
 async function fetchUser() {
   // do network request in 10 secs...
-  return "test";
+  return 'test';
 }
 
 const user = fetchUser();
@@ -20,12 +20,12 @@ function delay(ms) {
 async function getApple() {
   await delay(1001);
   // throw 'error';
-  return "🍎";
+  return '🍎';
 }
 
 async function getBanana() {
   await delay(1000);
-  return "🍌";
+  return '🍌';
 }
 
 async function pickFruits() {
@@ -45,7 +45,7 @@ pickFruits().then(console.log);
 // 3. useful Promise APIs
 function pickAllFruits() {
   return Promise.all([getApple(), getBanana()]).then((fruits) =>
-    fruits.join(" + ")
+    fruits.join(' + ')
   );
 }
 
