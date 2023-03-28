@@ -1,23 +1,27 @@
+<!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="'UTF-8">
-    <title>Singleton</title>
-  </head>
-  <body>
-    <script src="../common/js/calc_common.js"></script>
-    <script src="./js/operation_singleton.js"></script>
-    <script>
-      var singleton = CALC.singleton;
 
-      var calculatorSingleton = singleton.OperationSingleton.getInstance();
+<head>
+  <meta charset="UTF-8">
+  <title>singleton</title>
+</head>
 
-      var firstNumber = 100;
-      var secondNumber = 20;
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/operation_singleton.js"></script>
+  <script>
+    var singleton = CALC.singleton;
 
-      calculatorSingleton.operate(single.OperationSingleton.ADD_OPERATION, firstNumber, secondNumber);
-      calculatorSingleton.operate(single.OperationSingleton.SUBTRACT_OPERATION, firstNumber, secondNumber);
-      calculatorSingleton.operate(single.OperationSingleton.MULTIPLY_OPERATION, firstNumber, secondNumber);
-      calculatorSingleton.operate(single.OperationSingleton.DIVIDE_OPERATION, firstNumber, secondNumber);
-    </script>
-  </body>
+    var calculatorSingleton = singleton.OperationSingleton.getInstance();
+
+    var firstNumber = 100;
+    var secondNumber = 20;
+
+    calculatorSingleton.operate(singleton.OperationSingleton.ADD_OPERATION, firstNumber, secondNumber);
+    calculatorSingleton.operate(singleton.OperationSingleton.SUBSTRACT_OPERATION, firstNumber, secondNumber);
+    calculatorSingleton.operate(singleton.OperationSingleton.MULTIPLY_OPERATION, firstNumber, secondNumber);
+    calculatorSingleton.operate(singleton.OperationSingleton.DIVIDE_OPERATION, firstNumber, secondNumber);
+  </script>
+</body>
+
 </html>

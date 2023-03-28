@@ -1,0 +1,38 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>FactoryMethod</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/abstract_operation.js"></script>
+  <script src="./js/abstract_operator.js"></script>
+  <script src="./js/add_operator.js"></script>
+  <script src="./js/multiply_operator.js"></script>
+  <script src="./js/subtract_operator.js"></script>
+  <script src="./js/divide_operator.js"></script>
+  <script>
+    var factorymethod = CALC.factorymethod;
+
+    var firstNumber = 100;
+    var secondNumber = 20;
+
+    var operations = [
+      new factorymethod.AddOperator(),
+      new factorymethod.SubtractOperator(),
+      new factorymethod.MultiplyOperator(),
+      new factorymethod.DivideOperator()
+    ];
+
+    for (var i = 0; i < operations.length; i++) {
+      operations[i].setFirstNumber(firstNumber);
+      operations[i].setSecondNumber(secondNumber);
+
+      operations[i].operate();
+    }
+  </script>
+</body>
+
+</html>
