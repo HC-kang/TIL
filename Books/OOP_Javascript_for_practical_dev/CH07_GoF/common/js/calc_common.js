@@ -1,4 +1,7 @@
-var CALC = CALC || {};
+/**
+ * 전역공간 내 변수의 충돌 및 덮어쓰기 방지를 위한 네임스페이스 생성 함수
+ */
+var CALC = CALC || {}; // CALC 변수 덮어쓰기 방지
 
 CALC.createNameSpace = function(nsValue) {
 	var parts = nsValue.split("."),

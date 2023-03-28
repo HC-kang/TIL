@@ -1,5 +1,7 @@
+// 전역공간 내 변수의 충돌을 방지하기 위한 namespace 생성
 CALC.createNameSpace('CALC.singleton.OperationSingleton');
 
+// 즉시실행 함수를 통한 OperationSingleton 객체 생성
 CALC.singleton.OperationSingleton = (function () {
   var OperationSingleton;
 
@@ -11,6 +13,7 @@ CALC.singleton.OperationSingleton = (function () {
     OperationSingleton._instance = this;
   };
 
+  // OperationSingleton 객체에 operate 메서드 추가
   OperationSingleton.getInstance = function () {
     if (!OperationSingleton._instance) {
       OperationSingleton._instance = new OperationSingleton();
@@ -24,6 +27,7 @@ CALC.singleton.OperationSingleton = (function () {
   OperationSingleton.MULTIPLY_OPERATION = 3;
   OperationSingleton.DIVIDE_OPERATION = 4;
 
+  // OperationSingleton 객체의 프로토타입에 operate 메서드 추가
   OperationSingleton.prototype.operate = function (
     operatorType,
     firstNumber,
