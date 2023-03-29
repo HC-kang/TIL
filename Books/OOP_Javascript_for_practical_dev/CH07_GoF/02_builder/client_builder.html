@@ -2,7 +2,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>builder</title>
+  <title>Builder</title>
 </head>
 
 <body>
@@ -16,9 +16,9 @@
   <script>
     var firstNumber = 100,
       secondNumber = 20,
-      operationDirector;
+      operationDirector;  // Director
 
-    var operationBuilders = [];
+    var operationBuilders = []; // ConcreteBuilders
 
     operationBuilders[0] = new CALC.builder.AddOperationBuilder(firstNumber, secondNumber);
     operationBuilders[1] = new CALC.builder.SubtractOperationBuilder(firstNumber, secondNumber);
