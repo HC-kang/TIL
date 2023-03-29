@@ -1,0 +1,33 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Prototype</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/abstract_operation_prototype.js"></script>
+  <script src="./js/add_operation_prototype.js"></script>
+  <script src="./js/divide_operation_prototype.js"></script>
+  <script src="./js/multiply_operation_prototype.js"></script>
+  <script src="./js/subtract_operation_prototype.js"></script>
+  <script src="./js/client.js"></script>
+  <script>
+    var prototype = CALC.prototype;
+
+    var client = new prototype.Client();
+
+    var firstNumber = 100;
+    var secondNumber = 20;
+
+    var operators = ['+', '-', '*', '/'];
+
+    for (var i = 0; i < operators.length; i++) {
+      client.setOperation(operators[i], firstNumber, secondNumber);
+      client.operate();
+    }
+  </script>
+</body>
+
+</html>
