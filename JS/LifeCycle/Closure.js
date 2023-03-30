@@ -23,3 +23,21 @@ console.log(px2(122));
 console.log(px2(232));
 console.log(em2(342));
 console.log(em2(452));
+
+// ---------------------------------------------
+function getAdd() {
+  let foo = 1;
+  return function () {
+    return foo++;
+  }
+}
+
+add = getAdd();
+
+console.log(add());
+console.log(add());
+console.log(foo)
+foo = 10000
+console.log(foo)
+console.log(add());
+console.log(add());
