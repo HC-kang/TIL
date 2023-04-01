@@ -1,0 +1,47 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Adapter</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/abstract_operation_target.js"></script>
+  <script src="./js/operation_adaptee.js"></script>
+  <script src="./js/add_operation.js"></script>
+  <script src="./js/multiply_operation.js"></script>
+  <script src="./js/subtract_operation.js"></script>
+  <script src="./js/divide_operation_adapter.js"></script>
+  <script>
+    var firstNumber = 100;
+    var secondNumber = 20;
+
+    var adapter = CALC.adapter;
+
+    var operationTarget = new adapter.AddOperation();
+
+    var answer = operationTarget.operate(firstNumber, secondNumber);
+
+    console.log(firstNumber + ' + ' + secondNumber + ' = ' + answer);
+
+    operationTarget = new adapter.SubtractOperation();
+    answer = operationTarget.operate(firstNumber, secondNumber);
+
+    console.log(firstNumber + ' - ' + secondNumber + ' = ' + answer);
+
+    operationTarget = new adapter.MultiplyOperation();
+    answer = operationTarget.operate(firstNumber, secondNumber);
+
+    console.log(firstNumber + ' * ' + secondNumber + ' = ' + answer);
+
+    var operationAdaptee = new adapter.OperationAdaptee();
+
+    operationTarget = new adapter.DivideOperationAdapter(operationAdaptee);
+    answer = operationTarget.operate(firstNumber, secondNumber);
+
+    console.log(firstNumber + ' / ' + secondNumber + ' = ' + answer);
+  </script>
+</body>
+
+</html>
