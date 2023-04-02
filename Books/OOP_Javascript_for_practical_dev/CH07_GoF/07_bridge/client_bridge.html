@@ -1,0 +1,36 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Bridge</title>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/ibase_operation_implementor.js"></script>
+  <script src="./js/base_operation.js"></script>
+  <script src="./js/operation_abstraction.js"></script>
+  <script src="./js/refined_operation_abstraction.js"></script>
+  <script>
+    var firstNumber = 100;
+    var secondNumber = 20;
+
+    var bridge = CALC.bridge;
+
+    var baseOperation = new bridge.BaseOperation();
+
+    var operationAbstraction = new bridge.RefinedOperationAbstraction(baseOperation);
+
+    console.log(firstNumber + ' + ' + secondNumber + ' = ' + operationAbstraction.add(firstNumber, secondNumber));
+    console.log(firstNumber + ' - ' + secondNumber + ' = ' + operationAbstraction.subtract(firstNumber, secondNumber));
+    console.log(firstNumber + ' * ' + secondNumber + ' = ' + operationAbstraction.multiply(firstNumber, secondNumber));
+    console.log(firstNumber + ' / ' + secondNumber + ' = ' + operationAbstraction.divide(firstNumber, secondNumber));
+
+    var refinedOperationAbstraction = operationAbstraction;
+
+    console.log('sqrt(' + firstNumber + ') = ' + refinedOperationAbstraction.sqrt(firstNumber));
+    console.log('pow(10, 2) = ' + refinedOperationAbstraction.pow(10, 2));
+  </script>
+</body>
+</head>
+
+</html>
