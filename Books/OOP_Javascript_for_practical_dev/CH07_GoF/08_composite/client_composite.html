@@ -1,0 +1,66 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Composite</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/abstract_expression.js"></script>
+  <script src="./js/abstract_operation_expression.js"></script>
+  <script src="./js/calculator.js"></script>
+  <script src="./js/add_operation_expression.js"></script>
+  <script src="./js/multiply_operation_expression.js"></script>
+  <script src="./js/subtract_operation_expression.js"></script>
+  <script src="./js/divide_operation_expression.js"></script>
+  <script src="./js/number_expression.js"></script>
+  <script>
+    var composite = CALC.composite;
+
+    var calculator = new composite.Calculator();
+
+    var firstNumber = 100;
+    var secondNumber = 20;
+
+    var firstNumberEquation = new composite.NumberExpression(firstNumber);
+
+    calculator.setExpression(firstNumberEquation);
+    console.log('firstNumber = ' + calculator.calculate());
+
+    var secondNumberEquation = new composite.NumberExpression(secondNumber);
+
+    calculator.setExpression(secondNumberEquation);
+    console.log('secondNumber = ' + calculator.calculate());
+
+    var addOperationExpression = new composite.AddOperationExpression();
+    addOperationExpression.addOperandExpression(firstNumberEquation);
+    addOperationExpression.addOperandExpression(secondNumberEquation);
+
+    calculator.setExpression(addOperationExpression);
+    console.log(firstNumber + ' + ' + secondNumber + ' = ' + calculator.calculate());
+
+    var subtractOperationExpression = new composite.SubtractOperationExpression();
+    subtractOperationExpression.addOperandExpression(firstNumberEquation);
+    subtractOperationExpression.addOperandExpression(secondNumberEquation);
+
+    calculator.setExpression(subtractOperationExpression);
+    console.log(firstNumber + ' - ' + secondNumber + ' = ' + calculator.calculate());
+
+    var multiplyOperationExpression = new composite.MultiplyOperationExpression();
+    multiplyOperationExpression.addOperandExpression(firstNumberEquation);
+    multiplyOperationExpression.addOperandExpression(secondNumberEquation);
+
+    calculator.setExpression(multiplyOperationExpression);
+    console.log(firstNumber + ' * ' + secondNumber + ' = ' + calculator.calculate());
+
+    var divideOperationExpression = new composite.DivideOperationExpression();
+    divideOperationExpression.addOperandExpression(firstNumberEquation);
+    divideOperationExpression.addOperandExpression(secondNumberEquation);
+
+    calculator.setExpression(divideOperationExpression);
+    console.log(firstNumber + ' / ' + secondNumber + ' = ' + calculator.calculate());
+  </script>
+</body>
+
+</html>
