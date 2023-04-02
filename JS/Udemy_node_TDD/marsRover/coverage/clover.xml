@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1680416829902" clover="3.2.0">
+  <project timestamp="1680416829902" name="All files">
+    <metrics statements="42" coveredstatements="42" conditionals="21" coveredconditionals="21" methods="12" coveredmethods="12" elements="75" coveredelements="75" complexity="0" loc="42" ncloc="42" packages="1" files="4" classes="4"/>
+    <file name="Direction.ts" path="/Users/heechan/projects/personal/TIL/JS/Udemy_node_TDD/marsRover/src/Direction.ts">
+      <metrics statements="8" coveredstatements="8" conditionals="2" coveredconditionals="2" methods="4" coveredmethods="4"/>
+      <line num="1" count="1" type="stmt"/>
+      <line num="3" count="1" type="stmt"/>
+      <line num="4" count="6" type="stmt"/>
+      <line num="7" count="82" type="stmt"/>
+      <line num="10" count="9" type="stmt"/>
+      <line num="11" count="9" type="cond" truecount="1" falsecount="0"/>
+      <line num="14" count="1" type="stmt"/>
+      <line num="15" count="1" type="cond" truecount="1" falsecount="0"/>
+    </file>
+    <file name="Map.ts" path="/Users/heechan/projects/personal/TIL/JS/Udemy_node_TDD/marsRover/src/Map.ts">
+      <metrics statements="15" coveredstatements="15" conditionals="15" coveredconditionals="15" methods="4" coveredmethods="4"/>
+      <line num="2" count="1" type="stmt"/>
+      <line num="4" count="1" type="stmt"/>
+      <line num="5" count="1" type="stmt"/>
+      <line num="7" count="1" type="stmt"/>
+      <line num="8" count="6" type="stmt"/>
+      <line num="11" count="19" type="stmt"/>
+      <line num="12" count="19" type="stmt"/>
+      <line num="13" count="19" type="cond" truecount="1" falsecount="0"/>
+      <line num="14" count="19" type="cond" truecount="1" falsecount="0"/>
+      <line num="15" count="19" type="cond" truecount="3" falsecount="0"/>
+      <line num="16" count="19" type="cond" truecount="3" falsecount="0"/>
+      <line num="17" count="19" type="stmt"/>
+      <line num="19" count="18" type="stmt"/>
+      <line num="23" count="19" type="cond" truecount="7" falsecount="0"/>
+      <line num="24" count="1" type="stmt"/>
+    </file>
+    <file name="Point.ts" path="/Users/heechan/projects/personal/TIL/JS/Udemy_node_TDD/marsRover/src/Point.ts">
+      <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+      <line num="1" count="1" type="stmt"/>
+      <line num="6" count="25" type="stmt"/>
+      <line num="7" count="25" type="stmt"/>
+      <line num="11" count="6" type="stmt"/>
+    </file>
+    <file name="Rover.ts" path="/Users/heechan/projects/personal/TIL/JS/Udemy_node_TDD/marsRover/src/Rover.ts">
+      <metrics statements="15" coveredstatements="15" conditionals="4" coveredconditionals="4" methods="2" coveredmethods="2"/>
+      <line num="1" count="1" type="stmt"/>
+      <line num="2" count="1" type="stmt"/>
+      <line num="5" count="1" type="stmt"/>
+      <line num="6" count="6" type="stmt"/>
+      <line num="7" count="6" type="stmt"/>
+      <line num="9" count="6" type="stmt"/>
+      <line num="12" count="6" type="stmt"/>
+      <line num="13" count="29" type="cond" truecount="1" falsecount="0"/>
+      <line num="14" count="29" type="cond" truecount="1" falsecount="0"/>
+      <line num="15" count="29" type="cond" truecount="1" falsecount="0"/>
+      <line num="16" count="19" type="stmt"/>
+      <line num="17" count="19" type="stmt"/>
+      <line num="19" count="1" type="cond" truecount="1" falsecount="0"/>
+      <line num="20" count="1" type="stmt"/>
+      <line num="25" count="5" type="stmt"/>
+    </file>
+  </project>
+</coverage>
