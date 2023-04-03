@@ -1,0 +1,58 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Decorator</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/abstract_expression.js"></script>
+  <script src="./js/abstract_operation_expression.js"></script>
+  <script src="./js/abstract_decorator_expression.js"></script>
+  <script src="./js/calculator.js"></script>
+  <script src="./js/add_operation_expression.js"></script>
+  <script src="./js/multiply_operation_expression.js"></script>
+  <script src="./js/subtract_operation_expression.js"></script>
+  <script src="./js/divide_operation_expression.js"></script>
+  <script src="./js/number_expression.js"></script>
+  <script src="./js/frac_decorator_expression.js"></script>
+  <script src="./js/pow_decoration_expression.js"></script>
+  <script src="./js/sqrt_decorator_expression.js"></script>
+  <script>
+    var decorator = CALC.decorator
+    var calculator = new decorator.Calculator();
+
+    var firstNumber = 100;
+    var secondNumber = 20;
+
+    var firstNumberEquation = new decorator.NumberExpression(firstNumber);
+
+    calculator.setExpression(firstNumberEquation);
+    console.log('firstNumber' + calculator.calculate());
+
+    var secondNumberEquation = new decorator.NumberExpression(secondNumber);
+
+    calculator.setExpression(secondNumberEquation);
+    console.log('secondNumber' + calculator.calculate())
+
+    var addOperationEquation = new decorator.AddOperationExpression();
+    addOperationEquation.addOperandExpression(firstNumberEquation);
+    addOperationEquation.addOperandExpression(secondNumberEquation);
+
+    calculator.setExpression(addOperationEquation);
+    console.log(firstNumber + ' + ' + secondNumber + ' = ' + calculator.calculate());
+
+    calculator.setExpression(new decorator.SqrtDecoratorExpression(addOperationEquation));
+    console.log('SQRT(' + firstNumber + ' + ' + secondNumber + ') = ' + calculator.calculate());
+
+    calculator.setExpression(new decorator.FracDecoratorExpression(addOperationEquation));
+    console.log('FRAC(' + firstNumber + ' + ' + secondNumber + ') = ' + calculator.calculate());
+
+    var exponent = 2;
+    calculator.setExpression(new decorator.PowDecoratorExpression(addOperationEquation, exponent));
+    console.log('POW(' + firstNumber + ' + ' + secondNumber + ') = ' + calculator.calculate());
+  </script>
+</body>
+
+</html>
