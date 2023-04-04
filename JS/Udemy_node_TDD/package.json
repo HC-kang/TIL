@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "uniqid": "^5.4.0"
+  },
+  "devDependencies": {
+    "@types/uniqid": "^5.3.2"
+  }
+}

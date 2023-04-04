@@ -1,5 +1,5 @@
-import { Secret } from '../models/Secret';
-import { UrlId } from '../models/UrlId';
+import { Secret } from '../../models/Secret';
+import { UrlId } from '../../models/UrlId';
 
 export interface SecretRepository {
   getSecretByUrlId(urlId: UrlId): Promise<Secret>;

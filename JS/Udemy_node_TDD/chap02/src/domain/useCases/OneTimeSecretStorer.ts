@@ -1,8 +1,8 @@
 import { Secret } from '../models/Secret';
 import { UrlId } from '../models/UrlId';
-import { SecretRepository } from './SecretRepository';
-import { SecretStorer } from './SecretStorer';
-import { TokenGenerator } from './TokenGenerator';
+import { SecretRepository } from '../ports/out/SecretRepository';
+import { SecretStorer } from '../ports/in/SecretStorer';
+import { TokenGenerator } from '../ports/out/TokenGenerator';
 
 export class OneTimeSecretStorer implements SecretStorer {
   constructor(
