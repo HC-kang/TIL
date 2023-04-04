@@ -1,4 +1,4 @@
-import { SecretTooShortError } from './SecretTooShortError';
+import { SecretTooShortError } from './errors/SecretTooShortError';
 
 export class Secret {
   constructor(private secret: string) {
