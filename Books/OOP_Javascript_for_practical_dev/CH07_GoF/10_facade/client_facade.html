@@ -1,0 +1,32 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Facade</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="../factory/js/abstract_operation_product.js"></script>
+  <script src="../factory/js/add_operation_product.js"></script>
+  <script src="../factory/js/multiply_operation_product.js"></script>
+  <script src="../factory/js/subtract_operation_product.js"></script>
+  <script src="../factory/js/divide_operation_product.js"></script>
+  <script src="../factory/js/operation_factory.js"></script>
+  <script src="./js/number_operand.js"></script>
+  <script src="./js/expression_parser.js"></script>
+  <script src="./js/calculator_facade.js"></script>
+  <script>
+    var facade = CALC.facade;
+
+    var calculator = new facade.CalculatorFacade();
+
+    var expressions = ["100+20", "100-20", "100*20", "100/20"];
+
+    for (var i = 0; i < expressions.length; i++) {
+      calculator.calculate(expressions[i]);
+    }
+  </script>
+</body>
+
+</html>
