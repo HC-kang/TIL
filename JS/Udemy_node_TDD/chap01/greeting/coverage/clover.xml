@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1680654288366" clover="3.2.0">
+  <project timestamp="1680654288366" name="All files">
+    <metrics statements="6" coveredstatements="6" conditionals="6" coveredconditionals="6" methods="1" coveredmethods="1" elements="13" coveredelements="13" complexity="0" loc="6" ncloc="6" packages="1" files="1" classes="1"/>
+    <file name="Greeting.ts" path="/Users/ford/projects/personal/TIL/JS/Udemy_node_TDD/chap01/greeting/src/Greeting.ts">
+      <metrics statements="6" coveredstatements="6" conditionals="6" coveredconditionals="6" methods="1" coveredmethods="1"/>
+      <line num="1" count="1" type="stmt"/>
+      <line num="2" count="5" type="stmt"/>
+      <line num="3" count="5" type="cond" truecount="3" falsecount="0"/>
+      <line num="4" count="3" type="cond" truecount="1" falsecount="0"/>
+      <line num="5" count="2" type="cond" truecount="1" falsecount="0"/>
+      <line num="6" count="1" type="cond" truecount="1" falsecount="0"/>
+    </file>
+  </project>
+</coverage>
