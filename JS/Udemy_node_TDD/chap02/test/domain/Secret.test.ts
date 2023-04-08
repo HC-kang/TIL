@@ -8,4 +8,7 @@ describe('Secret Test', () => {
   it('should throw an error if the secret has less than 3 chars', () => {
     expect(() => new Secret('12')).toThrow(SecretTooShortError);
   });
+  it('should return the secret as string with the toString method', () => {
+    expect(new Secret('123qwe').toString()).toBe('123qwe');
+  })
 });
