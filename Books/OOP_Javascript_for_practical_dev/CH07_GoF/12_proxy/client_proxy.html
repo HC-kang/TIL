@@ -1,0 +1,59 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Proxy</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/abstract_operation_subject.js"></script>
+  <script src="./js/add_operation_subject.js"></script>
+  <script src="./js/divide_operation_subject.js"></script>
+  <script src="./js/multiply_operation_subject.js"></script>
+  <script src="./js/subtract_operation_subject.js"></script>
+  <script src="./js/divide_operation_proxy.js"></script>
+  <script>
+    var proxy = CALC.proxy;
+
+    var firstNumber = 100;
+    var secondNumber = 20;
+
+    var result;
+
+    var operationSubject = new proxy.AddOperationSubject();
+    result = operationSubject.operate(firstNumber, secondNumber);
+
+    console.log(firstNumber + ' + ' + secondNumber + ' = ' + result);
+
+    operationSubject = new proxy.SubtractOperationSubject();
+    result = operationSubject.operate(firstNumber, secondNumber);
+
+    console.log(firstNumber + ' - ' + secondNumber + ' = ' + result);
+
+    operationSubject = new proxy.MultiplyOperationSubject();
+    result = operationSubject.operate(firstNumber, secondNumber);
+
+    console.log(firstNumber + ' * ' + secondNumber + ' = ' + result);
+
+    operationSubject = new proxy.DivideOperationProxy(new proxy.DivideOperationSubject());
+    result = operationSubject.operate(firstNumber, secondNumber);
+
+    console.log(firstNumber + ' / ' + secondNumber + ' = ' + result);
+
+    operationSubject = new proxy.DivideOperationProxy(new proxy.DivideOperationSubject());
+
+    firstNumber = 10;
+    secondNumber = 0;
+
+    try {
+      result = operationSubject.operate(firstNumber, secondNumber);
+
+      console.log(firstNumber + ' / ' + secondNumber + ' = ' + result);
+    } catch (e) {
+      console.log(e);
+    }
+  </script>
+</body>
+
+</html>
