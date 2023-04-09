@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response, request, response } from 'express';
-import { errorHandler } from '../../../../src/adapters/rest/middlewares/ErrorHandler';
-import { ValidationError } from '../../../../src/adapters/rest/controllers/ValidationError';
-import { UrlIdTooShortError } from '../../../../src/domain/models/errors/UrlIdTooShortError';
-import { SecretTooShortError } from '../../../../src/domain/models/errors/SecretTooShortError';
-import { SecretNotFoundInRepositoryError } from '../../../../src/domain/models/errors/SecretNotFoundInRepositoryError';
+import { ValidationError } from '../../../../../src/adapters/rest/controllers/ValidationError';
+import { errorHandler } from '../../../../../src/adapters/rest/middlewares/ErrorHandler';
+import { SecretNotFoundInRepositoryError } from '../../../../../src/domain/models/errors/SecretNotFoundInRepositoryError';
+import { SecretTooShortError } from '../../../../../src/domain/models/errors/SecretTooShortError';
+import { UrlIdTooShortError } from '../../../../../src/domain/models/errors/UrlIdTooShortError';
 
 describe('ErrorHandler Tests', () => {
   it('should send a uncontrolled error', () => {

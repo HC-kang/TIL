@@ -1,7 +1,7 @@
-import { UniqidTokenGenerator } from '../../../src/adapters/externalServices/UniqidTokenGenerator';
 
 jest.mock('uniqid');
 import uniqid from 'uniqid';
+import { UniqidTokenGenerator } from '../../../../src/adapters/externalServices/UniqidTokenGenerator';
 const mockUniqid = uniqid as jest.MockedFunction<typeof uniqid>;
 
 describe('UniqidTokenGenerator Tests', () => {
