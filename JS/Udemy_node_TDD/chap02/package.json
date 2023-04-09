@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "ts-node src/server.ts",
     "test": "jest --maxWorker=1 --forceExit",
     "test:watch": "jest --maxWorker=1 --forceExit --watchAll",
     "test:coverage": "jest --maxWorker=1 --forceExit --watchAll --coverage",
