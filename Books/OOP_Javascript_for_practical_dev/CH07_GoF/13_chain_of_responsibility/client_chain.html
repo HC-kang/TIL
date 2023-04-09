@@ -1,0 +1,44 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Chain of Responsibility</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/abstract_operation_handler.js"></script>
+  <script src="./js/request.js"></script>
+  <script src="./js/add_operation_handler.js"></script>
+  <script src="./js/multiply_operation_handler.js"></script>
+  <script src="./js/subtract_operation_handler.js"></script>
+  <script src="./js/divide_operation_handler.js"></script>
+  <script>
+    var chain = CALC.chain;
+
+    var addOperationHandler = new chain.AddOperationHandler('+');
+    var subtractOperationHandler = new chain.SubtractOperationHandler('-');
+    var multiplyOperationHandler = new chain.MultiplyOperationHandler('*');
+    var divideOperationHandler = new chain.DivideOperationHandler('/');
+
+    addOperationHandler.setNext(subtractOperationHandler)
+      .setNext(multiplyOperationHandler)
+      .setNext(divideOperationHandler);
+
+    var requests = [
+      new chain.Request('100+20'),
+      new chain.Request('100-20'),
+      new chain.Request('100*20'),
+      new chain.Request('100/20'),
+    ];
+
+    for (var i = 0, len = requests.length; i < len; i++) {
+      var answer = addOperationHandler.handleRequest(requests[i]);
+      var expression = requests[i].getExpression();
+
+      console.log(expression + ' = ' + answer);
+    }
+  </script>
+</body>
+
+</html>
