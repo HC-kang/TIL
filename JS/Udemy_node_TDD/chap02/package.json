@@ -6,7 +6,10 @@
   "scripts": {
     "test": "jest --maxWorker=1 --forceExit",
     "test:watch": "jest --maxWorker=1 --forceExit --watchAll",
-    "test:coverage": "jest --maxWorker=1 --forceExit --watchAll --coverage"
+    "test:coverage": "jest --maxWorker=1 --forceExit --watchAll --coverage",
+    "test:unit": "jest --forceExit test/unit/**",
+    "test:int": "jest --forceExit test/integration/**",
+    "test:e2e": "jest --forceExit --runInBand test/e2e/**"
   },
   "keywords": [],
   "author": "",
