@@ -26,7 +26,26 @@ CALC.interpreter.CalcTokenizer = (function () {
       } else if (this.isLetter(ch)) {
         sb = '';
         sb += ch;
+        for (var k = i + 1; k < text.length; k++) {
+          ch = text.charAt(k);
+          if (this.isDelim(ch)) {
+            i = k - 1;
+            break;
+          }
+          sb += ch;
 
+          i = k;
+        }
+
+        var variable = sb;
+        if (this.isFunction(variable)) {
+          this.tokenList.push(new CalcToken(CalcToken.FUNCTION, variable));
+        } else {
+          this.tokenList.push(new CalcToken(CalcToken.VARIABLE, variable));
+        }
+      } else if (this.isDigit(ch)) {
+        sb = '';
+        sb += ch;
         for (var k = i + 1; k < text.length; k++) {
           ch = text.charAt(k);
           if (this.isDelim(ch)) {
@@ -73,14 +92,14 @@ CALC.interpreter.CalcTokenizer = (function () {
     return /^\d+$/.test(str);
   };
 
-  CalcTokenizer.prototpye.print = function () {
-    for (var i = 0; i < this.tokenList.size(); i++) {
+  CalcTokenizer.prototype.print = function () {
+    for (var i = 0; i < this.tokenList.length; i++) {
       console.log(i + ' ' + this.tokenList[i]);
     }
   };
 
   CalcTokenizer.prototype.getCurrentToken = function () {
-    if ((this.currentIndex, this.tokenList.length)) {
+    if (this.currentIndex < this.tokenList.length) {
       return this.tokenList[this.currentIndex];
     }
 

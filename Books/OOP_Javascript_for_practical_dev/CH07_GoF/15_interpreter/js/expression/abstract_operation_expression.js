@@ -1,16 +1,19 @@
-CALC.createNameSpace('CALC.interpreter.AbstractOperationExpression');
+CALC.createNameSpace('CALC.interpreter.expression.AbstractOperationExpression');
 
-CALC.interpreter.AbstractOperationExpression = (function () {
-  var AbstractExpression = CALC.interpreter.AbstractExpression;
+CALC.interpreter.expression.AbstractOperationExpression = (function () {
+  var AbstractFunctionExpression =
+    CALC.interpreter.expression.AbstractFunctionExpression;
 
   var AbstractOperationExpression;
 
   AbstractOperationExpression = function () {
-    AbstractExpression.call(this);
+    AbstractFunctionExpression.call(this);
+
+    this.operandList = [];
   };
 
   AbstractOperationExpression.prototype = Object.create(
-    AbstractExpression.prototype,
+    AbstractFunctionExpression.prototype,
     {
       constructor: {
         configurable: true,
@@ -32,7 +35,8 @@ CALC.interpreter.AbstractOperationExpression = (function () {
   };
 
   AbstractOperationExpression.prototype.parse = function (context) {
-    var CalcExpressionFactory = CALC.interpreter.CalcExpressionFactory;
+    var CalcExpressionFactory =
+      CALC.interpreter.expression.CalcExpressionFactory;
 
     context.skipToken(this.getFunctionName());
 

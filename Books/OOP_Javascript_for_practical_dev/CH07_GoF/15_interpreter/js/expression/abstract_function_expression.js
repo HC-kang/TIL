@@ -1,7 +1,7 @@
 CALC.createNameSpace('CALC.interpreter.expression.AbstractFunctionExpression');
 
 CALC.interpreter.expression.AbstractFunctionExpression = (function () {
-  var AbstractExpression = CALC.interpreter.AbstractExpression;
+  var AbstractExpression = CALC.interpreter.expression.AbstractExpression;
 
   var AbstractFunctionExpression;
 
