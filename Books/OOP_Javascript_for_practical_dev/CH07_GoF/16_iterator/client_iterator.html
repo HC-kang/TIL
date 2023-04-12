@@ -1,0 +1,41 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Iterator</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/abstract_operation.js"></script>
+  <script src="./js/abstract_aggregate.js"></script>
+  <script src="./js/icalc_iterator.js"></script>
+  <script src="./js/add_operation.js"></script>
+  <script src="./js/multiply_operation.js"></script>
+  <script src="./js/subtract_operation.js"></script>
+  <script src="./js/divide_operation.js"></script>
+  <script src="./js/operation_aggregate.js"></script>
+  <script src="./js/operation_iterator.js"></script>
+  <script>
+    var iterator = CALC.iterator;
+
+    var operationAggregate = new iterator.OperationAggregate();
+
+    operationAggregate.addOperation(new iterator.AddOperation());
+    operationAggregate.addOperation(new iterator.SubtractOperation());
+    operationAggregate.addOperation(new iterator.MultiplyOperation());
+    operationAggregate.addOperation(new iterator.DivideOperation());
+
+    var firstNumber = 100;
+    var secondNumber = 20;
+
+    var calcIterator = operationAggregate.createIterator();
+
+    while (calcIterator.hasNext()) {
+      var operation = calcIterator.next();
+      operation.print(firstNumber, secondNumber);
+    }
+  </script>
+</body>
+
+</html>
