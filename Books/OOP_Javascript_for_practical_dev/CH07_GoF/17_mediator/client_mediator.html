@@ -1,0 +1,32 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Mediator</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/icolleague.js"></script>
+  <script src="./js/imediator.js"></script>
+  <script src="./js/add_colleague.js"></script>
+  <script src="./js/multiply_colleague.js"></script>
+  <script src="./js/subtract_colleague.js"></script>
+  <script src="./js/divide_colleague.js"></script>
+  <script src="./js/client_mediator.js"></script>
+  <script>
+    var mediator = CALC.mediator;
+
+    var clientMediator = new mediator.ClientMediator();
+
+    var colleague = clientMediator.getAddColleague();
+
+    colleague.changeFirstNumber(60);
+
+    colleague = clientMediator.getMultiplyColleague();
+
+    colleague.changeFirstNumber(80);
+  </script>
+</body>
+
+</html>
