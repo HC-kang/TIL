@@ -1,0 +1,39 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>memento</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/operation_memento.js"></script>
+  <script src="./js/operation_originator.js"></script>
+  <script>
+    var memento = CALC.memento;
+
+    var operationOriginator = new memento.OperationOriginator();
+
+    operationOriginator.setFirstNumber(100);
+    operationOriginator.setSecondNumber(10);
+
+    operationOriginator.printOperations();
+
+    console.log("create Memento");
+
+    var operationMemento = operationOriginator.createMemento();
+
+    operationOriginator.setFirstNumber(60);
+    operationOriginator.setSecondNumber(30);
+
+    operationOriginator.printOperations();
+
+    console.log("restore Memento");
+
+    operationOriginator.setMemento(operationMemento);
+
+    operationOriginator.printOperations();
+  </script>
+</body>
+
+</html>
