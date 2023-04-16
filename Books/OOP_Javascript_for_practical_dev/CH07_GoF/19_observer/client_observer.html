@@ -1,0 +1,44 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Observer</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/abstract_operation_observer.js"></script>
+  <script src="./js/isubject.js"></script>
+  <script src="./js/operation_subject.js"></script>
+  <script src="./js/add_operation_observer.js"></script>
+  <script src="./js/multiply_operation_observer.js"></script>
+  <script src="./js/subtract_operation_observer.js"></script>
+  <script src="./js/divide_operation_observer.js"></script>
+  <script>
+    var observer = CALC.observer;
+
+    var operationSubject = new observer.OperationSubject();
+
+    var addOperationObserver = new observer.AddOperationObserver(operationSubject);
+    var subtractOperationObserver = new observer.SubtractOperationObserver(operationSubject);
+    var multiplyOperationObserver = new observer.MultiplyOperationObserver(operationSubject);
+    var divideOperationObserver = new observer.DivideOperationObserver(operationSubject);
+
+    operationSubject.registerObserver(addOperationObserver);
+    operationSubject.registerObserver(subtractOperationObserver);
+    operationSubject.registerObserver(multiplyOperationObserver);
+    operationSubject.registerObserver(divideOperationObserver);
+
+    var firstNumber = 100;
+    var secondNumber = 20;
+
+    operationSubject.setNumber(firstNumber, secondNumber);
+
+    firstNumber = 200;
+    secondNumber = -30;
+
+    operationSubject.setNumber(firstNumber, secondNumber);
+  </script>
+</body>
+
+</html>
