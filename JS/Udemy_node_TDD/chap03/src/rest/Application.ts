@@ -1,6 +1,6 @@
 import express from 'express';
-import { Route } from './Route';
-import { errorHandler } from './ErrorHandler';
+import { Route } from '../rest/Route';
+import { errorHandler } from '../rest/ErrorHandler';
 
 export class Application {
   private expressApp: express.Application = express();
