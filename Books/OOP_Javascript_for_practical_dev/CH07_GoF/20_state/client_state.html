@@ -1,0 +1,29 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>State</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/icontext.js"></script>
+  <script src="./js/istate.js"></script>
+  <script src="./js/input_state.js"></script>
+  <script src="./js/operator_state.js"></script>
+  <script src="./js/start_state.js"></script>
+  <script src="./js/client.js"></script>
+  <script>
+    var state = CALC.state;
+
+    var client = new state.Client();
+
+    client.action('5');
+    client.action('5');
+    client.action('*');
+    client.action('6');
+    client.action('=');
+  </script>
+</body>
+
+</html>
