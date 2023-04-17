@@ -9,7 +9,7 @@ describe('Get secrets integration Test', () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       name: 'UrlIdValidationError',
-      message: 'UrlId is too short',
+      message: 'UrlId is too short.',
     });
   });
   xit('should return an error when the secret does not exist in the system', () => {});
