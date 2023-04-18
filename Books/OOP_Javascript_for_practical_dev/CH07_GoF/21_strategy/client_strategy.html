@@ -1,0 +1,38 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Strategy</title>
+</head>
+
+<body>
+  <script src="../common/js/calc_common.js"></script>
+  <script src="./js/abstract_operation_strategy.js"></script>
+  <script src="./js/add_operation_strategy.js"></script>
+  <script src="./js/divide_operation_strategy.js"></script>
+  <script src="./js/multiply_operation_strategy.js"></script>
+  <script src="./js/subtract_operation_strategy.js"></script>
+  <script src="./js/operation_context.js"></script>
+  <script>
+    var strategy = CALC.strategy;
+
+    var operationContext = new strategy.OperationContext();
+
+    var firstNumber = 100;
+    var secondNumber = 20;
+
+    var operationStrategies = [
+      new strategy.AddOperationStrategy(),
+      new strategy.SubtractOperationStrategy(),
+      new strategy.MultiplyOperationStrategy(),
+      new strategy.DivideOperationStrategy(),
+    ];
+
+    for (var i = 0; i < operationStrategies.length; i++) {
+      operationContext.setOperationStrategy(operationStrategies[i]);
+      operationContext.operate(firstNumber, secondNumber);
+    };
+  </script>
+</body>
+
+</html>
