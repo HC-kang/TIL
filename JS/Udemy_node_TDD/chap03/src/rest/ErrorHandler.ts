@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { SecretNotFoundError } from '../SecretNotFoundError';
 
 export function errorHandler(
   error: Error,
@@ -6,8 +7,15 @@ export function errorHandler(
   response: Response,
   next: NextFunction
 ): void {
-  response.status(400).json({
+  if (error instanceof SecretNotFoundError) {
+    response.status(404).json({
     name: error.name,
     message: error.message,
-  });
+  });  
+  } else {
+    response.status(400).json({
+      name: error.name,
+      message: error.message,
+    });
+  }
 }
