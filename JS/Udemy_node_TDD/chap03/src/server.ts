@@ -4,7 +4,7 @@ import { UrlId } from "./domain/models/UrlId";
 import { Application } from "./infra/rest/Application";
 import { Route } from "./infra/rest/Route";
 import { SecretsByIdController } from "./infra/rest/SecretsByIdController";
-import { SecretsByIdRoute } from "./infra/rest/SecretsById/SecretsByIdRoute";
+import { SecretsByIdRoute } from "./infra/rest/SecretsByIdRoute";
 
 const secretRetriever: SecretRetriever = {
   retrieveSecretByUrlId: function (urlId: UrlId): Promise<Secret> {
