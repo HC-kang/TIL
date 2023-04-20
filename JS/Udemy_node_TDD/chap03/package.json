@@ -16,7 +16,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/mongoose": "^5.11.97",
     "express": "^4.18.2",
+    "mongoose": "^7.0.4",
     "typescript": "^5.0.4"
   },
   "devDependencies": {
