@@ -7,6 +7,7 @@ CALC.ocp.before.Calculator = (function () {
     this.addOperation = null;
     this.subtractOperation = null;
     this.multiplyOperation = null;
+    this.divideOperation = null;
   };
 
   Calculator.prototype.add = function (firstNumber, secondNumber) {
@@ -27,6 +28,12 @@ CALC.ocp.before.Calculator = (function () {
     return answer;
   };
 
+  Calculator.prototype.divide = function (firstNumber, secondNumber) {
+    var answer = this.divideOperation.operate(firstNumber, secondNumber);
+
+    return answer;
+  };
+
   Calculator.prototype.setAddOperation = function (addOperation) {
     this.addOperation = addOperation;
   };
@@ -37,6 +44,10 @@ CALC.ocp.before.Calculator = (function () {
 
   Calculator.prototype.setMultiplyOperation = function (multiplyOperation) {
     this.multiplyOperation = multiplyOperation;
+  };
+
+  Calculator.prototype.setDivideOperation = function (divideOperation) {
+    this.divideOperation = divideOperation;
   };
 
   Calculator.prototype.toString = function () {
