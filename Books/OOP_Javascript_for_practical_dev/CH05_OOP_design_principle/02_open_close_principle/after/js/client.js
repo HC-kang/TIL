@@ -33,6 +33,13 @@ CALC.ocp.after.Client = (function () {
     answer = calculator.calculate(firstNumber, secondNumber);
 
     console.log(firstNumber + ' * ' + secondNumber + ' = ' + answer);
+
+    operation = new after.DivideOperation();
+    calculator.setOperation(operation);
+
+    answer = calculator.calculate(firstNumber, secondNumber);
+
+    console.log(firstNumber + ' / ' + secondNumber + ' = ' + answer);
   };
 
   Client.prototype.toString = function () {
