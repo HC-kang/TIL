@@ -5,12 +5,11 @@ import { Application } from "./infra/rest/Application";
 import { Route } from "./infra/rest/Route";
 import { SecretsByIdController } from "./infra/rest/SecretsByIdController";
 import { SecretsByIdRoute } from "./infra/rest/SecretsByIdRoute";
+import { OneTimeSecretRetriever } from "./services/OneTimeSecretRetriever";
+import { MongoSecretRepository } from "./infra/repositories/MongoSecretRepository";
 
-const secretRetriever: SecretRetriever = {
-  retrieveSecretByUrlId: function (urlId: UrlId): Promise<Secret> {
-    throw new Error("Function not implemented.");
-  }
-}
+const secretRepository = new MongoSecretRepository();
+const secretRetriever = new OneTimeSecretRetriever(secretRepository);
 const secretsByIdController = new SecretsByIdController(secretRetriever);
 const secretsByIdRoute = new SecretsByIdRoute(secretsByIdController);
 
