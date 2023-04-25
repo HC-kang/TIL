@@ -24,6 +24,11 @@ CALC.lsp.before.Client = (function () {
     operation = new before.MultiplyOperation();
     answer = calculator.calculate(operation, firstNumber, secondNumber);
     console.log(firstNumber + ' * ' + secondNumber + ' = ' + answer);
+
+    secondNumber = 0;
+    operation = new before.DivideOperation();
+    answer = calculator.calculate(operation, firstNumber, secondNumber);
+    console.log(firstNumber + ' / ' + secondNumber + ' = ' + answer);
   };
 
   Client.prototype.toString = function () {

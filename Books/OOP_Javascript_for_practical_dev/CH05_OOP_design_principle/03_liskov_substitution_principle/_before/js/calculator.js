@@ -10,6 +10,11 @@ CALC.lsp.before.Calculator = (function () {
     firstNumber,
     secondNumber
   ) {
+    if (operation instanceof CALC.lsp.before.DivideOperation) {
+      if (secondNumber === 0) {
+        return -999;
+      }
+    }
     var answer = operation.operate(firstNumber, secondNumber);
 
     return answer;
