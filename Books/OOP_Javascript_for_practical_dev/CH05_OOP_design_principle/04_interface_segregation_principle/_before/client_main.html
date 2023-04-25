@@ -1,0 +1,26 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Interface Segregation Principle</title>
+</head>
+
+<body>
+  <script src="../../common/js/calc_common.js"></script>
+  <script src="./js/abstract_operation.js"></script>
+  <script src="./js/add_operation.js"></script>
+  <script src="./js/subtract_operation.js"></script>
+  <script src="./js/multiply_operation.js"></script>
+  <script src="./js/divide_operation.js"></script>
+  <script src="./js/calculator.js"></script>
+  <script src="./js/calc_client.js"></script>
+  <script src="./js/display_client.js"></script>
+  <script src="./js/client.js"></script>
+  <script>
+    var client = new CALC.isp.before.Client();
+
+    client.main();
+  </script>
+</body>
+
+</html>
