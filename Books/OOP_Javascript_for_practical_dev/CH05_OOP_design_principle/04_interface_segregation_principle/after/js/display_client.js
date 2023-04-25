@@ -11,7 +11,7 @@ CALC.isp.after.DisplayClient = (function () {
     firstNumber,
     secondNumber
   ) {
-    calculator.display(operation, firstNumber, secondNumber);
+    calculator.newDisplay(operation, firstNumber, secondNumber);
   };
 
   DisplayClient.prototype.toString = function () {

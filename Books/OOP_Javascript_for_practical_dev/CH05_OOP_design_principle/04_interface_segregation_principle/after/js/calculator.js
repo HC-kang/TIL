@@ -28,7 +28,7 @@ CALC.isp.after.Calculator = (function () {
     this.operation = operation;
   };
 
-  Calculator.prototype.display = function (
+  Calculator.prototype.newDisplay = function (
     operation,
     firstNumber,
     secondNumber
