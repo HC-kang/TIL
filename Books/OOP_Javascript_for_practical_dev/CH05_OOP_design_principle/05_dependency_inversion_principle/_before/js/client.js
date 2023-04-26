@@ -27,6 +27,11 @@ CALC.dip.before.Client = (function () {
     calculator.setMultiplyOperation(operation);
     answer = calculator.calculate('*', firstNumber, secondNumber);
     console.log(firstNumber + ' * ' + secondNumber + ' = ' + answer);
+
+    operation = new before.DivideOperation();
+    calculator.setDivideOperation(operation);
+    answer = calculator.calculate('/', firstNumber, secondNumber);
+    console.log(firstNumber + ' / ' + secondNumber + ' = ' + answer);
   };
 
   Client.prototype.toString = function () {

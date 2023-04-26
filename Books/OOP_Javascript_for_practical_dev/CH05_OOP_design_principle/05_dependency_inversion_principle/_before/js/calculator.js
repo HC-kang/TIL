@@ -7,6 +7,7 @@ CALC.dip.before.Calculator = (function () {
     this.addOperation = null;
     this.subtractOperation = null;
     this.multiplyOperation = null;
+    this.divideOperation = null;
   };
 
   Calculator.prototype.calculate = function (
@@ -22,6 +23,8 @@ CALC.dip.before.Calculator = (function () {
       answer = this.subtractOperation.subtract(firstNumber, secondNumber);
     } else if (operator === '*') {
       answer = this.multiplyOperation.multiply(firstNumber, secondNumber);
+    } else if (operator === '/') {
+      answer = this.divideOperation.divide(firstNumber, secondNumber);
     }
 
     return answer;
@@ -37,6 +40,10 @@ CALC.dip.before.Calculator = (function () {
 
   Calculator.prototype.setMultiplyOperation = function (multiplyOperation) {
     this.multiplyOperation = multiplyOperation;
+  };
+
+  Calculator.prototype.setDivideOperation = function (divideOperation) {
+    this.divideOperation = divideOperation;
   };
 
   Calculator.prototype.toString = function () {
