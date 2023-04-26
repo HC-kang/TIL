@@ -8,4 +8,7 @@ describe('UrlId Tests', () => {
   it('should throw an error when attempting to create a UrlId that is too short', () => {
     expect(() => new UrlId('123456789')).toThrowError(new UrlIdValidationError('UrlId is too short'));
   })
+  it('should return a string representation on the toString method', () => {
+    expect(new UrlId('123456789123456789').toString()).toBe('123456789123456789')
+  })
 })

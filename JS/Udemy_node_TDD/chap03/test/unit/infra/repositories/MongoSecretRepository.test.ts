@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { MongoSecretRepository } from '../../../../src/infra/repositories/MongoSecretRepository';
 import { UrlId } from '../../../../src/domain/models/UrlId';
 import { SecretModel } from '../../../../src/infra/repositories/SecretModel';
+import { Secret } from '../../../../src/domain/models/Secret';
 
 const mockMongoose = {
   connect: jest.fn(),
@@ -34,9 +35,38 @@ describe('Mongo Secret Repository Tests', () => {
     mockMongoose.connect = jest.fn();
     mockMongoose.connection.readyState = 1;
 
-    const urlId = new UrlId('123456qwerty')
+    const urlId = new UrlId('123456qwerty');
     const mongoSecretRepository = new MongoSecretRepository();
-    expect(await mongoSecretRepository.getSecretByUrlId(urlId)).toBe(null)
+    expect(await mongoSecretRepository.getSecretByUrlId(urlId)).toBe(null);
     expect(mockMongoose.connect).toBeCalledTimes(0);
+  });
+  it('should return the secret when it is found', async () => {
+    SecretModel.findOne = jest.fn().mockReturnValue({
+      secret: 'qwe123',
+    });
+    mockMongoose.connect = jest.fn();
+    mockMongoose.connection.readyState = 1;
+
+    const urlId = new UrlId('123456qwerty');
+    const mongoSecretRepository = new MongoSecretRepository();
+    expect(await mongoSecretRepository.getSecretByUrlId(urlId)).toEqual(
+      new Secret('qwe123')
+    );
+    expect(mockMongoose.connect).toBeCalledTimes(0);
+    expect(SecretModel.findOne).toBeCalledTimes(1);
+    expect(SecretModel.findOne).toBeCalledWith(urlId);
+  });
+  it('should remove a secret from the database', async () => {
+    SecretModel.deleteOne = jest.fn();
+    mockMongoose.connect = jest.fn();
+    mockMongoose.connection.readyState = 1;
+
+    const urlId = new UrlId('123456qwerty');
+    const mongoSecretRepository = new MongoSecretRepository();
+    await mongoSecretRepository.removeSecretByUrlId(urlId);
+    expect(SecretModel.deleteOne).toBeCalledTimes(1);
+    expect(SecretModel.deleteOne).toBeCalledWith({
+      urlId: '123456qwerty',
+    });
   });
 });
