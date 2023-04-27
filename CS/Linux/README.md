@@ -68,6 +68,14 @@ free -h
 df -h
 ```
 
+## 디스크 사용량 확인
+
+```zsh
+sudo -s du -sh /var
+sudo -s du -sh /usr
+sudo -s du -h --max-depth=1
+```
+
 ## CPU 사용량, 프로세스, 스레드 상태 등 확인
 
 ```zsh
