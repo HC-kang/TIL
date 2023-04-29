@@ -68,7 +68,7 @@ describe('Get secrets integration Test', () => {
       '/api/v1/secrets/1234123412341234123412341234'
     );
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(500);
     expect(response.body).toEqual({
       name: 'InternalServerError',
       message: 'Something went wrong',
