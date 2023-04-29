@@ -42,4 +42,23 @@ describe('ErrorHandler tests', () => {
       message: 'Secret was not found in the system',
     });
   });
+  it('should generate an generic Error for uncontrolled situations', () => {
+    const error = new Error('Something went wrong');
+    const req: Request = expect.any(request);
+    const res: Response = expect.any(response);
+    res.status = jest.fn().mockReturnThis();
+    res.json = jest.fn();
+    const next: NextFunction = jest.fn();
+
+    errorHandler(error, req, res, next);
+
+    expect(next).toBeCalledTimes(0);
+    expect(res.status).toBeCalledTimes(1);
+    expect(res.status).toBeCalledWith(500);
+    expect(res.json).toBeCalledTimes(1);
+    expect(res.json).toBeCalledWith({
+      name: 'InternalServerError',
+      message: 'Something went wrong',
+    });
+  });
 });
