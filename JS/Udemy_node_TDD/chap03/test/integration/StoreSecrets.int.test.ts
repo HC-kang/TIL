@@ -1,5 +1,6 @@
 import supertest from 'supertest';
 import server from '../../src/server';
+import { SecretModel } from '../../src/infra/repositories/SecretModel';
 
 const mockMongoose = {
   connect: jest.fn(),
@@ -60,6 +61,7 @@ describe('Store secrets integration tests', () => {
     });
   });
   it('should store a secret and return the urlId', async () => {
+    SecretModel.create = jest.fn();
     // mock db
     mockMongoose.connection.readyState = 1;
     const response = await request.post('/api/v1/secrets').send({

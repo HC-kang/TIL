@@ -8,17 +8,14 @@ import { SecretsController } from './infra/rest/SecretsController';
 import { SecretsRoute } from './infra/rest/SecretsRoute';
 import { OneTimeSecretStorer } from './services/OneTimeSecretStorer';
 import { TokenGenerator } from './services/TokenGenerator';
+import { UniqidTokenGenerator } from './infra/externalServices/UniqidTokenGenerator';
 
 const secretRepository = new MongoSecretRepository();
 const secretRetriever = new OneTimeSecretRetriever(secretRepository);
 const secretsByIdController = new SecretsByIdController(secretRetriever);
 const secretsByIdRoute = new SecretsByIdRoute(secretsByIdController);
 
-const tokenGenerator: TokenGenerator = {
-  generateToken: function (): string {
-    throw new Error('Function not implemented.');
-  }
-}
+const tokenGenerator = new UniqidTokenGenerator();
 const secretStorer = new OneTimeSecretStorer(secretRepository, tokenGenerator);
 const secretsController = new SecretsController(secretStorer);
 const secretsRoute = new SecretsRoute(secretsController);
