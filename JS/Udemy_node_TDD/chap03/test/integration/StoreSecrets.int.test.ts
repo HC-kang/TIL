@@ -60,6 +60,7 @@ describe('Store secrets integration tests', () => {
     });
   });
   it('should store a secret and return the urlId', async () => {
+    // mock db
     mockMongoose.connection.readyState = 1;
     const response = await request.post('/api/v1/secrets').send({
       secret: 'myValidSecret',

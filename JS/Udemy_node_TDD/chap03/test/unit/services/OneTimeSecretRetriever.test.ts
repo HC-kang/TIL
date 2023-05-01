@@ -9,6 +9,7 @@ describe('OneTimeSecretRetriever Tests', () => {
     const secretRepository: SecretRepository = {
       getSecretByUrlId: jest.fn().mockResolvedValue(null),
       removeSecretByUrlId: jest.fn(),
+      storeUrlIdAndSecret: jest.fn(),
     };
     const oneTimeSecretRetriever = new OneTimeSecretRetriever(secretRepository);
 
@@ -26,6 +27,7 @@ describe('OneTimeSecretRetriever Tests', () => {
     const secretRepository: SecretRepository = {
       getSecretByUrlId: jest.fn().mockResolvedValue(new Secret('qwe123')),
       removeSecretByUrlId: jest.fn(),
+      storeUrlIdAndSecret: jest.fn(),
     };
     const oneTimeSecretRetriever = new OneTimeSecretRetriever(secretRepository);
 
