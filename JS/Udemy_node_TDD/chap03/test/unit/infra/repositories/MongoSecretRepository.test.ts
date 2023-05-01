@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { MongoSecretRepository } from '../../../../src/infra/repositories/MongoSecretRepository';
+import { MongoSecretRepository } from '../../../../src/infra/repositories/mongo/MongoSecretRepository';
 import { UrlId } from '../../../../src/domain/models/UrlId';
-import { SecretModel } from '../../../../src/infra/repositories/SecretModel';
+import { SecretModel } from '../../../../src/infra/repositories/mongo/SecretModel';
 import { Secret } from '../../../../src/domain/models/Secret';
 
 const mockMongoose = {

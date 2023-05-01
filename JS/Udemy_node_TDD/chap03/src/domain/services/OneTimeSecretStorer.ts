@@ -1,6 +1,6 @@
-import { Secret } from '../domain/models/Secret';
-import { UrlId } from '../domain/models/UrlId';
-import { SecretRepository } from './SecretRepository';
+import { Secret } from '../models/Secret';
+import { UrlId } from '../models/UrlId';
+import { SecretRepository } from '../../infra/repositories/SecretRepository';
 import { SecretStorer } from './SecretStorer';
 import { TokenGenerator } from './TokenGenerator';
 

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { SecretNotFoundError } from '../../../domain/errors/SecretNotFoundError';
 import { UrlIdValidationError } from '../../../domain/errors/UrlIdValidationError';
-import { RequestValidationError } from '../RequestValidationError';
+import { RequestValidationError } from './RequestValidationError';
 import { SecretValidationError } from '../../../domain/errors/SecretValidationError';
 
 export function errorHandler(

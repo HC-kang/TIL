@@ -1,4 +1,5 @@
-import { RequestValidationError } from '../../../../src/infra/rest/RequestValidationError';
+import { RequestValidationError } from '../../../../../src/infra/rest/middlewares/RequestValidationError';
+
 
 describe('RequestValidationError Tests', () => {
   it('should create a RequestValidationError error', () => {

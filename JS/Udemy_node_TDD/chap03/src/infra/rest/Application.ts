@@ -1,5 +1,5 @@
 import express from 'express';
-import { Route } from './Route';
+import { Route } from './routes/Route';
 import { errorHandler } from './middlewares/ErrorHandler';
 
 export class Application {

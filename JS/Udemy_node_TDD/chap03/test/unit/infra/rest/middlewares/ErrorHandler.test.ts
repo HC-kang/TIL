@@ -2,7 +2,7 @@ import { NextFunction, Request, request, Response, response } from 'express';
 import { UrlIdValidationError } from '../../../../../src/domain/errors/UrlIdValidationError';
 import { errorHandler } from '../../../../../src/infra/rest/middlewares/ErrorHandler';
 import { SecretNotFoundError } from '../../../../../src/domain/errors/SecretNotFoundError';
-import { RequestValidationError } from '../../../../../src/infra/rest/RequestValidationError';
+import { RequestValidationError } from '../../../../../src/infra/rest/middlewares/RequestValidationError';
 import { SecretValidationError } from '../../../../../src/domain/errors/SecretValidationError';
 
 describe('ErrorHandler tests', () => {
