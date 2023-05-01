@@ -1,7 +1,6 @@
 import supertest from 'supertest';
 import server from '../../src/server';
-import { SecretModel } from '../../src/infra/repositories/SecretModel';
-import { Secret } from '../../src/domain/models/Secret';
+import { SecretModel } from '../../src/infra/repositories/mongo/SecretModel';
 
 const mockMongoose = {
   connect: jest.fn(),
@@ -71,7 +70,7 @@ describe('Get secrets integration Test', () => {
     expect(response.status).toBe(500);
     expect(response.body).toEqual({
       name: 'InternalServerError',
-      message: 'Something went wrong'
+      message: 'Something went wrong',
     });
   });
 });

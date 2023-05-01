@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { Secret } from '../../domain/models/Secret';
-import { UrlId } from '../../domain/models/UrlId';
-import { SecretRepository } from '../../services/SecretRepository';
+import { Secret } from '../../../domain/models/Secret';
+import { UrlId } from '../../../domain/models/UrlId';
+import { SecretRepository } from '../SecretRepository';
 import { SecretModel } from './SecretModel';
 
 export class MongoSecretRepository implements SecretRepository {
@@ -9,6 +9,12 @@ export class MongoSecretRepository implements SecretRepository {
     if (mongoose.connection.readyState !== 1) {
       mongoose.connect('mongodb://localhost:27017/onetimesecretb');
     }
+  }
+  async storeUrlIdAndSecret(urlId: UrlId, secret: Secret): Promise<void> {
+    await SecretModel.create({
+      urlId: urlId.toString(),
+      secret: secret.toString(),
+    });
   }
 
   async getSecretByUrlId(urlId: UrlId): Promise<Secret | null> {

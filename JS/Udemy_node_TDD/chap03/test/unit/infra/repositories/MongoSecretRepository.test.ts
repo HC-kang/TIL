@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { MongoSecretRepository } from '../../../../src/infra/repositories/MongoSecretRepository';
+import { MongoSecretRepository } from '../../../../src/infra/repositories/mongo/MongoSecretRepository';
 import { UrlId } from '../../../../src/domain/models/UrlId';
-import { SecretModel } from '../../../../src/infra/repositories/SecretModel';
+import { SecretModel } from '../../../../src/infra/repositories/mongo/SecretModel';
 import { Secret } from '../../../../src/domain/models/Secret';
 
 const mockMongoose = {
@@ -67,6 +67,21 @@ describe('Mongo Secret Repository Tests', () => {
     expect(SecretModel.deleteOne).toBeCalledTimes(1);
     expect(SecretModel.deleteOne).toBeCalledWith({
       urlId: '123456qwerty',
+    });
+  });
+  it('should store urlId and Secret into the database', async () => {
+    SecretModel.create = jest.fn();
+    mockMongoose.connect = jest.fn();
+    mockMongoose.connection.readyState = 1;
+
+    const urlId = new UrlId('123456qwerty');
+    const secret = new Secret('myValidSecret');
+    const mongoSecretRepository = new MongoSecretRepository();
+    await mongoSecretRepository.storeUrlIdAndSecret(urlId, secret);
+    expect(SecretModel.create).toBeCalledTimes(1);
+    expect(SecretModel.create).toBeCalledWith({
+      urlId: '123456qwerty',
+      secret: 'myValidSecret',
     });
   });
 });
