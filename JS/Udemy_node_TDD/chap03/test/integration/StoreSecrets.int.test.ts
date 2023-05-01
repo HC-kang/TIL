@@ -62,7 +62,6 @@ describe('Store secrets integration tests', () => {
   });
   it('should store a secret and return the urlId', async () => {
     SecretModel.create = jest.fn();
-    // mock db
     mockMongoose.connection.readyState = 1;
     const response = await request.post('/api/v1/secrets').send({
       secret: 'myValidSecret',
@@ -71,5 +70,19 @@ describe('Store secrets integration tests', () => {
     expect(response.status).toBe(201);
     expect(response.body.urlId.length).toBeGreaterThanOrEqual(10)
   });
-  xit('should return an unhandled exception error', async () => {});
+  it('should return an unhandled exception error', async () => {
+    SecretModel.create = jest.fn().mockImplementation(async () => {
+      throw new Error('Server memory is full');
+    });
+    mockMongoose.connection.readyState = 1;
+    const response = await request.post('/api/v1/secrets').send({
+      secret: 'myValidSecret',
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      name: 'InternalServerError',
+      message: 'Something went wrong'
+    })
+  });
 });
