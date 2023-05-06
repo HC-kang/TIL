@@ -25,8 +25,11 @@ cat '파일' | grep '파일내에 찾을 문자열'
 ```zsh
 echo "hello" > README.md
 echo "hello2" >> README.md
+```
 
 # echo "alias _별명_='_원래 명령어_'" >> ~/.zshrc
+
+```zsh
 echo "alias gb='git branch'" >> ~/.zshrc
 echo "alias gpu='git push'" >> ~/.zshrc
 echo "alias gpl='git pull'" >> ~/.zshrc
@@ -36,6 +39,9 @@ echo "alias gc='git checkout'" >> ~/.zshrc
 echo "alias ga='git add'" >> ~/.zshrc
 echo "alias gcm='git commit'" >> ~/.zshrc
 echo "alias gl='git log'" >> ~/.zshrc
+
+echo "alias dockerc='docker-compose'" >> ~/.zshrc
+echo "alias vphp='valet php'" >> ~/.zshrc
 ```
 
 ## 세션 종료 후에도 실행 유지 ... 백그라운드로 실행
