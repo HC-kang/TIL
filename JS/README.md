@@ -100,6 +100,16 @@
 - self등의 방법을 통해 this를 우회해 사용 가능
 - 또는 화살표 함수(()=>{})를 통해 this를 바인딩하지 않고, 상위 객체의 this를 그대로 전달받아 사용.
 
+## 생성자 강제
+
+```javascript
+function test() {
+  if (!new.target) {
+    throw new ReferenceError('생성자로만 사용 가능합니다.');
+  }
+}
+```
+
 ## 기타 주요 개념
 
 - creation phase
