@@ -1,4 +1,69 @@
-# 자주 쓰는 명령어
+# 리눅스 자료 정리
+
+## 리눅스 기본 디렉토리 정리
+
+```zsh
+/
+├── boot
+├── dev
+├── usr
+│   ├── local
+│   │   └── bin
+│   └── bin
+├── bin
+├── sbin
+├── home
+│   ├── user1
+│   └── user2
+├── lib
+├── tmp
+├── var
+├── etc
+└── proc
+```
+
+- bin
+  - binaries
+  - essential executables
+- sbin
+  - system binaries
+  - should only be executed by the root user
+- lib
+  - libraries
+  - shared code between binaries
+- usr/bin
+  - user binaries
+  - non-essential
+  - installed binaries
+  - intended for the end user
+- usr/local/bin
+  - locally compiled
+  - safe place that won't conflict with any other software
+- etc
+  - et cetera
+  - editable text config
+- home
+  - user data
+  - basic starting location
+- boot
+  - linux kernel itself
+- dev
+  - device
+- opt
+  - optional or add-on software
+  - rarely interactive
+- var
+  - variable
+  - logs
+  - cache
+- tmp
+  - temporary
+  - won't be persisted between reboots
+- proc
+  - illusionary
+  - created in memory
+
+## 자주 쓰는 명령어
 
 ```None
 # Dollar symbol: normal user
@@ -8,7 +73,7 @@
 # >> 앵글 브래킷x2: 이전 커맨드를 다음 파일에 추가
 ```
 
-## 프로세스 확인
+### 프로세스 확인
 
 ```zsh
 ps ef | grep django
@@ -20,14 +85,14 @@ grep -A 3 -B 1 '기준이되는문자열' : -A(after) 기준문자열 뒤로 3�
 cat '파일' | grep '파일내에 찾을 문자열'
 ```
 
-## 간단한 파일 쓰기
+### 간단한 파일 쓰기
 
 ```zsh
 echo "hello" > README.md
 echo "hello2" >> README.md
 ```
 
-# echo "alias _별명_='_원래 명령어_'" >> ~/.zshrc
+### echo "alias _별명_='_원래 명령어_'" >> ~/.zshrc
 
 ```zsh
 echo "alias gb='git branch'" >> ~/.zshrc
@@ -44,37 +109,37 @@ echo "alias dockerc='docker-compose'" >> ~/.zshrc
 echo "alias vphp='valet php'" >> ~/.zshrc
 ```
 
-## 세션 종료 후에도 실행 유지 ... 백그라운드로 실행
+### 세션 종료 후에도 실행 유지 ... 백그라운드로 실행
 
 ```zsh
 nohup ... &
 ```
 
-## 파일 읽기 ... 실시간 모니터링
+### 파일 읽기 ... 실시간 모니터링
 
 ```zsh
 tail ... -f / head
 ```
 
-## 1초 단위 모니터링(nvidia-smi)
+### 1초 단위 모니터링(nvidia-smi)
 
 ```zsh
 watch -d -n 1 nvidia-smi
 ```
 
-## 메모리 상태 확인
+### 메모리 상태 확인
 
 ```zsh
 free -h
 ```
 
-## 디스크 상태 확인
+### 디스크 상태 확인
 
 ```zsh
 df -h
 ```
 
-## 디렉토리 구조(트리)
+### 디렉토리 구조(트리)
 
 - -d 옵션: 파일 제외, 디렉토리만 표시
 - -L 옵션: 트리의 레벨. 깊이 표시
@@ -83,7 +148,7 @@ df -h
 tree -d -L 2
 ```
 
-## 디스크 사용량 확인
+### 디스크 사용량 확인
 
 ```zsh
 sudo -s du -sh /var
@@ -91,82 +156,82 @@ sudo -s du -sh /usr
 sudo -s du -h --max-depth=1
 ```
 
-## CPU 사용량, 프로세스, 스레드 상태 등 확인
+### CPU 사용량, 프로세스, 스레드 상태 등 확인
 
 ```zsh
 top
 ```
 
-## 파일 권한 변경
+### 파일 권한 변경
 
 ```zsh
 chmod 600 <FILE_NAME>
 ```
 
-## 파일 소유자 변경
+### 파일 소유자 변경
 
 ```zsh
 chown <USER> <FILE_NAME>
 ```
 
-## user 추가, 권한 변경
+### user 추가, 권한 변경
 
 ```zsh
 sudo useradd docker
 sudo usermod -aG docker $USER
 ```
 
-## 통신상태 확인
+### 통신상태 확인
 
 ```zsh
 ping <IP_ADDRESS or DOMAIN>
 ```
 
-## 네트워크 상태 확인
+### 네트워크 상태 확인
 
 ```zsh
 ifconfig
 ```
 
-## 게이트웨이, 라우팅테이블 확인
+### 게이트웨이, 라우팅테이블 확인
 
 ```zsh
 netstat -rn # Mac, Ubuntu
 route # Ubuntu
 ```
 
-## 찾기
+### 찾기
 
 ```zsh
 find <LOCATION> "FILE_NAME*"
 ```
 
-## 프로세스 강제종료
+### 프로세스 강제종료
 
 ```zsh
 kill -9 <PID>
 ```
 
-## 해당 프로세스 전체 종료
+### 해당 프로세스 전체 종료
 
 ```zsh
 killall <PROCESS_NAME>
 ```
 
-## alias 설정
+### alias 설정
 
 ```zsh
 alias vi="vim"
 ```
 
-## 방화벽 확인
+### 방화벽 확인
 
 ```zsh
 firewalld # CentOS
 ufw # Ubuntu
 ```
 
-## 위치 찾기
+### 위치 찾기
 
 ```zsh
 which
@@ -174,13 +239,13 @@ where
 whereis
 ```
 
-## service 상태 확인
+### service 상태 확인
 
 ```zsh
 service sshd status
 ```
 
-## 파일 속성 확인/관리
+### 파일 속성 확인/관리
 
 ```zsh
 lsattr [ -RVadv ] {target_file}
@@ -210,7 +275,7 @@ chattr [ options ] [+/-/=] [ property ] {target_file}
 |X|Compression raw access|- Experimental compression patch에 사용되며, 압축된 파일의 실제 내용을 직접 접근할 수 있음을 의미
 |Z|Compressed dirty file|- Experimental compression patch에 사용되며, 압축된 데이터가 손상되었음을 의미
 
-## telnet, nc
+### telnet, nc
 
 ```zsh
 - nc -z localhost 8080
