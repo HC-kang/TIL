@@ -6,7 +6,6 @@
   - uname -m
 - 내 IP 확인
   - curl ifconfig.me
-- 
 
 ## 마케팅 도메인 용어
 
