@@ -8,6 +8,7 @@ describe('OneTimeSecretRetriever', () => {
     const secretRepository: SecretRepository = {
       getSecretByUrlId: jest.fn().mockReturnValue(new Secret('123qwe')),
       removeSecretByUrlId: jest.fn(),
+      storeUrlIdAndSecret: jest.fn(),
     };
     const oneTimeSecretRetriever = new OneTimeSecretRetriever(secretRepository);
     const urlId = new UrlId('123456qwerty');
