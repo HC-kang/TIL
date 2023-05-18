@@ -1,7 +1,7 @@
-import { Secret } from "../Secret";
-import { UrlId } from "../UrlId";
-import { SecretRepository } from "./SecretRepository";
-import { SecretRetriever } from "./SecretRetriever";
+import { Secret } from "../models/Secret";
+import { UrlId } from "../models/UrlId";
+import { SecretRepository } from "../ports/out/SecretRepository";
+import { SecretRetriever } from "../ports/in/SecretRetriever";
 
 export class OneTimeSecretRetriever implements SecretRetriever {
   constructor(private secretRepository: SecretRepository) {}
