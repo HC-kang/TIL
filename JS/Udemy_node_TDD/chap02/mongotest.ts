@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 async function mongoRun() {
-  await mongoose.connect('mongodb://localhost/my_database');
+  await mongoose.connect('mongodb://localhost:27017/test');
 
   const Schema = mongoose.Schema;
 
@@ -14,27 +14,21 @@ async function mongoRun() {
   const BlogPostModel = mongoose.model('BlogPosts', BlogPostSchema);
 
   const doc1 = await BlogPostModel.create({
-    title: 'test title',
-    body: 'test body',
+    title: 'title1',
+    body: 'body1',
     date: new Date(),
   });
 
   console.log('doc1', doc1);
 
-  const doc2 = await BlogPostModel.findOne({
-    title: 'test title',
-  });
+  const doc2 = await BlogPostModel.findOne({ title: 'title1' });
   console.log('doc2', doc2);
 
-  const doc3 = await BlogPostModel.deleteOne({
-    title: 'test title',
-  });
+  const doc3 = await BlogPostModel.deleteOne({ title: 'title1' });
   console.log('doc3', doc3);
 
-  const doc4 = await BlogPostModel.findOne({
-    title: 'test title',
-  });
-  console.log('doc4 - non exist', doc4);
+  const doc4 = await BlogPostModel.findOne({ title: 'title1' });
+  console.log('doc4', doc4);
 }
 
 mongoRun();
