@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 async function mongoRun() {
-  await mongoose.connect('mongodb://localhost:27017/test');
+  await mongoose.connect('mongodb://localhost:27017/onetimesecret');
 
   const Schema = mongoose.Schema;
 
