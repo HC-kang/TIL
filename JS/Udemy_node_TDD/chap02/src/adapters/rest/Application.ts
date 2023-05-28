@@ -3,7 +3,7 @@ import { Route } from './routes/Route';
 import { errorHandler } from './middlewares/ErrorHandler';
 
 export class Application {
-  app: express.Application = express();
+  public app: express.Application = express();
 
   constructor(private routeList: Route[]) {
     this.appConfig();
@@ -21,8 +21,10 @@ export class Application {
   }
 
   startServerOnPort(port: number): void {
-    this.app.listen(port, () => {
-      console.info(`Listening on port ${port}`);
-    });
+    if (process.env.NODE_ENV !== 'test') {
+      this.app.listen(port, () => {
+        console.info(`Listening on port ${port}`)
+      })
+    }
   }
 }

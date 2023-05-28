@@ -18,10 +18,10 @@ export class SecretsByIdController {
       const secret = await this.secretRetriever.retrieveSecret(urlId);
 
       response.status(200).json(secret);
-    } catch (error) {
-      next(error);
+    } catch (e) {
+      next(e);
     }
-  }
+  };
 
   private validateRequest(request: Request) {
     if (!request.params?.urlId) throw new ValidationError('URL is not valid');

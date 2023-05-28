@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
-import { MongoSecretRepository } from '../../../src/adapters/repositories/MongoSecretRepository';
-import { Secret } from '../../../src/domain/models/Secret';
-import { UrlId } from '../../../src/domain/models/UrlId';
-import { SecretModel } from '../../../src/adapters/repositories/SecretModel';
-import { SecretNotFoundInRepositoryError } from '../../../src/domain/models/errors/SecretNotFoundInRepositoryError';
+import { MongoSecretRepository } from '../../../../src/adapters/repositories/MongoSecretRepository';
+import { SecretModel } from '../../../../src/adapters/repositories/SecretModel';
+import { Secret } from '../../../../src/domain/models/Secret';
+import { UrlId } from '../../../../src/domain/models/UrlId';
+import { SecretNotFoundInRepositoryError } from '../../../../src/domain/models/errors/SecretNotFoundInRepositoryError';
 
 const mockMongoose = {
   connect: jest.fn(),

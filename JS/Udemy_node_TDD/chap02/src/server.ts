@@ -26,3 +26,5 @@ routeList.push(secretsByIdRoute);
 
 const application: Application = new Application(routeList);
 application.startServerOnPort(parseInt(process.argv[1]) | 3000);
+
+export default application;

@@ -1,7 +1,7 @@
-import { Secret } from '../../../src/domain/models/Secret';
-import { UrlId } from '../../../src/domain/models/UrlId';
-import { OneTimeSecretRetriever } from '../../../src/domain/useCases/OneTimeSecretRetriever';
-import { SecretRepository } from '../../../src/domain/ports/out/SecretRepository';
+import { Secret } from '../../../../src/domain/models/Secret';
+import { UrlId } from '../../../../src/domain/models/UrlId';
+import { SecretRepository } from '../../../../src/domain/ports/out/SecretRepository';
+import { OneTimeSecretRetriever } from '../../../../src/domain/useCases/OneTimeSecretRetriever';
 
 describe('OneTimeSecretRetriever', () => {
   it('should retrieve a secret one time', async () => {
