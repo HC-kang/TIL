@@ -1,0 +1,27 @@
+{
+  "name": "chap00",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/server.ts",
+    "test": "jest --maxWorker=1 --forceExit",
+    "test:watch": "jest --maxWorker=1 --forceExit --watchAll",
+    "test:coverage": "jest --maxWorker=1 --forceExit --watchAll --coverage",
+    "test:unit": "jest --forceExit test/unit/**",
+    "test:int": "jest --forceExit test/integration/**",
+    "test:e2e": "jest --forceExit --runInBand test/e2e/**"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.1",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.1"
+  }
+}
