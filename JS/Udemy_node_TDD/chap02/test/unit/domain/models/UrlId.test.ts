@@ -1,5 +1,5 @@
-import { UrlId } from '../../../src/domain/models/UrlId';
-import { UrlIdTooShortError } from '../../../src/domain/models/errors/UrlIdTooShortError';
+import { UrlId } from '../../../../src/domain/models/UrlId';
+import { UrlIdTooShortError } from '../../../../src/domain/models/errors/UrlIdTooShortError';
 
 describe('UrlId Tests', () => {
   it('should create an instance of UrlId Class', () => {
