@@ -1,0 +1,107 @@
+openapi: 3.0.0
+info:
+  title: "One Time Secret API"
+  description: "API to store secrets and retrieve them only one"
+  version: 1.0.0
+  
+servers:
+  - url: https://onetimesecret.io/api/v1
+    description: production server
+  - url: https://dev.onetimesecret.io/api/v1
+    description: development server
+
+paths:
+  /secrets/{urlId}:
+    get:
+      summary: Returns a secret by ID.
+      parameters:
+        - name: urlId
+          in: path
+          required: true
+          description: urlId given after storing a secret.
+          schema:
+            type : string
+            minLength: 10
+      responses: 
+        200:
+          description: Return a secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/secret'
+              example: { secret: "my Litle Secret"}
+        400:
+          description: url provided is not valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/validationError'
+              example: { 
+                title: "ValidationError",
+                secret: "UrlId format is not valid"
+              }
+        404:
+          description: Not Found Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/secretNotFoundError'
+              example: { 
+                title: "Secret Not Found Error",
+                secret: "The secret you are looking for does not exist in the server"
+              }
+  /secrets:
+    description: Operate with secrets
+    post:
+      summary: Store secrets in the API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/secret'
+            example: { secret: "my Litle Secret"}
+      responses:
+        201:
+          description: secret stored in the database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/urlId'
+              example: { urlId: "qwe29o12kw2uj298"}
+        400:
+          description: json format provided is not valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/validationError'
+              example: { 
+                title: "ValidationError",
+                secret: "Json format is not valid"
+              }
+
+components:
+  schemas:
+    secret:
+      type: object
+      properties:
+        secret:
+          type: string
+    urlId:
+      type: object
+      properties:
+        urlId:
+          type: string
+    secretNotFoundError:
+      type: object
+      properties:
+        title:
+          type: string
+        message:
+          type: string
+    validationError:
+      type: object
+      properties:
+        title:
+          type: string
+        message:
+          type: string
