@@ -1,7 +1,7 @@
-import { Application } from "./Application";
-import { Route } from "./Route";
-import { SecretsByIdController } from "./SecretsByIdController";
-import { SecretsByIdRoute } from "./SecretsByIdRoute";
+import { Application } from "./rest/Application";
+import { Route } from "./rest/Route";
+import { SecretsByIdController } from "./rest/SecretsByIdController";
+import { SecretsByIdRoute } from "./rest/SecretsByIdRoute";
 
 const secretsByIdController = new SecretsByIdController();
 const secretsByIdRoute = new SecretsByIdRoute(secretsByIdController);

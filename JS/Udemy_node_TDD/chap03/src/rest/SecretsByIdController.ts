@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { UrlIdValidationError } from './UrlIdValidationError';
+import { UrlIdValidationError } from '../UrlIdValidationError';
 
 export class SecretsByIdController {
   retrieveSecret = (
