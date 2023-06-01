@@ -1,16 +1,17 @@
-import { Secret } from "./Secret";
-import { SecretRetriever } from "./SecretRetriever";
-import { UrlId } from "./UrlId";
-import { Application } from "./rest/Application";
-import { Route } from "./rest/Route";
-import { SecretsByIdController } from "./rest/SecretsByIdController";
-import { SecretsByIdRoute } from "./rest/SecretsByIdRoute";
+import { SecretRetriever } from "./services/SecretRetriever";
+import { Application } from "./infra/rest/Application";
+import { Route } from "./infra/rest/Route";
+import { SecretsByIdController } from "./infra/rest/SecretsByIdController";
+import { SecretsByIdRoute } from "./infra/rest/SecretsByIdRoute";
+import { Secret } from "./domain/models/Secret";
+import { UrlId } from "./domain/models/UrlId";
 
 const secretRetriever: SecretRetriever = {
   retrieveSecretByUrlId: function (urlId: UrlId): Promise<Secret> {
     throw new Error("Function not implemented.");
   }
 };
+
 const secretsByIdController = new SecretsByIdController(secretRetriever);
 const secretsByIdRoute = new SecretsByIdRoute(secretsByIdController);
 

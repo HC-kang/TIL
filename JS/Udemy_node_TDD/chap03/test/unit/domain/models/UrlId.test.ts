@@ -1,5 +1,5 @@
-import { UrlId } from "../../src/UrlId";
-import { UrlIdValidationError } from "../../src/UrlIdValidationError";
+import { UrlIdValidationError } from "../../../../src/domain/errors/UrlIdValidationError";
+import { UrlId } from "../../../../src/domain/models/UrlId";
 
 describe('UrlId Tests', () => {
   it('should create an instance of UrlId', () => {

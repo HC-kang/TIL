@@ -1,4 +1,4 @@
-import { SecretValidationError } from "../../src/SecretValidationError";
+import { SecretValidationError } from "../../../../src/domain/errors/SecretValidationError";
 
 describe('SecretValidationError Tests', () => {
   it('should create a SecretValidationError', () => {

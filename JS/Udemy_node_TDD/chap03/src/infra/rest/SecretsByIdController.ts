@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { UrlId } from '../UrlId';
-import { SecretRetriever } from '../SecretRetriever';
+import { SecretRetriever } from '../../services/SecretRetriever';
+import { UrlId } from '../../domain/models/UrlId';
 
 export class SecretsByIdController {
   constructor(private secretRetriever: SecretRetriever) {}

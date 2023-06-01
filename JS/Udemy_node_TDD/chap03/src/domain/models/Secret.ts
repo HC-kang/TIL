@@ -1,4 +1,4 @@
-import { SecretValidationError } from './SecretValidationError';
+import { SecretValidationError } from '../errors/SecretValidationError';
 
 export class Secret {
   constructor(private secret: string) {
