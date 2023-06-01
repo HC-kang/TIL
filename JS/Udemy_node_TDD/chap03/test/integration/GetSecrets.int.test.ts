@@ -14,7 +14,14 @@ describe('Get secrets integration tests', () => {
     });
   });
 
-  xit('should return an error when the secret does not exist in the system', () => {});
+  it('should return an error when the secret does not exist in the system', async () => {
+    const response = await request.get('/api/v1/secrets/asdfasdfsdfNonExistSecret');
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      name: 'SecretNotFoundError',
+      message: 'Secret was not found in the system',
+    });
+  });
 
   xit('should return an error when the urlId provided is not valid', () => {});
 });
