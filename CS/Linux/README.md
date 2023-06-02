@@ -104,6 +104,7 @@ echo "alias gc='git checkout'" >> ~/.zshrc
 echo "alias ga='git add'" >> ~/.zshrc
 echo "alias gcm='git commit'" >> ~/.zshrc
 echo "alias gl='git log'" >> ~/.zshrc
+echo "alias mpp='curl ifconfig.me && echo \\n'" >> ~/.zshrc
 
 echo "alias dockerc='docker-compose'" >> ~/.zshrc
 echo "alias vphp='valet php'" >> ~/.zshrc
