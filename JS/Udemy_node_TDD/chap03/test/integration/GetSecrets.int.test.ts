@@ -17,7 +17,9 @@ describe('Get secrets integration tests', () => {
 
   it('should return an error when the secret does not exist in the system', async () => {
     SecretModel.findOne = jest.fn().mockResolvedValue(null);
-    const response = await request.get('/api/v1/secrets/asdfasdfsdfNonExistSecret');
+    const response = await request.get(
+      '/api/v1/secrets/asdfasdfsdfNonExistSecret'
+    );
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
@@ -26,6 +28,20 @@ describe('Get secrets integration tests', () => {
     });
   });
 
-  xit('should return an error when the urlId provided is not valid', () => {});
+  it('should retrieve a secret from the system', async () => {
+    SecretModel.findOne = jest.fn().mockResolvedValue({
+      secret: 'mySecret',
+    });
+    SecretModel.deleteOne = jest.fn();
+
+    const response = await request.get('/api/v1/secrets/123asdsdffasd');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      secret: 'mySecret',
+    });
+    expect(SecretModel.deleteOne).toBeCalledTimes(1);
+    expect(SecretModel.deleteOne).toBeCalledWith({ urlId: '123asdsdffasd' });
+  });
   xit('should throw a 500 error when unexpected error is thrown', () => {});
 });

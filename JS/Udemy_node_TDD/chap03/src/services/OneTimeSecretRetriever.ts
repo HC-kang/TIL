@@ -12,6 +12,7 @@ export class OneTimeSecretRetriever implements SecretRetriever {
     // try to retrieve a secret
     // if found, return secret && remove the secret
     // if not found, throw an error
-    return null;
+    await this.secretRepository.removeSecretByUrlId(urlId);
+    return secret;
   }
 }

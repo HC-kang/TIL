@@ -4,6 +4,7 @@ import { SecretsByIdController } from '../../../../src/infra/rest/SecretsByIdCon
 import { SecretRetriever } from '../../../../src/services/SecretRetriever';
 import { SecretNotFoundError } from '../../../../src/domain/errors/SecretNotFoundError';
 import { UrlId } from '../../../../src/domain/models/UrlId';
+import { Secret } from '../../../../src/domain/models/Secret';
 
 describe('SecretsByIdController Tests', () => {
   it('should return an error if the urlId is too short', () => {
@@ -39,11 +40,43 @@ describe('SecretsByIdController Tests', () => {
     };
     const secretsByIdController = new SecretsByIdController(secretRetriever);
     await secretsByIdController.retrieveSecret(req, res, next);
+
     expect(next).toBeCalledTimes(1);
     expect(next).toBeCalledWith(new SecretNotFoundError());
     expect(secretRetriever.retrieveSecretByUrlId).toBeCalledTimes(1);
     expect(secretRetriever.retrieveSecretByUrlId).toBeCalledWith(
       new UrlId('asdfasdfsdfNonExistSecret')
     );
+  });
+
+  it('should respond with a secret when it is found', async () => {
+    const req: Request = expect.any(request);
+    req.params = {
+      urlId: 'asdfasdfsdfNonExistSecret',
+    };
+    const res: Response = expect.any(response);
+    res.status = jest.fn().mockReturnThis();
+    res.json = jest.fn();
+    const next = jest.fn();
+
+    const secretRetriever: SecretRetriever = {
+      retrieveSecretByUrlId: jest
+        .fn()
+        .mockResolvedValue(new Secret('aasdfasdf')),
+    };
+    const secretsByIdController = new SecretsByIdController(secretRetriever);
+    await secretsByIdController.retrieveSecret(req, res, next);
+
+    expect(next).toBeCalledTimes(0);
+    expect(secretRetriever.retrieveSecretByUrlId).toBeCalledTimes(1);
+    expect(secretRetriever.retrieveSecretByUrlId).toBeCalledWith(
+      new UrlId('asdfasdfsdfNonExistSecret')
+    );
+    expect(res.status).toBeCalledTimes(1);
+    expect(res.status).toBeCalledWith(200);
+    expect(res.json).toBeCalledTimes(1);
+    expect(res.json).toBeCalledWith({
+      secret: 'aasdfasdf',
+    });
   });
 });
