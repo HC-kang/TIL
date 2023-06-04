@@ -48,8 +48,22 @@ describe('Store Secrets integration tests', () => {
     });
 
     expect(response.status).toBe(201);
+
     expect(response.body.urlId.length).toBeGreaterThanOrEqual(10);
   });
 
-  xit('should return an unhandled exception error', async () => {});
+  it('should return an unhandled exception error', async () => {
+    SecretModel.create = jest.fn().mockImplementation(async () => {
+      throw new Error('Unhandled exception');
+    });
+    const response = await request.post('/api/v1/secrets').send({
+      secret: 'myValidSecret',
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({
+      name: 'InternalServerError',
+      message: 'Something went wrong',
+    });
+  });
 });
