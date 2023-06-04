@@ -1,4 +1,3 @@
-import { SecretRetriever } from './services/SecretRetriever';
 import { Application } from './infra/rest/Application';
 import { Route } from './infra/rest/Route';
 import { SecretsByIdController } from './infra/rest/SecretsByIdController';
@@ -8,19 +7,20 @@ import { MongoSecretRepository } from './infra/repositories/MongoSecretRepositor
 import { SecretsController } from './infra/rest/SecretsController';
 import { SecretsRoute } from './infra/rest/SecretsRoute';
 import { SecretStorer } from './services/SecretStorer';
-import { Secret } from './domain/models/Secret';
-import { UrlId } from './domain/models/UrlId';
+import { OneTimeSecretStorer } from './services/OneTimeSecretStorer';
+import { TokenGenerator } from './services/TokenGenerator';
 
-const mongoSecretRepository = new MongoSecretRepository();
-const secretRetriever = new OneTimeSecretRetriever(mongoSecretRepository);
+const secretRepository = new MongoSecretRepository();
+const secretRetriever = new OneTimeSecretRetriever(secretRepository);
 const secretsByIdController = new SecretsByIdController(secretRetriever);
 const secretsByIdRoute = new SecretsByIdRoute(secretsByIdController);
 
-const secretStorer: SecretStorer = {
-  storeSecret: function (secret: Secret): Promise<UrlId> {
+const tokenGenerator: TokenGenerator = {
+  generateToken: function (): string {
     throw new Error('Function not implemented.');
   }
 }
+const secretStorer: SecretStorer = new OneTimeSecretStorer(secretRepository, tokenGenerator)
 const secretsController = new SecretsController(secretStorer);
 const secretsRoute = new SecretsRoute(secretsController);
 

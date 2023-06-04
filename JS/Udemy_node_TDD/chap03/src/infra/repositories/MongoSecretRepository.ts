@@ -20,4 +20,8 @@ export class MongoSecretRepository implements SecretRepository {
   async removeSecretByUrlId(urlId: UrlId): Promise<void> {
     await SecretModel.deleteOne({ urlId: urlId.toString() });
   }
+
+  storeUrlIdAndSecret(urlId: UrlId, secret: Secret): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
 }
