@@ -20,7 +20,7 @@ describe('OneTimeSecretStorer Tests', () => {
     const secret = new Secret('myValidSecret');
     const urlId = new UrlId('123456qwerty');
     expect(await oneTimeSecretStorer.storeSecret(secret)).toEqual(urlId);
-    expect(secretRepository.getSecretByUrlId).toBeCalledTimes(1);
-    expect(secretRepository.getSecretByUrlId).toBeCalledWith(urlId, secret);
+    expect(secretRepository.storeUrlIdAndSecret).toBeCalledTimes(1);
+    expect(secretRepository.storeUrlIdAndSecret).toBeCalledWith(urlId, secret);
   });
 });

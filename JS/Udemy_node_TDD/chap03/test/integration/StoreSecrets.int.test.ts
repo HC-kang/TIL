@@ -1,5 +1,6 @@
 import supertest from 'supertest';
 import server from '../../src/server';
+import { SecretModel } from '../../src/infra/repositories/SecretModel';
 
 const request = supertest(server);
 
@@ -41,7 +42,7 @@ describe('Store Secrets integration tests', () => {
   });
 
   it('should store a secret and return the urlId', async () => {
-    // mock db
+    SecretModel.create = jest.fn();
     const response = await request.post('/api/v1/secrets').send({
       secret: 'myValidSecret',
     });
