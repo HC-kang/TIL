@@ -1,8 +1,8 @@
-import { SecretNotFoundError } from '../../../src/domain/errors/SecretNotFoundError';
-import { Secret } from '../../../src/domain/models/Secret';
-import { UrlId } from '../../../src/domain/models/UrlId';
-import { OneTimeSecretRetriever } from '../../../src/services/OneTimeSecretRetriever';
-import { SecretRepository } from '../../../src/services/SecretRepository';
+import { SecretNotFoundError } from '../../../../src/domain/errors/SecretNotFoundError';
+import { Secret } from '../../../../src/domain/models/Secret';
+import { UrlId } from '../../../../src/domain/models/UrlId';
+import { OneTimeSecretRetriever } from '../../../../src/domain/services/OneTimeSecretRetriever';
+import { SecretRepository } from '../../../../src/infra/repositories/SecretRepository';
 
 describe('OneTimeSecretRetriever Tests', () => {
   it('should throw an error if the Secret was not found', () => {

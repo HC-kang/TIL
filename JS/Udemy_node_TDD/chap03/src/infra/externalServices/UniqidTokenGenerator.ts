@@ -1,5 +1,5 @@
 import uniqid from 'uniqid';
-import { TokenGenerator } from '../../services/TokenGenerator';
+import { TokenGenerator } from './TokenGenerator';
 
 export class UniqidTokenGenerator implements TokenGenerator {
   generateToken(): string {

@@ -1,10 +1,10 @@
 import { request, response, Request, Response } from 'express';
-import { SecretsController } from '../../../../src/infra/rest/SecretsController';
-import { RequestValidationError } from '../../../../src/infra/rest/RequestValidationError';
-import { SecretValidationError } from '../../../../src/domain/errors/SecretValidationError';
-import { UrlId } from '../../../../src/domain/models/UrlId';
-import { SecretStorer } from '../../../../src/services/SecretStorer';
-import { Secret } from '../../../../src/domain/models/Secret';
+import { SecretValidationError } from '../../../../../src/domain/errors/SecretValidationError';
+import { Secret } from '../../../../../src/domain/models/Secret';
+import { UrlId } from '../../../../../src/domain/models/UrlId';
+import { SecretStorer } from '../../../../../src/domain/services/SecretStorer';
+import { RequestValidationError } from '../../../../../src/infra/rest/controllers/RequestValidationError';
+import { SecretsController } from '../../../../../src/infra/rest/controllers/SecretsController';
 
 describe('SecretsController Tests', () => {
   it('should throw an error if the secret is not present in the body', () => {

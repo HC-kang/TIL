@@ -1,6 +1,6 @@
 import { Application } from "express";
 import { Route } from "./Route";
-import { SecretsByIdController } from "./SecretsByIdController";
+import { SecretsByIdController } from "../controllers/SecretsByIdController";
 
 export class SecretsByIdRoute implements Route {
   constructor(private secretsByIdController: SecretsByIdController) {}
