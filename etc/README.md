@@ -227,28 +227,28 @@ redis-cli -p 1111 monitor
 ## Nginx
 
 ```shell
-    server {
-        listen 80;
-        listen [::]:80;
+server {
+    listen 80;
+    listen [::]:80;
 
-        server_name server1 www.server1.com;
+    server_name server1 www.server1.com;
 
-        access_log /var/log/nginx/server1.access.log;
-        error_log /aar/log/nginx/server1.error.log;
+    access_log /var/log/nginx/server1.access.log;
+    error_log /aar/log/nginx/server1.error.log;
 
-        location / {
-            include /etc/nginx/proxy_params;
-            proxy_pass http://127.0.0.1:3000/;
-        }
-        location / {
-            include /etc/nginx/proxy_params;
-            proxy_pass http://127.0.0.1:3000/;
-        }
-        location / {
-            root /static/;
-            # try_files $uri $uri =404;
-        }
+    location / {
+        include /etc/nginx/proxy_params;
+        proxy_pass http://127.0.0.1:3000/;
     }
+    location / {
+        include /etc/nginx/proxy_params;
+        proxy_pass http://127.0.0.1:3000/;
+    }
+    location / {
+        root /static/;
+        # try_files $uri $uri =404;
+    }
+}
 ```
 
   참고: [멍개님 블로그](https://blog.naver.com/PostView.nhn?blogId=pjt3591oo&logNo=222242046633&parentCategoryNo=&categoryNo=92&viewDate=&isShowPopularPosts=false&from=postView)  
@@ -383,7 +383,7 @@ wrk2 -c 100 -d 30 -R 100 --latency http://127.0.0.1:8000/random_user
 ### 구글 검색 팁
 
 - 따옴표 사용
-  - 특정 문구를 반드시 포함하는 검색결과 확인용. 특히 에러코드, 에러메시지 검색 시 용이 
+  - 특정 문구를 반드시 포함하는 검색결과 확인용. 특히 에러코드, 에러메시지 검색 시 용이
   - ex) "python" "django"
 - site: 사용
   - 특정 사이트에서만 검색결과 확인용.
@@ -396,7 +396,7 @@ wrk2 -c 100 -d 30 -R 100 --latency http://127.0.0.1:8000/random_user
   - ex) link:stackoverflow.com python django
 - \* 사용 (와일드카드)
   - 특정 단어로 시작하는 검색결과 확인용.
-  - ex) come * right now * me(비틀즈 노래가사)
+  - ex) come *right now* me(비틀즈 노래가사)
 - related: 사용
   - 특정 사이트와 관련된 사이트 검색결과 확인용.
   - ex) related:stackoverflow.com python django
