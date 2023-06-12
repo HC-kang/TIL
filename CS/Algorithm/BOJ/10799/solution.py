@@ -43,19 +43,38 @@
 123443443233
 '''
 
-bars = list(input())
-answer = 0
-st = []
+# bars = list(input())
+# answer = 0
+# st = []
+
+# for i in range(len(bars)):
+#     if bars[i] == '(':
+#         st.append('(')
+#     else:
+#         if bars[i-1] == '(': 
+#             st.pop()
+#             answer += len(st)
+#         else:
+#             st.pop() 
+#             answer += 1 
+
+# print(answer)
+
+import sys
+
+bars = sys.stdin.readline().strip()
+result = 0
+stack = []
 
 for i in range(len(bars)):
     if bars[i] == '(':
-        st.append('(')
-    else:
-        if bars[i-1] == '(': 
-            st.pop()
-            answer += len(st)
-        else:
-            st.pop() 
-            answer += 1 
-
-print(answer)
+        stack.append('(')
+    elif bars[i] == ')':
+        if bars[i-1] == ')':
+            stack.pop()
+            result += 1
+        elif bars[i-1] == '(':
+            stack.pop()
+            result += len(stack)
+print(result)
+            
