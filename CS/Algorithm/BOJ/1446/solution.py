@@ -22,30 +22,30 @@
 #     distance += 1
 
 # --------------------------
-import sys
+# import sys
 
-N, D = map(int, sys.stdin.readline().split())
-shorts = [list(map(int, input().split())) for _ in range(N)]
-dis = [i for i in range(D+1)]
+# N, D = map(int, sys.stdin.readline().split())
+# shorts = [list(map(int, input().split())) for _ in range(N)]
+# dis = [i for i in range(D+1)]
 
-# 0 부터 고속도로의 길이까지 반복하여 확인
-for i in range(D+1):
+# # 0 부터 고속도로의 길이까지 반복하여 확인
+# for i in range(D+1):
 
-    # 지름길로 간 거리와 고속도로로 간 거리를 비교
-    dis[i] = min(dis[i], dis[i-1]+1)
+#     # 지름길로 간 거리와 고속도로로 간 거리를 비교
+#     dis[i] = min(dis[i], dis[i-1]+1)
 
-    # 지름길을 반복하여 최단 거리를 찾는다.
-    for start, end, shortcut in shorts:
-        if i == start and end <= D and dis[i]+shortcut < dis[end]:
-            print(start, end, shortcut)
-            # print('dis[i]+shortcut and dis[end]:', dis[i]+shortcut, dis[end])
-            dis[end] = dis[i]+shortcut
-        # elif i == start and end <= D:
-            # print('elif:', start, end, shortcut)
-            # print('dis[i]+shortcut and dis[end]:', dis[i]+shortcut, dis[end])
+#     # 지름길을 반복하여 최단 거리를 찾는다.
+#     for start, end, shortcut in shorts:
+#         if i == start and end <= D and dis[i]+shortcut < dis[end]:
+#             print(start, end, shortcut)
+#             # print('dis[i]+shortcut and dis[end]:', dis[i]+shortcut, dis[end])
+#             dis[end] = dis[i]+shortcut
+#         # elif i == start and end <= D:
+#             # print('elif:', start, end, shortcut)
+#             # print('dis[i]+shortcut and dis[end]:', dis[i]+shortcut, dis[end])
 
-# 고속도로의 끝에 도착했을 때까지 걸린 거리를 출력
-print(dis[D])
+# # 고속도로의 끝에 도착했을 때까지 걸린 거리를 출력
+# print(dis[D])
 
 # ---------------------------------
 # import heapq
@@ -89,3 +89,42 @@ print(dis[D])
 
 # dijkstra(0)
 # print(distance[d])
+
+# -----------------------------------------------------------
+import sys
+import heapq
+input = sys.stdin.readline
+
+INF = int(1e9)
+
+def dijkstra(start):
+    queue = []
+    heapq.heappush(queue, (0, start))
+    distance[start] = 0
+    while queue:
+        dist, now = heapq.heappop(queue)
+        
+        if dist > distance[now]:
+            continue
+        
+        for i in graph[now]:
+            cost = dist + i[1]
+            if cost < distance[i[0]]:
+                distance[i[0]] = cost
+                heapq.heappush(queue, (cost, i[0]))
+
+N, D = map(int, input().rstrip().split())
+graph = [[] for i in range(D+1)]
+distance = [INF] * (D + 1)
+
+for i in range(D):
+    graph[i].append((i+1, 1))
+
+for _ in range(N):
+    st, en, l = map(int, input().split())
+    if en > D:
+        continue
+    graph[st].append((en, l))
+
+dijkstra(0)
+print(distance[D])
