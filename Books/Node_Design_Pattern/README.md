@@ -279,3 +279,109 @@ function loadModule(filename, module, require) {
 2-7-3 상호 운용
 
 - import 구문을 통해 CommonJS 모듈을 로드할 수 있음. 다만 default export만 로드 가능.
+
+## Chapter 03. 콜백과 이벤트
+
+### 3-1 콜백 패턴
+
+- 콜백 패턴: 비동기적으로 실행되는 함수를 호출할 때, 완료시점을 알 수 있는 가장 기본적인 방법
+- 관찰자 패턴: 콜백 패턴의 일종으로, 이벤트를 발생시키고, 이를 관찰하는 객체가 이벤트를 처리하는 패턴
+- 클로저: 함수가 생성될 당시의 스코프를 기억하는 함수
+
+3-1-1 연속 전달 방식(CPS; Continuation Passing Style)
+
+- 기본적인 동기 방식: return을 통해 직접 전달.
+- 동기식 연속 전달 방식: 콜백을 통해 직접 전달.
+- 비동기식 연속 전달 방식: 콜백이 끝날 때까지 기다리지 않고, 다음 코드를 실행하고, 콜백이 호출될 때 실행될 코드를 콜백으로 전달.
+
+- 비 연속 전달(Non-CPS) 콜백: 콜백을 통해 결과를 전달하지 않는 콜백 - map, filter, reduce 등
+
+3-1-2 동기? 비동기?
+
+- 위험한 함수들
+  - 예측할 수 없는 함수: 조건에 따라 동기이거나, 비동기일 수 있는 함수
+  - Zalgo를 풀어 놓다
+
+    ```javascript
+    function createFileReader(filename) {
+      const listeners = [];
+      inconsistentRead(filename, value => {
+        listeners.forEach(listener => listener(value));
+      })
+
+      return {
+        onDataReady: listener => listeners.push(listener)
+      }
+    }
+    ```
+
+    ```javascript
+    const reader1 = createFileReader('data.txt');
+    reader1.onDataReady(data => {
+      console.log(`First call data: ${data}`);
+
+      const reader2 = createFileReader('data.txt');
+      reader2.onDataReady(data => {
+        console.log(`Second call data: ${data}`);
+      })
+    })
+    ```
+
+    - 위 코드는 예측할 수 없는 함수임.
+    - reader2의 경우 캐시로 인해 동기적으로 작동할 수 있음.
+    - 따라서 콜백이 즉시 호출되고, 리스너가 등록되기 전에 호출되므로 데이터가 출력되지 않음.
+    - 이러한 버그는 조건에 따라 동작이 매우 다르므로, 디버깅이 어려움.
+
+- 동기 API의 사용
+  - 위와 같은 경우를 방지하기 위해, 동기 API를 사용하는 것이 좋음.
+
+    ```javascript
+    import { readFileSync } from 'fs';
+
+    const cache = new Map()
+    
+    function consistentReadySync(filename) {
+      if (cache.has(filename)) {
+        return cache.get(filename);
+      } else {
+        const data = readFileSync(filename, 'utf8');
+        cache.set(filename, data);
+        return data;
+      }
+    }
+    ```
+
+    - 순수한 동기식 함수에서는 위처럼 직접 스타일을 적용하는 것이 좋음.
+    - 하지만 모든 경우에 동기식 함수를 사용할 수 있는 것은 아님.
+    - 또한 동기식 함수를 사용하면, 비동기식 함수를 사용하는 것보다 성능이 떨어질 수 있음.
+      - 큰 파일을 읽을 때, 동기식 함수는 메인 스레드를 차단하므로, 다른 작업을 수행할 수 없음.
+
+- 지연실행으로 비동기성을 보장
+  - process.nextTick()을 통해 비동기식 함수를 동기식으로 실행할 수 있음.
+
+    ```javascript
+    import { readFile } from 'fs';
+
+    const cache = new Map();
+
+    function consistentReadAsync(filename, callback) {
+      if (cache.has(filename)) {
+        process.nextTick(() => callback(cache.get(filename)));
+      } else {
+        readFile(filename, 'utf8', (err, data) => {
+          cache.set(filename, data);
+          callback(data);
+        })
+      }
+    }
+    ```
+
+    - 그러나 위 경우에도 문제가 있음.
+    - 재귀 등 특정 상황에서 IO 기아 현상을 일으킬 수 있음.
+
+3-1-2 Node.js 콜백 규칙
+
+- 콜백은 맨 마지막 인자로 전달되어야 함.
+- 오류는 첫 번째 인자로 전달되어야 함.
+- 콜백은 try 블럭 내에서 호출되어서는 안됨.
+  - 대부분의 경우콜백에서 발생시키는 에러를 캐치하는 게 목적이 아니기 때문
