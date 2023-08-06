@@ -243,3 +243,39 @@ function loadModule(filename, module, require) {
   - 제어구문 내에 포함될 수 없음
 - 이를 위해 비동기 임포트 기능을 제공함.
 - import() 함수를 통해 비동기적으로 모듈을 로드할 수 있음.
+
+2-6-7 모듈 적재 이해하기
+
+- 로딩 단계: 모든 모듈을 로드하고, 구문 분석하고, 실행하기 위함.
+  1. 생성(1단계): 모든 import 구문을  찾고 재귀적으로 모든 모듈의 내용을 적재
+  2. 인스턴스화(2단계): 모든 개체들의 참조를 메모리에 적재하여 관계를 추적 - 참조를 통해 연결만 되고, import된 개체들은 아직 생성되지 않음
+  3. 평가(3단계): 모든 모듈을 실행하여 export된 개체들을 생성
+  - ESM에서는 CommonJS와는 다르게 3단계가 완료 될 때 까지 어떠한 코드도 실행되지 않음
+
+- 읽기 전용 라이브 바인딩
+  - ESM에서는 import된 개체들은 읽기 전용임. 모듈 내부에서 수정되지 않는 한, 외부에서 수정할 수 없음.
+- 순환 종속성 분석
+  - CommonJS와는 다르게, ESM에서는 순환 종속에서 서로 완전한 내용을 가짐.
+  - import 순서를 바꾸더라도, 동일한 결과를 얻을 수 있음.
+
+2-6-8 모듈의 수정
+
+- 생략
+
+### 2-7 ESM과 CommonJS의 차이점과 상호 운용
+
+- CommonJS에서는 확장자를 생략할 수 있지만, ESM에서는 확장자를 생략할 수 없음.
+
+2-7-1 strict 모드에서의 ESM
+
+- ESM에서는 기본적으로 strict 모드가 적용되고, 해제할 수 없음.
+
+2-7-2 ESM에서의 참조 유실
+
+- require, export, module.exports, __filename, __dirname 등의 참조는 ESM에서 사용할 수 없음.
+- import.meta.url을 통해 __filename과 __dirname을 대체할 수 있음.
+- createRequire() 함수를 통해 require를 대체할 수 있음.
+
+2-7-3 상호 운용
+
+- import 구문을 통해 CommonJS 모듈을 로드할 수 있음. 다만 default export만 로드 가능.
