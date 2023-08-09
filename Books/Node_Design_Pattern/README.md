@@ -562,3 +562,117 @@ export function spider(url, cb) {
 - 데이터의 전파 없이 작업을 순서대로 실행
 - 작업의 출력을 다음 작업의 입력으로 사용: 체이닝, 파이프라이닝
 - 순차적으로 각 요소에 대해 비동기 작업을 반복
+
+4-2-4 병렬 실행
+
+- 필요성
+  - 작업 순서가 관계없는 경우
+  - 단순히 모든 작업이 완료되었다는 알림만 필요한 경우
+- 특징
+  - 논블로킹 API로 실행되며, 이벤트 루프를 통해 인터리빙됨.
+  - 따라서 사실상 Node.js에서 병렬이라는 용어는 부적절 / 동시성이 정확한 용어임.
+    - 병렬: 실제로 동시에 실행되는 것
+    - 동시성: 동시에 실행되는 것처럼 보이는 것
+- 응용가능한 패턴
+
+  ```javascript
+  const tasks = [];
+
+  let completed = 0
+  tasks.forEach(task => {
+    task(() => {
+      if (++completed === tasks.length) {
+        finish();
+      }
+    })
+  })
+
+  function finish() {
+    // 모든 작업이 완료되었을 때 실행되는 코드
+  }
+  ```
+
+- 경쟁상태
+  - Node.js가 단일 스레드이므로, 경쟁상태가 발생할 수 없다고 생각할 수 있음.
+  - 그러나 비동기 작업이 완료되는 순서는 보장되지 않으므로, 경쟁상태가 발생할 수 있음.
+  - 따라서 이를 해결하기 위해, Set()을 통해 현재 진행중인 작업 목록을 관리하여 이러한 경쟁상태를 방지할 수 있음.
+- 작업 수 제한
+  - 이외에도 작업 수를 제한하지 않는 경우, 무한한 메모리 사용으로 인한 문제가 발생할 수 있음.
+
+4-2-5 제한된 병렬 실행
+
+- 가장 많이 발생하는 문제는 리소스 부족. 그 외에도 여타 다른 문제를 야기 할 수 있음.
+- 그러므로, 제한된 병렬 실행을 통해 이러한 문제를 예방해야 함.
+
+  ```javascript
+  const tasks = []
+
+  const concurrency = 2;
+  let running = 0;
+  let completed = 0;
+  let index = 0;
+  function next() {
+    while (running < concurrency && index < tasks.length) {
+      const task = task[index++];
+      task(() => {
+        if (++completed === task.length) {
+          return finish();
+        }
+        running--
+        next()
+      })
+      running++
+    }
+  }
+  next()
+
+  function finish() {
+    // 모든 작업이 완료되었을 때 실행되는 코드
+  }
+  ```
+
+- 일부 목적에 대해서는 위와 같은 동시성 제어가 유용할 수 있음.
+- 그러나 대부분의 경우, 작업의 추가생성이 필요하거나, 기억해 둘 필요가 있기에 위의 방법보다는 큐(queue)를 사용하는것이 권장됨.
+- 큐를 사용한 방법
+
+  ```javascript
+  import { EventEmitter } from 'events';
+
+  export class TaskQueue extends EventEmitter  {
+    constructor(concurrency) {
+      super();
+      this.concurrency = concurrency;
+      this.running = 0;
+      this.queue = [];
+    }
+
+    pushTask(task) {
+      this.queue.push(task);
+      return this
+    }
+
+    next() {
+      if (this.running === 0 && this.queue.length === 0) {
+        return this.emit('empty');
+      }
+      while (this.running < this.concurrency && this.queue.length) {
+        const task = this.queue.shift();
+        task((err) => {
+          if (err) {
+            this.emit('error', err);
+          }
+          this.running--;
+          process.nextTick(this.next.bind(this))
+        })
+        this.running++;
+      }
+    }
+  }
+  ```
+
+  - process.nextTick()을 통해 이벤트 루프를 통해 인터리빙되도록 함.
+  - 또한 위 과정에서 this를 잃어버리기에, bind()를 통해 this를 바인딩해줌.
+
+### 4-3 비동기 라이브러리
+
+- async 등 비동기 라이브러리를 활용하면, 위에서 다룬 비동기 제어 흐름 패턴을 더욱 쉽게 구현할 수 있음.
