@@ -272,8 +272,8 @@ function loadModule(filename, module, require) {
 
 2-7-2 ESM에서의 참조 유실
 
-- require, export, module.exports, __filename, __dirname 등의 참조는 ESM에서 사용할 수 없음.
-- import.meta.url을 통해 __filename과 __dirname을 대체할 수 있음.
+- require, export, module.exports, __filename,__dirname 등의 참조는 ESM에서 사용할 수 없음.
+- import.meta.url을 통해 __filename과__dirname을 대체할 수 있음.
 - createRequire() 함수를 통해 require를 대체할 수 있음.
 
 2-7-3 상호 운용
@@ -444,3 +444,121 @@ function loadModule(filename, module, require) {
 
 - 필요시 두 가지 방식을 혼용해서 사용할 수 있음.
 - 복잡한 비동기 작업을 수행할 때, 콜백을 통해 결과를 전달하고, 이를 EventEmitter를 통해 관찰할 수 있음.
+
+## Chapter 04. 콜백을 사용한 비동기 제어 흐름 패턴
+
+- 주요개념
+  - 비동기 프로그래밍에 대한 과제
+  - 콜백 지옥을 피하는 것과 콜백 모범 사례들
+  - 연속적 실행, 연속적 반복, 병렬 실행, 제한된 병렬 실행에서 흔히 다루는 비동기 패턴
+
+### 4-1 비동기 프로그래밍의 어려움
+
+4-1-1 간단한 웹 스파이더 만들기
+
+```javascript
+import fs from 'fs';
+import path from 'path';
+import superagent from 'superagent';
+import mkdirp from 'mkdirp';
+import { urlToFilename } from './utils.js';
+
+export function spider(url, cb) {
+  const filename = urlToFilename(url);
+  fs.access(filename, err => {
+    if (!err || err.code === 'ENOENT') {
+      console.log(`Downloading ${url} into ${filename}`);
+      superagent.get(url).end((err, res) => {
+        if (err) {
+          cb(err);
+        } else {
+          mkdirp(path.dirname(filename), err => {
+            if (err) {
+              cb(err);
+            } else {
+              fs.writeFile(filename, res.text, err => {
+                if (err) {
+                  cb(err);
+                } else {
+                  cb(null, filename, true);
+                }
+              })
+            }
+          })
+        }
+      })
+    } else {
+      cb(null, filename, false);
+    }
+  })
+}
+```
+
+4-1-2 콜백 지옥(Callback hell)
+
+- 위 코드와 같이 가독성이 매우 떨어지게 됨.
+- 또한, 스코프에서 사용되는 변수의 이름이 중복될 수 있음.
+- 클로저가 성능 및 메모리 측면에서 부정적인 영향을 끼칠 수 있음.
+
+### 4-2 콜백 모범 사례와 제어 흐름 패턴
+
+4-2-1 콜백 규칙
+
+1. in-place 함수 사용 최소화: 최대한 외부에서 정의된 함수 활용
+2. early return 사용: 에러가 발생하면 즉시 리턴
+
+4-2-2 콜백 규칙 적용
+
+```javascript
+import fs from 'fs';
+import path from 'path';
+import superagent from 'superagent';
+import mkdirp from 'mkdirp';
+import { urlToFilename } from './utils.js';
+
+function saveFile(filename, contents, cb) {
+  mkdirp(path.dirname(filename), err => {
+    if (err) {
+      return cb(err);
+    }
+    fs.writeFile(filename, contents, cb);
+  })
+}
+
+function download(url, filename, cb) {
+  console.log(`Downloading ${url}`);
+  superagent.get(url).end((err, res) => {
+    if (err) {
+      return cb(err);
+    }
+    saveFile(filename, res.text, err => {
+      if (err) {
+        return cb(err);
+      }
+      console.log(`Downloaded and saved: ${url}`);
+      cb(null, res.text);
+    })
+  })
+}
+
+export function spider(url, cb) {
+  const filename = urlToFilename(url);
+  fs.access(filename, err => {
+    if (!err || err.code !== 'ENOENT') {
+      return cb(null, filename, false);
+    }
+    download(url, filename, err => {
+      if (err) {
+        return cb(err);
+      }
+      cb(null, filename, true);
+    })
+  })
+}
+```
+
+4-2-3 순차 실행
+
+- 데이터의 전파 없이 작업을 순서대로 실행
+- 작업의 출력을 다음 작업의 입력으로 사용: 체이닝, 파이프라이닝
+- 순차적으로 각 요소에 대해 비동기 작업을 반복
