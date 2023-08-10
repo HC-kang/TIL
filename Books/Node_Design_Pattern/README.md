@@ -676,3 +676,124 @@ export function spider(url, cb) {
 ### 4-3 비동기 라이브러리
 
 - async 등 비동기 라이브러리를 활용하면, 위에서 다룬 비동기 제어 흐름 패턴을 더욱 쉽게 구현할 수 있음.
+
+## Chapter 05. Promise 그리고 Async/Await와 함께하는 비동기 제어 흐름 패턴
+
+- 콜백은 비동기 코드를 작성하는 가장 기본적인 방법이지만, 콜백만으로는 코드를 작성하기 어려움.
+- 따라서 더 나은 비동기 코드를 작성하기 위해, 프로미스와 async/await를 사용하는 것이 좋음.
+
+- 주요개념
+  - 프로미스가 어떻게 동작하는지
+  - 프로미스를 효과적으로 사용하는 방법
+  - Node.js에서 비동기 코드를 다룰 때 주된 도구인 async/await 문법
+
+### 5-1 프로미스
+
+- 비동기 결과를 전파하기 위해 사용하는 CPS인 콜백을 대체하기 위해 등장한 개념.
+
+5-1-1 Promise란 무엇인가?
+
+- 비동기 작업의 최종적인 결과를 담고있는 객체
+- 상태
+  - 대기(pending): 이행하거나 거부되지 않은 초기 상태
+  - 결정(settled): 이행 또는 거부되어 종료된 상태
+    - 이행(fulfilled): 연산이 성공적으로 완료됨
+    - 거부(rejected): 연산이 실패함
+
+```javascript
+asyncOperation(arg, (err, result) => {
+  if (err) {
+    // 에러 처리
+  } else {
+    // 결과 처리
+  }
+})
+
+asyncOperationPromise(arg)
+  .then(result => {
+    // 결과 처리
+  })
+  .catch(err => {
+    // 에러 처리
+  })
+```
+
+- 프로미스는 비록 동기적으로 작성된 것처럼 보이지만, 사실은 비동기적 동작을 보장함.
+- 이는 3장의 Zalgo 문제와 관련이 있음.
+
+5-1-2 Promise/A+와 thenable
+
+- 이전에는 프로미스의 구현이 다양했으며, 서로 호환되지 않았음.
+- 그러나 Promise/A+라는 명세가 등장하면서, 프로미스의 구현이 표준화되었음.
+- 이로인해 thenable이라는 개념이 등장했고, then()함수를 공통적으로 사용 할 수 있음.
+
+5-1-3 프로미스 API
+
+- Promise 정적 메서드
+  - Promise.resolve()
+    - 즉시 이행되는 프로미스를 생성함.
+    - Promise.resolve()는 thenable 객체를 인자로 받을 수 있음.
+  - Promise.reject()
+    - 즉시 거부되는 프로미스를 생성함.
+  - Promise.all()
+    - 모든 프로미스가 이행될 때까지 기다림.
+    - 하나라도 reject되면 해당 사유로 전체가 reject됨.
+  - Promise.allSettled()
+    - 모든 프로미스가 결정될 때까지 기다림.
+    - 각각의 속성과 사유를 가진 배열을 반환함.
+    - 모든 프로미스가 결정되면, 이행된 프로미스의 배열을 반환함. -> Promise.all()과의 가장 큰 차이점
+  - Promise.race()
+    - 가장 먼저 결정된 프로미스의 결과를 반환함.
+
+- Promise 인스턴스 메서드
+  - then()
+    - 프로미스가 이행되거나 거부될 때 호출될 콜백을 등록함.
+    - then()은 새로운 프로미스를 반환함.
+  - catch()
+    - 프로미스가 거부될 때 호출될 콜백을 등록함.
+    - catch()는 then()의 특별한 형태임.
+  - finally()
+    - 프로미스가 이행되거나 거부될 때 호출될 콜백을 등록함.
+    - finally()는 then()의 특별한 형태임.
+
+5-1-4 프로미스 생성하기
+
+```javascript
+function delay(milliseconds) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, milliseconds);
+  });
+}
+
+console.log(`Delaying... ${new Date().getSeconds()}s`);
+delay(1000)
+  .then(() => {
+    console.log(`Done Delaying... ${new Date().getSeconds()}s`);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+```
+
+5-1-5 프로미스화(Promisification)
+
+```javascript
+function promisify(callbackBaseApi) {
+  return function promisified(...args) {
+    return new Promise((resolve, reject) => {
+      const newArgs = [
+        ...args,
+        function (err, result) {
+          if (err) {
+            return reject(err);
+          }
+          resolve(result);
+        }
+      ]
+      callbackBaseApi(...newArgs);
+    })
+  }
+}
+```
