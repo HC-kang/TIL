@@ -797,3 +797,154 @@ function promisify(callbackBaseApi) {
   }
 }
 ```
+
+5-1-6 순차 실행과 반복
+
+```javascript
+import { promises as fsPromises } from 'fs';
+import { dirname } from 'path';
+import superagent from 'superagent';
+import mkdirp from 'mkdirp';
+import { urlToFilename } from './utils.js';
+import { promisify } from 'util';
+
+const mkdirpPromises = promisify(mkdirp);
+```
+
+- fs의 경우 이미 프로미스화된 promises를 임포트하여 사용
+- mkdirp의 경우 프로미스화를 직접 구현하여 사용
+
+```javascript
+function download(url, filename) {
+  console.log(`Downloading ${url}`);
+  let content;
+  return superagent.get(url)
+    .then((res) => {
+      content = res.text;
+      return mkdirpPromises(dirname(filename));
+    })
+    .then(() => fsPromises.writeFile(filename, content))
+    .then(() => {
+      console.log(`Downloaded and saved: ${url}`);
+      return content
+    })
+}
+```
+
+- then 을 활용해 가독성이 좋아짐.
+- 하지만 위 코드는 미리 알고있는 비동기 작업을 직접 처리하였음
+
+```javascript
+function spiderLinks(currentUrl, content, nesting) {
+  let promise = Promise.resolve();
+  if (nesting === 0) {
+    return promise;
+  }
+  const links = getPageLinks(currentUrl, content);
+  for (const link of links) {
+    promise = promise.then(() => spider(link, nesting - 1));
+  }
+
+  return promise;
+}
+```
+
+- 빈 프로미스를 생성하여, for문을 돌면서 프로미스를 연결함.
+- 매 반복에서 then을 통해 얻은 프로미스로 promise 변수를 갱신함
+- 이하 생략
+- 중요한 점은 이러한 과정에서 사용자가 직접 오류를 전파하기 위한 로직을 사용하지 않았다는 것임.
+
+5-1-7 병렬 실행
+
+```javascript
+function spiderLinks(currentUrl, content, nesting) {
+  if (nesting === 0) {
+    return Promise.resolve();
+  }
+  const links = getPageLinks(currentUrl, content);
+  const promises = links.map(link => spider(link, nesting - 1))
+
+  return Promise.all(promises);
+}
+```
+
+- Promise.all()을 사용하여 병렬로 실행함.
+- 이전 순차반복의 for루프와 달리, 이전 작업을 기다리지 않고 바로 다음 작업을 실행함.
+
+5-1-8 제한된 병렬 실행
+
+```javascript
+next() {
+  while (this.running < this.concurrency && this.queue.length) {
+    const task = this.queue.shift()
+    task().finally(() => {
+      this.running--
+      this.next()
+    })
+    this.running++
+  }
+}
+```
+
+- finally()를 통해 작업이 끝나면 running을 감소시키고, next()를 호출하여 다음 작업을 실행함.
+
+```javascript
+runTask(task) {
+  return new Promise((resolve, reject) => {
+    this.queue.push(() => {
+      return task().then(resolve, reject)
+    })
+    process.nextTick(this.next.bind(this))
+  })
+}
+```
+
+- 새 Promise를 생성하여, queue에 push함.
+- 비동기적 호출을 보장하기 위해 process.nextTick()을 사용함.
+- 실행 결과로 Promise를 반환함.
+
+### 5-2 Async/await
+
+- 일반적인 콜백에 비해, 프로미스도 충분히 가독성이 좋지만, 여전히 then()블록을 호출해야 함.
+- async/await는 프로미스를 사용하는 코드를 더욱 간결하게 만들어줌.
+
+5-2-1 async 함수와 await 표현
+
+```javascript
+async function playingWithDelays() {
+  console.log('Delaying...', new Date())
+
+  const dateAfterOneSecond = await delay(1000)
+  console.log(dateAfterOneSecond)
+  const dateAfterThreeSeconds = await delay(3000)
+  console.log(dateAfterThreeSeconds)
+  return 'done';
+}
+```
+
+- 동기처럼 보이지만, await 에서 함수가 보류되고, 제어가 이벤트 루프로 반환됨.
+- 이후 resolve되면 다시 제어가 async 함수로 돌아오고 결과가 반환됨.
+- 또한 async 함수는 항상 프로미스를 반환함.
+
+5-2-2 Async/await에서의 에러 처리
+
+- async/await는 가독성도 높여주지만, 에러를 다루는 방식도 더욱 간단해짐.
+- try/catch 블록을 사용하여 에러를 처리함.
+- "return" vs "return await" 함정
+  - async/await를 사용할 때, reject되는 프로마스가 로컬 스코프의 try-catch 블록에 잡힐것이라고 생각하는 것임.
+
+    ```javascript
+    async function errorNotCaught() {
+      try {
+        return delayError(1000); // -> return await delayError(1000);
+      } catch (err) {
+        console.error(`Error caught by the async function: ` + err.message)
+      }
+    }
+
+    errorNotCaught()
+      .catch(err => console.error('Error caught by the caller function: ' + err.message))
+    ```
+
+  - 위 함수에서는 caller에 의해 에러가 처리됨
+  - 이를 원치않고, 로컬에서 에러를 처리하고싶다면 await를 사용해야 함.
