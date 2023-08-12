@@ -948,3 +948,203 @@ async function playingWithDelays() {
 
   - 위 함수에서는 caller에 의해 에러가 처리됨
   - 이를 원치않고, 로컬에서 에러를 처리하고싶다면 await를 사용해야 함.
+
+5-2-3 순차 실행과 반복
+
+- async/await의 최대 강점은 역시 코드를 단순화하는 것임
+
+```javascript
+async function download(url, filename) {
+  console.log(`Downloading ${url}`)
+  const { text: content } = await superagent.get(url)
+  await mkdirpPromises(dirname(filename))
+  await fsPromises.writeFile(filename, content)
+  console.log(`Downloaded and saved: ${url}`)
+  return content
+}
+```
+
+- 이러한 장점은
+  - 코드 자체가 짧아짐
+  - 들여쓰기 없은 플랫한 형태가 됨.
+
+- 순차실행시 실수하는 안티패턴
+
+  ```javascript
+  links.forEach(async function iteration(link) {
+    await spider(link, nesting - 1)
+  })
+  ```
+
+  - 위 코드에서 spider 함수는 이전 실행을 기다리지 않고, 즉시 실행됨.
+
+5-2-4 병렬 실행
+
+- async/await를 사용해서 병렬 작업을 실행하는 데에는 두 가지 방법이 있음.
+  - 순수하게 await 표현식을 사용하는 것
+  - Promise.all()을 사용하는 것: 권장
+
+- await을 사용하는 방법(예시)
+
+  ```javascript
+  async function spiderLinks(currentUrl, content, nesting) {
+    if (nesting === 0) {
+      return
+    }
+    const links = getPageLinks(currentUrl, content)
+    const promises = links.map(link => spider(link, nesting - 1))
+    for (const promise of promises) {
+      await promise
+    }
+  }
+  ```
+
+  - 이 경우 문제는, 프로미스 중 하나가 reject되면 spiderLinks()가 반환하는 프로미스도 reject 되는데, 이 때 이전에 선행된 promise들의 resolve를 기다려야 함.
+  - 일반적으로 에러는 최대한 빠른 반환이 원칙이므로, 이런 방법은 최선의 방법은 아님.
+- 이런 경우 Promise.all()을 사용하면, 프로미스 중 하나라도 reject 되는 순간 전체를 reject함.
+
+  ```javascript
+  const result = await Promise.all(promises)
+  ```
+
+- 결과적으로, async/await를 사용한 경우에도 본직적으로는 프로미스를 사용할 수 밖에 없음.
+
+5-2-5 제한된 병렬 실행
+
+- async/await와 생산자-소비자 패턴을 결합하여 제한된 병렬 실행을 구현할 수 있음.
+- 이 때, 문제가 되는 부분은 큐의 대기열에 따라 컨슈머를 재우고, 실행하는 것임.
+- 그러나 Node.js는 단일 스레드이므로, 아래와 같이 단순화 할 수 있음.
+- sleep 상태가 되는 것은 이벤트 루프로 제어권을 반환하는 것
+- resuming 하는 것은 콜백을 호출하는 것
+
+```javascript
+export class TaskQueuePC {
+  constructor(concurrency) {
+    this.taskQueue = []
+    this.consumeQueue = []
+  }
+
+  // 소비자 생성
+  for (let i = 0; i < concurrency; i++) {
+    this.consumer()
+  }
+```
+
+- 두 개의 대기열을 사용하는데, 하나는 실행할 작업을 담고있고, 다른 하나는 실행할 작업이 있을 때까지 대기하는 소비자를 담고 있음.
+
+```javascript
+  async consumer() {
+    while (true) {
+      try {
+        const task = await this.getNextTask()
+        await task()
+      } catch (err) {
+        console.error(err)
+      }
+    }
+  }
+```
+
+- 소비자는 무한 루프를 돌면서, 실행할 작업이 있을 때까지 대기함.
+
+```javascript
+  async getNextTask() {
+    return new Promise((resolve) => {
+      if (this.taskQueue.length !== 0) {
+        return resolve(this.taskQueue.shift())
+      }
+      this.consumeQueue.push(resolve)
+    })
+  }
+}
+```
+
+- getNextTask()는 작업이 있으면 첫 번째 작업을 실행하고, Promise를 반환함.
+- 작업이 없으면 consumeQueue에 resolve 콜백을 추가함.
+
+```javascript
+runTask(task) {
+  return new Promise((resolve, reject) => {
+    const taskWrapper = () => {
+      const taskPromise = task();
+      taskPromise.then(resolve, reject);
+      return taskPromise;
+    }
+
+    if (this.consumerQueue.length !== 0) {
+      const consumer = this.consumerQueue.shift();
+      consumer(taskWrapper)
+    } else {
+      this.taskQueue.push(taskWrapper)
+    }
+  })
+}
+```
+
+- taskWrapper를 통해 task가 반환하는 프로미스를 runTask()가 반환하는 프로미스에 연결함.
+- 또한 consumerQueue에 놀고있는 소비자가 있으면, 그 소비자에게 taskWrapper를 전달함.
+- 반면에 유휴 소비자가 없으면, taskWrapper를 taskQueue에 추가함.
+
+### 5-3 무한 재귀 프라미스 해결(resolution) 체인의 문제
+
+- 무한 프로미스 체인으로 인해 생기는 메모리 누수 문제가 있음.
+- 이는 프로미스 명세에 따른다고 피할 수 있는 문제가 아님.
+- 특히 스트림방송, 가상화폐 시장 데이터 처리, IoT센서 데이터 처리 등에서 이러한 문제가 발생할 수 있음.
+
+```javascript
+function leakingLoop() {
+  return delay(1)
+    .then(() => {
+      console.log(`Tick ${Date.now()}`)
+      return leakingLoop()
+    })
+}
+```
+
+- 위와 같은 함수를 매우 많이(1e6) 호출하면, 메모리 누수가 발생함.
+- 이러한 문제에 대한 해결책은 아래와 같음.
+  - 프로미스 체인을 끊는 것
+
+    ```javascript
+    function nonLeakingLoop() {
+      return delay(1)
+        .then(() => {
+          console.log(`Tick ${Date.now()}`)
+          return nonLeakingLoop()
+        })
+    }
+    ```
+
+    - 위와 같이 프로미스 체인을 끊으면, 메모리 누수가 발생하지 않음.
+    - 그러나 이 방법은 프로미스 체인을 끊는 것이므로, 프로미스 체인을 사용하는 의미가 없어짐.
+  - 따라서 여기에 로깅을 추가
+
+    ```javascript
+    function nonLeakingLoopWithErrors() {
+      return new Promise((resolve, reject) => {
+        (function internalLoop() {
+          delay(1)
+            .then(() => {
+              console.log(`Tick ${Date.now()}`)
+              internalLoop()
+            })
+            .catch(err => {
+              reject(err)
+            })
+        })()
+      })
+    }
+    ```
+
+  - 세번째 방법은 async/await를 사용하는 것
+
+    ```javascript
+    async function nonLeakingLoop() {
+      while (true) {
+        await delay(1)
+        console.log(`Tick ${Date.now()}`)
+      }
+    }
+    ```
+
+  - 주의사항으로 재귀를 사용하는 경우 이전과 동일하게 무한 프로미스 체인을 생성하고, 메모리 누수를 초래 할 수 있음.
