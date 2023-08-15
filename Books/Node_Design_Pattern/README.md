@@ -1192,3 +1192,65 @@ function leakingLoop() {
 - pipe()함수를 통해 스트림을 연결할 수 있음.
 - 이러한 균일한 인터페이스를 통해 스트림을 조립할 수 있음.
 - 이런 특징때문에, 위에서 나열한 효율성 이외에, 코드를 단순화하고 모듈화하는 목적으로도 사용될 수 있음.
+
+### 6-2 스트림 시작하기
+
+- 스트림은 핵심모듈 등 Node.js의 모든 곳에 존재함
+- fs: createReadStream(), createWriteStream()
+- http: request(), response()
+- zlib: createGzip(), createGunzip()
+- 기타: createCipher(), createDecipher()...
+
+6-2-1 스트림 해부
+
+- 스트림은 아래의 네 가지 추상 클래스 중 하나의 구현임
+  - Readable: 데이터를 읽는 스트림
+  - Writeable: 데이터를 쓰는 스트림
+  - Duplex: 읽고 쓰는 스트림
+  - Transform: 읽은 데이터를 변환하여 쓰는 스트림
+
+- binary 모드: 데이터를 버퍼, 또는 문자열과 같은 청크 형태로 스트리밍
+- 객체 모드: 데이터를 객체 형태로 스트리밍
+
+6-2-2 Readable 스트림
+
+- non-flowing 모드(pause 모드)
+  - Readable 스트림에서 읽기를 위한 기본 패턴
+  - read() 함수는 스트림의 내부 버퍼에서 데이터 청크를 가져오는 동기 작업.
+  - 청크는 기본적으로 Buffer객체임.
+    - 필요시 인코딩을 지정할 수 있음.
+  - read() 함수를 이용해서 버퍼가 비워질 때 까지 데이터를 계속 읽음.
+  - 더이상 읽을 데이터가 없을 경우 null을 반환함.
+    - 이 경우, 데이터가 준비됐다고 알려주는 readable 이벤트를 기다리거나,
+    - 스트림의 끝을 알리는 end 이벤트를 기다릴 수 있음.
+
+  ```javascript
+  process.stdin
+    .on('readable', () => {
+      let chunk;
+      console.log('New data available');
+      while ((chunk = process.stdin.read()) !== null) {
+        console.log(
+          `Chunk read: (${chunk.length} bytes): "${chunk.toString()}"`
+        )
+      }
+    })
+    .on('end', () => console.log('End of stream'))
+  ```
+
+- flowing 모드
+  - 리스너를 데이터 이벤트에 연결하거나, resume() 함수를 명시적으로 호출하여 모드 전환 가능
+  - read() 함수를 이용하지 않고, 데이터 리스너로 바로 전달.
+  - 데이터 흐름을 제어하는 유연성이 떨어짐.
+  - pause() 함수를 호출하면 다시 non-flowing 모드로 전환됨.
+  
+  ```javascript
+  process.stdin
+    .on('data', (chunk) => {
+      console.log('New data available');
+      console.log(
+        `Chunk read (${chunk.length} bytes: "${chunk.toString()}"`
+      )
+    })
+    .on('end', () => console.log('End of stream'))
+  ```
