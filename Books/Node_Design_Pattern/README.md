@@ -1254,3 +1254,98 @@ function leakingLoop() {
     })
     .on('end', () => console.log('End of stream'))
   ```
+
+6-2-3 Writable 스트림
+
+- 데이터의 목적지
+  - 파일, 네트워크, 데이터베이스, 소켓, 표준 출력 등
+
+```javascript
+import { createServer } from 'http';
+import Chance from 'chance';
+
+const chance = new Chance();
+const server = createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  while (chance.bool({ likelihood: 95 })) {
+    res.write(`${chance.string()}\n`);
+  }
+  res.end('\nThe end...\n');
+  res.on('finish', () => console.log('All data was sent'));
+});
+server.listen(8080, () => {
+  console.log('Listening on http://localhost:8080');
+});
+```
+
+- 배압(Backpressure): 데이터를 쓰는 속도가 데이터를 읽는 속도보다 빠를 때 발생하는 문제를 막기 위한 부가기능.
+  - writable.write() 함수는 데이터를 버퍼에 쓰고, 쓰기가 완료되면 true를 반환함.
+  - 그러나 데이터를 쓰는 속도가 빨라 highWaterMark 옵션에 지정된 값보다 크면 false를 반환함.
+  - 이는 권고 매커니즘으로 false 신호를 무시하고 계속 쓰는 것이 가능: highWaterMark에 도달한다고 중단되지 않음.
+  - 따라서 이를 주의깊게 처리해야 함.
+
+```javascript
+import { createServer } from 'http';
+import Chance from 'chance';
+
+const chance = new Chance();
+const server = createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  function generateMore() {
+    while (chance.bool({ likelihood: 95 })) {
+      const randomChunk = change.string({ length: 16 * 1024 - 1 });
+      const shouldContinue = res.write(`${randomChunk}\n`);
+      if (!shouldContinue) {
+        console.log('Backpressure');
+        return res.once('drain', generateMore);
+      }
+    }
+    res.end('\n\n');
+  }
+  generateMore();
+  res.on('finish', () => console.log('All data was sent'));
+});
+server.listen(8080, () => {
+  console.log('Listening on http://localhost:8080');
+});
+```
+
+6-2-4 Duplex 스트림
+
+- 읽기와 쓰기를 모두 수행하는 스트림
+- allowHalfOpen 옵션을 통해, 읽기 또는 쓰기 중 하나만 수행할 수 있음.
+  - false시 Readable 스트림이 종료되면, Writable 스트림도 종료됨.
+
+6-2-5 Transform 스트림
+
+- 읽은 데이터를 변환하여 쓰는 스트림
+- 데이터 변환 파이프라인을 구성하는 데에 완벽함.
+
+```javascript
+import { Transform } from 'stream';
+
+export class ReplaceStream extends Transform {
+  constructor (searchStr, replaceStr, options) {
+    super({ ...options })
+    this.searchStr = searchStr
+    this.replaceStr = replaceStr
+    this.tail = ''
+  }
+
+  _transform(chunk, encoding, callback) {
+    const pieces = (this.tail + chunk).split(this.searchStr)
+    const lastPiece = pieces[pieces.length - 1]
+    const tailLen = this.searchStr.length - 1
+    this.tail = lastPiece.slice(-tailLen)
+    pieces[pieces.length - 1] = lastPiece.slice(0, -tailLen)
+
+    this.push(pieces.join(this.replaceStr))
+    callback()
+  }
+
+  _flush(callback) {
+    this.push(this.tail)
+    callback()
+  }
+}
+```
