@@ -1349,3 +1349,155 @@ export class ReplaceStream extends Transform {
   }
 }
 ```
+
+6-2-6 PassThrough 스트림
+
+- 데이터를 변환하지 않고 그대로 전달하는 스트림
+- 대표적으로 두 가지 유용성을 가짐
+  - 관찰 가능한 파이프
+
+    ```javascript
+    // passthrough.js
+    import { PassThrough } from 'stream';
+
+    let bytesWritten = 0;
+    const monitor = new PassThrough();
+    monitor.on('data', (chunk) => {
+      bytesWritten += chunk.length;
+    });
+    monitor.on('finish', () => {
+      console.log(`Bytes written: ${bytesWritten}`);
+    });
+
+    monitor.write('Hello!');
+    monitor.end();
+
+    // use case
+    createReadStream(filename)
+      .pipe(createGzip())
+      .pipe(monitor)
+      .pipe(createWriteStream(`${filename}.gz`));
+    ```
+
+  - 지연 스트림 구현, 느린 파이프 연결(Late piping): 나중에 읽거나 쓸 데이터에 대한 플레이스 홀더 역할
+
+    ```javascript
+    import { createReadStream } from 'fs';
+    import { createBrotliCompress } from 'zlib';
+    import { Passthrough } from 'stream';
+    import { basename } from 'path';
+    import { upload } from './upload.js';
+
+    const filepath = process.argv[2];
+    const filename = basename(filepath);
+    const contentStream = new PassThrough();
+
+    upload(`${filename}.br`, contentStream)
+      .then((response) => {
+        console.log(`Server response: ${response.data}`);
+      })
+      .catch((err) => {
+        console.error(err)
+        precess.exit(1)
+      })
+
+    createReadStream(filepath)
+      .pipe(createBrotliCompress())
+      .pipe(contentStream);
+    ```
+
+6-2-7 지연(Lazy) 스트림
+
+- 파일 시스템의 다수 파일을 읽어 스트림 전달하려는 경우, EMFILE 에러가 발생할 수 있음.
+- 이는 스트림 사용 전에 비용이 많이 드는 작업을 수행하고 있기 때문임.
+- lazystream과 같은 라이브러리를 통해 스트림 인스턴스를 대신할 프록시를 생성하여 해결할 수 있음.
+  
+  ```javascript
+  import lazystream from 'lazystream';
+  const lazyURandom = new lazystream.Readable(function (options) {
+    return fs.createReadStream('/dev/urandom');
+  })
+  ```
+
+6-2-8 파이프를 사용하여 스트림 연결하기
+
+- 대표적인 파이프의 사용
+
+  ```zsh
+  echo Hello World! | sed s/World/Node.js/g
+  ```
+
+- Node.js에서의 파이프
+
+  ```javascript
+  readable.pipe(writable)
+  ```
+
+- 파이프에서 오류처리
+
+  ```javascript
+  stream1
+    .pipe(stream2)
+    .on('error', () => {})
+  ```
+
+  - 위 경우에는 stream1에서 발생하는 오류를 포착할 수 없음.
+
+  ```javascript
+  stream1
+    .on('error', () => {})
+    .pipe(stream2)
+    .on('error', () => {})
+  ```
+
+  - 위 경우에는 직관적으로도 이상하고, 오류가 발생할 경우 파이프가 해제됨.
+
+  ```javascript
+  function handleError(err) {
+    console.error(err);
+    stream1.destroy();
+    stream2.destroy();
+  }
+
+  stream1
+    .on('error', handleError)
+    .pipe(stream2)
+    .on('error', handleError)
+  ```
+
+  - 위 경우에는 오류가 발생하면 파이프를 해제하고, 스트림을 종료함.
+  - 그러나 직관적이지 못한 코드임.
+
+- pipeline()을 사용한 오류처리는 아래와같이 사용 가능함.
+
+  ```javascript
+  pipeline(stream1, stream2, stream3, ... cb)
+  ```
+
+  - 또한 에러로 중단될 시, 모든 스트림이 정상적으로 제거됨.
+
+```javascript
+import { createGzip, createGunzip } from 'zlib'
+import { Transform, pipeline } from 'stream'
+
+const uppercasify = new Transform({
+  transform (chunk, enc, cb) {
+    this.push(chunk.toString().toUpperCase())
+    cb()
+  }
+})
+
+pipeline(
+  process.stdin,
+  createGunzip(),
+  uppercasify,
+  createGzip(),
+  process.stdout,
+  (err) => {
+    if (err) {
+      console.error(err)
+      process.exit(1)
+    }
+  }
+)
+```
