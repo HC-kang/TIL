@@ -1501,3 +1501,179 @@ pipeline(
   }
 )
 ```
+
+### 6-3 스트림을 사용한 비동기 제어 흐름 패턴
+
+- 지금까지는 스트림으로 I/O를 처리하는 방법을 위주로 살펴봄.
+- 그러나 또다른 사용방식으로, 비동기 제어 흐름(asynchronous control flow)를 흐름 제어(flow control)로 바꿀 수도 있음
+  - 비동기 제어 흐름: 비동기 작업을 순차적으로 실행하는 것?
+  - 흐름 제어: 비동기 작업을 병렬로 실행하는 것?
+
+6-3-1 순차적 실행
+
+- 기본적으로 스트림은 데이터를 순서대로 처리함.
+
+```javascript
+import { createWriteStream, createReadStream } from 'fs'
+import { Readable, Transform } from 'stream'
+
+export function concatFiles (dest, files) {
+  return new Promise((resolve, reject) => {
+    const destStream = createWriteStream(dest)
+    Readable.from(files)
+      .pipe(new Transform({
+        objectMode: true,
+        transform (filename, enc, done) {
+          const src = createReadStream(filename);
+          src.pipe(destStream, { end: false })
+          src.on('error', done)
+          src.on('end', done)
+        }
+      }))
+      .on('error', reject)
+      .on('finish', () => {
+        destStream.end()
+        resolve()
+      })
+  })
+}
+```
+
+6-3-2 순서가 없는 병렬 실행
+
+- 각 데이터의 청크 사이에 관계가 없는 경우, 순서가 없는 병렬 실행이 더 유리함.
+- 각 데이터별 순서가 중요한 경우 사용 할 수 없음.
+
+```javascript
+import { Transform } from 'stream';
+
+export class ParallelStream extends Transform {
+  constructor(userTransform, opts) {
+    super({ objectMode: true, ...opts });
+    this.userTransform = userTransform;
+    this.running = 0;
+    this.terminateCb = null;
+  }
+
+  _transform(chunk, enc, done) {
+    this.running++
+    this.userTransform(
+      chunk,
+      enc,
+      this.push.bind(this),
+      this._onComplete.bind(this)
+    )
+    done()
+  }
+
+  _flush(done) {
+    if (this.running > 0) {
+      this.terminateCb = done
+    } else {
+      done()
+    }
+  }
+
+  _onComplete(err) {
+    this.running--
+    if (err) {
+      return this.emit('error', err)
+    }
+    if (this.running === 0) {
+      this.terminateCb && this.terminateCb()
+    }
+  }
+}
+```
+
+6-3-3 순서가 없는 제한된 병렬 실행
+
+- 서버의 안정성과 성능을 위해, 병렬 실행의 수를 제한하는 것이 좋음.
+
+```javascript
+import { Transform } from 'stream';
+
+export class ParallelStream extends Transform {
+  constructor(concurrency, userTransform, opts) {
+    super({ objectMode: true, ...opts });
+    this.concurrency = concurrency;
+    this.userTransform = userTransform;
+    this.running = 0;
+    this.continueCb = null;
+    this.terminateCb = null;
+  }
+
+  _transform(chunk, enc, done) {
+    this.running++
+    this.userTransform(
+      chunk,
+      enc,
+      this.push.bind(this),
+      this._onComplete.bind(this)
+    )
+    if (this.running < this.concurrency) {
+      done()
+    } else {
+      this.continueCb = done
+    }
+  }
+
+  _flush(done) {
+    if (this.running > 0) {
+      this.terminateCb = done
+    } else {
+      done()
+    }
+  }
+
+  _onComplete(err) {
+    this.running--
+    if (err) {
+      return this.emit('error', err)
+    }
+    const tmpCb = this.continueCb
+    this.continueCb = null
+    tmpCb && tmpCb()
+    if (this.running === 0) {
+      this.terminateCb && this.terminateCb()
+    }
+  }
+}
+```
+
+6-3-4 순서가 있는 병렬 실행
+
+- 각 청크를 병렬로 처리하되, 수신 순서대로 처리해야 하는 경우가 있음.
+- 청크를 내보내기 전, 버퍼를 사용해서 순서를 보장할 수 있음.
+- 다만, 병목현상을 유발하거나, 메모리를 무한정 사용하는 문제를 일으킬 수 있음.
+  - 이를 막기 위해 버퍼의 크기를 적당하게 유지해야 함.
+
+```javascript
+import parallelTransform from 'parallel-transform';
+
+pipeline(
+  createReadStream(process.argv[2]),
+  split(),
+  parallelTransform(4, async function (url, done) {
+    if (!url) {
+      return done()
+    }
+    console.log(url)
+    try {
+      await request.head(url, { timeout: 5 * 1000 });
+      this.push(`${url} is up\n`)
+    } catch (err) {
+      this.push(`${url} is down\n`)
+    }
+    done()
+  }),
+  createWriteStream('results.txt'),
+  (err) => {
+    if (err) {
+      console.error(err)
+      process.exit(1)
+    }
+    console.log('All urls have been checked')
+  }
+)
+```
