@@ -1,5 +1,9 @@
 # Nodejs 디자인 패턴 바이블 독서 정리
 
+- 참고 URL
+  - [Git Repo](https://github.com/PacktPublishing/Node.js-Design-Patterns-Third-Edition)
+  - [Solutions](https://github.com/PacktPublishing/Node.js-Design-Patterns-Third-Edition/wiki/Node.js-Design-Patterns-Third-Edition---Exercise-Solutions)
+
 ## Chapter 01. Node.js 플랫폼
 
 - 주요개념
@@ -1677,3 +1681,280 @@ pipeline(
   }
 )
 ```
+
+### 6-4 파이핑(piping) 패턴
+
+- 실제 배관처럼, 스트림도 서로 연결 할 수 있음.
+  - 두개의 스트림을 병합하거나,
+  - 한 스트림의 흐름을 둘 이상으로 분할하거나,
+  - 조건에 따라 흐름을 리다이렉션 할 수 있음.
+
+6-4-1 스트림 결합
+
+- 결합된 스트림의 조합을 하나의 모듈로 사용 할 수 있음
+  - 결합된 스트림에 쓰고자 할 때엔 가장 첫 번째 스트림에 쓰기
+  - 결합된 스트림에서 읽고자 할 때엔 가장 마지막 스트림에서 읽기
+- 보다 중요한 특징은, 결합된 경우에 내부에서 발생하는 모든 오류를 전파한다는 것임.
+- 기존 방법에서는 아래와 같은 몇 가지 문제가 있었음
+  - pipe() 사용 시: 매 스트림마다 리스너를 명시적으로 연결해야 함.
+  - pipeline() 사용 시: 마지막 스트림만 반환함.
+  - 즉, 두 가지 모두 Readable 스트림만 얻을 수 있음.
+
+    ```javascript
+    import { createReadStream, createWriteStream } from 'fs';
+    import { Transform, pipeline } from 'stream';
+    import { string as assert } from 'assert';
+
+    const streamA = createReadStream('package.json');
+    const streamB = new Transform({
+      transform(chunk, enc, done) {
+        this.push(chunk.toString().toUpperCase());
+        done()
+      }
+    })
+    const streamC = createWriteStream('package-uppercase.json')
+
+    const pipelineReturn = pipeline(streamA, streamB, streamC, (err) => {
+      assert.ifError(err);
+      console.log('Pipeline succeeded');
+    })
+    assert.strictEqual(streamC, pipelineReturn) // true
+
+    const pipeReturn = streamA.pipe(streamB).pipe(streamC)
+    assert.strictEqual(streamC, pipeReturn) // true
+    ```
+
+    - '결합된 스트림'의 두 가지 장점
+      - 내부 파이프라인의 구현을 숨겨서 블랙박스로 재배포 가능
+      - 파이프라인의 각 스트림에 error 리스너를 연결할 필요 없이, 결합된 스트림 자체에 하나만 연결하면 되기에 관리가 단순화됨.
+
+- 결합된 스트림의 구현
+  - 데이터를 압축하고 암호화 / 데이터를 복호화하고 압축 해제하는 코드 예제
+
+  ```javascript
+  // combined-stream.js
+  import { createGzip, createGunzip } from 'zlib';
+  import {
+    createCipheriv,
+    createDecipheriv,
+    scryptSync,
+  } from 'crypto';
+  import pumpify from 'pumpify';
+  function createKey(password) {
+    return scryptSync(password, 'salt', 24);
+  }
+
+  export function createCompressAndEncrypt(password, iv) {
+    const key = createKey(password);
+    const combinedStream = pumpify(
+      createGzip(),
+      createCipheriv('aes192', key, iv)
+    )
+    combinedStream.iv = iv;
+
+    return combinedStream;
+  }
+
+  export function createDecryptAndDecompress(password, iv) {
+    const key = createKey(password);
+    return pumpify(
+      createDecipheriv('aes192', key, iv),
+      createGunzip()
+    )
+  }
+  ```
+
+  ```javascript
+  // archive.js
+  import { createReadStream, createWriteStream } from 'fs';
+  import { pipeline } from 'stream';
+  import { randomBytes } from 'crypto';
+  import { createCompressAndEncrypt } from './combined-stream.js';
+
+  const [,, password, filename] = process.argv;
+  const iv = randomBytes(16);
+  const destination = `${source}.gz.enc`;
+
+  pipeline(
+    createReadStream(source),
+    createCompressAndEncrypt(password, iv),
+
+    createWriteStream(destination),
+    (err) => {
+      if (err) {
+        console.error(err);
+        process.exit(1);
+      }
+      console.log(`${destination} created with iv: ${iv.toString('hex')}`);
+    }
+  )
+  ```
+
+  - 여러 단계를 거치지만, 결합된 단일 스트림으로 처리됨.
+  - 사용자는 절차에 대해 알 필요가 없음.
+
+6-4-2 스트림 분기
+
+- 스트림을 분기하는 것은 단일 Readable 스트림을 두 개 이상의 Writable 스트림으로 파이핑하는것임.
+  - 동일한 데이터에 서로 다른 변환을 수행하거나,
+  - 데이터를 분할하는 경우에도 사용 할 수 있음.
+
+```javascript
+import { createReadStream, createWriteStream } from 'fs';
+import { createHash } from 'crypto';
+
+const filename = process.argv[2];
+const sha1Stream = createHash('sha1');.setEncoding('hex');
+const md5Stream = createHash('md5').setEncoding('hex');
+const inputStream = createReadStream(filename);
+
+inputStream
+  .pipe(sha1Stream)
+  .pipe(createWriteStream(`{filename}.sha1`));
+
+inputStream
+  .pipe(md5Stream)
+  .pipe(createWriteStream(`{filename}.md5`));
+```
+
+- 주의사항
+  - pipe()를 호출 할 때, { end: false } 옵션을 지정하지 않으면 두 스트림은 inputStream이 종료될 때 자동으로 함께 종료됨.
+  - 분기된 스트림은 동일한 chunk를 수신하므로, 모든 스트림에 영향을 미침. 따라서 데이터에 대한 부작용을 주의해야 함. - 어떤 부작용이 있을지?
+  - 배압이 즉시 발생함. inputStream은 매우 빠르게 생성되나, 분기된 스트림은 처리속도가 상대적으로 느림.
+    - 특히 분기된 스트림 중 하나가 지연된다면 모든 분기된 스트림이 지연되며,
+    - 하나가 무기한 차단되면 모든 스트림이 차단됨.
+  - 스트림 진행 중에 다른 분기가 추가되면, 해당 분기는 파이프된 이후의 chunk만을 수신함.
+- 이러한 경우, PassThrough 스트림을 플레이스홀더로 사용하여 데이터를 미리 수집 할 수 있고, 이러한 데이터를 통해 손실 위험 없이 나중에 읽을 수도 있음.
+- 이를 통해 배압을 조절할 수도 있음.
+
+6-4-3 스트림 병합
+
+- 다수의 Readable을 하나의 Writable로 결합하는 것.
+- 다만, 다수의 Readable 중 하나가 { end: true } 옵션을 지정하면, 해당 스트림이 종료될 때 모든 스트림이 함께 종료되는 문제가 발생함.
+- 따라서 { end: false } 옵션을 사용하고 별도의 종료 조건을 지정해야 함.
+- 텍스트 병합 예제
+
+  ```javascript
+  import { createReadStream, createWriteStream } from 'fs';
+  import split from 'split';
+
+  const dest = process.argv[2];
+  const source = process.argv.slice(3)
+
+  const destStream = createWriteStream(dest);
+
+  let endCount = 0;
+  for (const source of sources) {
+    const sourceStream = createReadStream(source, { highWaterMark: 16 });
+    // 종료된 스트림 수 카운트
+    sourceStream.on('end', () => {
+      // 종료조건
+      if (++endCount === sources.length) {
+        destStream.end();
+        console.log(`${dest} created`);
+      }
+    })
+    sourceStream
+      .pipe(split((line) => line + '\n'))
+      .pipe(destStream, { end: false });
+  }
+  ```
+
+6-4-4 멀티플렉싱 및 디멀티플렉싱
+
+- 병합 스트림 중 일부는, 스트림을 결합하는것이 아니라, 공유 채널을 통해 전달만 하는 경우가 있음.
+  - 여기서 스트림을 공유 채널로 결합하는 작업을 멀티플렉싱(multiplexing; mux)이라 함.
+  - 반대로, 공유 채널에서 스트림을 분리하는 작업을 디멀티플렉싱(demultiplexing; demux)이라 함.
+- 원격 로거(stdout, stderr)
+  - 공유 매체는 TCP 연결
+  - 다중화 채널은 자식 프로세스의 stdout 및 stderr
+  - 패킷 스위칭(packet switching) 사용
+  - 클라이언트측 코드
+
+    ```javascript
+    // client.js
+    import { fork } from 'child_process';
+    import { connect } from 'net';
+
+    function multiplexChannels(sources, destination) {
+      let openChannels = sources.length;
+      for (let i = 0; i < sources.length; i++) {
+        sources[i]
+          .on('readable', function () {
+            let chunk;
+            while ((chunk = this.read()) !== null) {
+              const outBuff = Buffer.alloc(1 + 4 + chunk.length);
+              outBuff.writeInt8(i, 0);
+              outBuff.writeUInt32BE(chunk.length, 1);
+              chunk.copy(outBuff, 5);
+              console.log(`Sending packet to channel: ${i}`);
+              destination.write(outBuff);
+            }
+          })
+          .on('end', () => {
+            if (--openChannels === 0) {
+              destination.end();
+            }
+          })
+      }
+    }
+
+    const socket = connect(3000, () => {
+      const child = fork(
+        process.argv[2],
+        process.argv.slice(3),
+        { silent: true },
+      );
+      multiplexChannels([child.stdout, child.stderr], socket);
+    });
+    ```
+
+  - 서버측 코드
+
+    ```javascript
+    import { createWriteStream } from 'fs';
+    import { createServer } from 'net';
+
+    function demultiplexChannel(source, destinations) {
+      let currentChannel = null;
+      let currentLength = null;
+
+      source
+        .on('readable', () => {
+          let chunk;
+          if (currentChannel === null) {
+            chunk = source.read(1);
+            currentChannel = chunk && chunk.readUInt8(0);
+          }
+
+          if (currentLength === null) {
+            chunk = source.read(4);
+            currentLength = chunk && chunk.readUInt32BE(0);
+            if (currentLength === null) {
+              return null;
+            }
+          }
+
+          chunk = source.read(currentLength);
+          if (chunk === null) {
+            return null;
+          }
+
+          console.log(`Received packet from: ${currentChannel}`);
+          destinations[currentChannel].write(chunk);
+          currentChannel = null;
+          currentLength = null;
+        })
+        .on('end', () => {
+          destinations.forEach((destination) => destination.end());
+          console.log('Source channel closed');
+        })
+    }
+
+    const server = createServer((socket) => {
+      const stdoutStream = createWriteStream('stdout.log');
+      const stderrStream = createWriteStream('stderr.log');
+      demultiplexChannel(socket, [stdoutStream, stderrStream]);
+    })
+    server.listen(3000, () => console.log('Server started'));
+    ```
