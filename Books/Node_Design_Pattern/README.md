@@ -1958,3 +1958,420 @@ inputStream
     })
     server.listen(3000, () => console.log('Server started'));
     ```
+
+## Chapter 07. 생성자 디자인 패턴
+
+- 디자인 패턴: 특정 문제를 해결하기 위해 사용되는 일반적인 설계 패턴
+- Javascript에서의 객체지향 디자인 패턴은 기존 강타입 언어에서의 디자인 패턴과는 다른 특징을 가짐.
+- 유연한 특징을 가졌기에, 디자인 패턴 구현을 위한 지나치게 많은 방법이 존재함.
+- 실제로 클래스나 추상 인터페이스를 가지고있지 않기에, 구현이 불가능한 경우도 있음
+
+### 7-1 팩토리
+
+- 특정 구현으로부터 객체의 생성을 분리 할 수 있음.
+- 클래스보다 훨씬 작은 면을 노출함. 따라서 사용자에게 더 적은 정보를 제공하여 이해하기 쉬움.
+- 클로저를 활용해 캡슐화를 강제할 수 있음.
+
+7-1-1 객체 생성과 구현의 분리
+
+- 팩토리 패턴은 new 연산자의 사용보다 더 편리하고 유연한 객체 생성 방법을 제공함.
+- 객체의 생성과 객체의 구현을 분리 할 수 있음.
+- 특정 조건에 따른 객체 생성을 유연하게 처리할 수 있음.
+
+```javascript
+// factory
+function createImage(name) {
+  return new Image(name);
+}
+const image = createImage('photo.jpg');
+
+// new
+const image = new Image('photo.jpg');
+
+// factory - modified
+function createImage(name) {
+  if (name.match(/\.jpe?g$/)) {
+    return new JpegImage(name);
+  } else if (name.match(/\.gif$/)) {
+    return new GifImage(name);
+  } else if (name.match(/\.png$/)) {
+    return new PngImage(name);
+  } else {
+    throw new Exception('Unsupported format');
+  }
+}
+const image = createImage('photo.jpg');
+```
+
+7-1-2 캡슐화를 강제할 수 있는 메커니즘
+
+- 팩토리 패턴은 클로저를 활용해 캡슐화를 강제할 수 있음.
+
+```javascript
+function createPerson(name) {
+  const privateProperties = {};
+
+  const person = {
+    setName(name) {
+      if (!name) {
+        throw new Error('A person must have a name');
+      }
+      privateProperties.name = name;
+    },
+    getName() {
+      return privateProperties.name;
+    }
+  }
+  person.setName(name);
+  return person;
+}
+```
+
+7-1-3 간단한 코드 프로파일러 만들기
+
+- 단순한 코드 프로파일러를 만들어서 사용 시, 프로덕션 환경에서는 불필요할 정도로 많은 로그를 생성함.
+- 아래의 방법으로 간단하게 해결 가능함.
+
+```javascript
+// profiler.js;
+class Profiler {
+  constructor (label) {
+    this.label = label
+    this.lastTime = null
+  }
+
+  start() {
+    this.lastTime = process.hrtime()
+  }
+
+  end() {
+    const diff = process.hrtime(this.lastTime)
+    console.log(`Timer "${this.label}" took ${diff[0]} seconds and ${diff[1]} nanoseconds`)
+  }
+}
+```
+
+```javascript
+// profilerFactory.js
+const nodeProfiler = {
+  start() {},
+  end() {},
+}
+
+export function createProfiler(label) {
+  if (process.env.NODE_ENV === 'production') {
+    return nodeProfiler
+  } else {
+    return new Profiler(label)
+  }
+}
+```
+
+7-1-4 실전에서
+
+- Knex 패키지의 QueryBuilder 클래스는 팩토리 패턴을 사용하여, 다양한 데이터베이스에 대해 동일한 인터페이스를 제공함.
+
+### 7-2 빌더
+
+- 복잡한 객체를 생성 할 때, 이해하기 쉽도록 단계별로 객체를 생성 할 수 있음.
+- 아래와 같이 매개변수가 많은 객체를 생성하는 경우 유용함.
+
+```javascript
+class Boat {
+  constructor(hasMotor, motorCount, motorBrand, motorModel, hasSails, sailsCount, sailsMaterial, sailsColor, hullCOlor, hasCabin) {
+    // ...
+  }
+}
+
+const myBoat = new Boat(true, 2, 'Honda', 'BF100', false, 0, null, null, 'blue', true)
+```
+
+- 이러한 경우, 가장 먼저 사용 할 수 있는 방법은 모든 인자를 하나의 객체 리터럴로 전달하는 것임.
+
+```javascript
+class Boat{
+  constructor(allParameters) {
+    // ...
+  }
+}
+
+const myBoat = new Boat({
+  hasMotor: true,
+  motorCount: 2,
+  motorBrand: 'Honda',
+  motorModel: 'BF100',
+  hasSails: false,
+  sailsCount: 0,
+  sailsMaterial: null,
+  sailsColor: null,
+  hullColor: 'blue',
+  hasCabin: true,
+})
+```
+
+- 그러나 이러한 방법은 객체 리터럴을 작성하기 위해 클래스에 대한 문서 혹은 클래스 내부 코드를 읽어야 함.
+
+```javascript
+class BoatBuilder {
+  withMotors (count, brand, model) {
+    this.hasMotor = true
+    this.motorCount = count
+    this.motorBrand = brand
+    this.motorModel = model
+    return this
+  }
+
+  withSails (count, material, color) {
+    this.hasSails = true
+    this.sailsCount = count
+    this.sailsMaterial = material
+    this.sailsColor = color
+    return this
+  }
+
+  withHull (color) {
+    this.hullColor = color
+    return this
+  }
+
+  withCabin () {
+    this.hasCabin = true
+    return this
+  }
+
+  build () {
+    return new Boat({
+      hasMotor: this.hasMotor,
+      motorCount: this.motorCount,
+      motorBrand: this.motorBrand,
+      motorModel: this.motorModel,
+      hasSails: this.hasSails,
+      sailsCount: this.sailsCount,
+      sailsMaterial: this.sailsMaterial,
+      sailsColor: this.sailsColor,
+      hullColor: this.hullColor,
+      hasCabin: this.hasCabin,
+    })
+  }
+}
+
+const myBoat = new BoatBuilder()
+  .withMotors(2, 'Honda', 'BF100')
+  .withSails(0, null, null)
+  .withCabin()
+  .withHull('blue')
+  .build()
+```
+
+- 빌더 패턴의 목적은 생성자를 읽기 쉽고, 단순한 여러 단계로 나누는 것
+- 매개변수들 간의 관계가 있을 시, 이를 한번에 여러 매개변수를 설정하는 메서드로 구현할 수 있음.
+- setter 메서드를 통해 입력값을 검증하고, 사용자가 알 필요 없는 내부 상태를 캡슐화 할 수 있음.
+- 필요시 매개변수에 대한 형변환, 정규화 혹은 기타 변환을 수행할 수 있음.
+- build()를 이용한 생성 대신, invoke()를 사용하는 함수형 빌더 패턴을 사용할 수도 있음.
+
+7-2-1 URL 객체 빌더 구현하기
+
+- 표준 URL의 모든 구성요소를 검증하고, 문자열 형태로 변환하는 URL 클래스 구현
+- 가장 기본적인 구현
+
+  ```javascript
+  export class Url {
+    constructor(protocol, username, password, hostname, port, pathname, search, hash) {
+      this.protocol = protocol
+      this.username = username
+      this.password = password
+      this.hostname = hostname
+      this.port = port
+      this.pathname = pathname
+      this.search = search
+      this.hash = hash
+
+      this.validate()
+    }
+
+    validate() {
+      if (!this.protocol || !this.hostname){
+        throw new Error('Must specify at least a protocol and a hostname')
+      }
+    }
+
+    toString() {
+      let url = '';
+      url += this.protocol + '://';
+      if (this.username && this.password) {
+        url += this.username + ':' + this.password + '@';
+      }
+      url += this.hostname;
+      if (this.port) {
+        url += ':' + this.port;
+      }
+      if (this.pathname) {
+        url += this.pathname;
+      }
+      if (this.search) {
+        url += '?' + this.search;
+      }
+      if (this.hash) {
+        url += '#' + this.hash;
+      }
+      return url;
+    }
+  }
+
+  // use
+  const url = new Url('http', 'user', 'pass', 'localhost', '8080', '/some/path', 'key=value', 'key2=value2');
+  ```
+
+- 빌더 패턴으로 구현
+
+  ```javascript
+  export class UrlBuilder {
+    setProtocol(protocol) {
+      this.protocol = protocol
+      return this
+    }
+
+    setAuthentication(username, password) {
+      this.username = username
+      this.password = password
+      return this
+    }
+
+    setHostname(hostname) {
+      this.hostname = hostname
+      return this
+    }
+
+    setPort(port) {
+      this.port = port
+      return this
+    }
+
+    setPathname(pathname) {
+      this.pathname = pathname
+      return this
+    }
+
+    setSearch(search) {
+      this.search = search
+      return this
+    }
+
+    setHash(hash) {
+      this.hash = hash
+      return this
+    }
+
+    build() {
+      return new Url(
+        this.protocol,
+        this.username,
+        this.password,
+        this.hostname,
+        this.port,
+        this.pathname,
+        this.search,
+        this.hash
+      )
+    }
+  }
+
+  // use
+  import { UrlBuilder } from './url-builder.js';
+
+  const url = new UrlBuilder()
+    .setProtocol('http')
+    .setAuthentication('user', 'pass')
+    .setHostname('localhost')
+    .build()
+
+  console.log(url.toString());
+  ```
+
+7-2-2 실전에서
+
+- superagent 패키지의 Request 클래스는 빌더 패턴을 사용하여, HTTP 요청을 생성함.
+
+```javascript
+superagent
+  .post('https://example.com/api/person')
+  .send({ name: 'John Doe', role: 'user' })
+  .set('accept', 'json')
+  .then((response) => {
+    console.log(response.body)
+  })
+```
+
+### 7-3 공개 생성자
+
+- 공개 생성자 패턴은 GoF의 패턴이 아닌, Node.js의 커뮤니티에서 유래한 패턴임.
+- 객체가 생성되는 순간에만 객체의 일부를 노출하고, 이후에는 노출하지 않음.
+  - 생성시에만 수정 할 수 있는 객체의 생성
+  - 생성시에만 사용자 정의 동작을 정의 할 수 있는 객체 생성
+  - 생성시 한번만 초기화 할 수 있는 객체 생성
+
+```javascript
+//                  (생성자)            (실행자)   (공개 멤버 변수)
+const object = new SomeClass(function executor(revealedMembers) {
+  // ...
+})
+```
+
+7-3-1 변경 불가능한(Immutable) 버퍼 만들기
+
+- 변경 불가능(Immutable) 객체의 장점
+  - 객체의 상태를 변경할 수 없기에, 객체의 상태를 추적하기 쉬움.
+  - 객체의 변경을 감지하기 위해 완전 항등 연산자(===)만 사용하면 됨.
+
+```javascript
+// 
+const MODIFIER_NAMES = ['swap', 'write', 'fill'];
+
+export class ImmutableBuffer {
+  constructor (size, executor) {
+    const buffer = Buffer.alloc(size);
+    const modifiers = {};
+    for (const prop in buffer) {
+      if (typeof buffer[prop] !== 'function') {
+        continue;
+      }
+      if (MODIFIER_NAMES.some(m => prop.startsWith(m))) {
+        modifiers[prop] = buffer[prop].bind(buffer);
+      } else {
+        this[prop] = buffer[prop].bind(buffer);
+      }
+    }
+    executor(modifiers);
+  }
+}
+
+// use
+import { ImmutableBuffer } from './immutable-buffer.js';
+
+const hello = 'Hello!';
+const immutable = new ImmutableBuffer(hello.length, ({ write }) => {
+  write(hello);
+});
+
+console.log(String.fromCharCode(immutable.readInt8(0)));
+
+// 다음과 같은 에러 발생
+// "TypeError: immutable.write is not a function"
+
+// immutable.write('Hello?');
+```
+
+- 여기에서 ImmutableBuffer는 buffer와 사용자 사이의 프록시 역할을 함.
+
+7-3-2 실전에서
+
+- 공개 생성자 패턴은 완벽한 캡슐화를 제공해야 하는 경우에 사용됨
+- 대표적인 예시는 Promise 클래스임.
+
+```javascript
+return new Promise((resolve, reject) => {
+  // ...
+})
+```
+
+- Promise 클래스는 일단 생성되면 상태를 변경할 수 없음.
