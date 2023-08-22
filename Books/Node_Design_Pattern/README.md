@@ -2375,3 +2375,185 @@ return new Promise((resolve, reject) => {
 ```
 
 - Promise 클래스는 일단 생성되면 상태를 변경할 수 없음.
+
+### 7-4 싱글톤
+
+- 클래스의 인스턴스가 단 하나만 존재하도록 보장하는 패턴.
+- 모든 접근을 중앙 집중화 하는 패턴.
+- 사용목적
+  - 상태 정보의 공유
+  - 리소스 사용의 최적화
+  - 리소스에 대한 접근 동기화
+
+```javascript
+// Database.js
+export class Database {
+  constructor (dbName, connectionDetails) {
+    // ...
+  }
+}
+```
+
+```javascript
+import { Database } from './Database.js';
+
+export const dbInstance = new Database('my-app-db', {
+  url: 'localhost:5432',
+  username: 'user',
+  password: 'password',
+})
+```
+
+- Node.js에서는 기본적으로 모듈을 캐시하므로, 모듈을 여러 번 임포트해도 싱글톤이 보장됨.
+- 다만, 모듈은 전체 경로를 키로 캐시되므로, 이는 정확한 고유성을 보장하지는 못함.
+
+### 7-5 모듈 와이어링(Wiring)
+
+- 모든 어플리케이션은 여러 컴포넌트를 연결(wiring) 한 결과임.
+- 모듈 와이어링은 어플리케이션의 컴포넌트를 연결하는 방법을 설명함.
+- 설명을 위해 blog.js와 db.js를 예로 사용
+
+7-5-1 싱글톤 종속성
+
+- 모듈을 연결하는 가장 간단한 방법은 Node.js의 모듈 시스템을 이용하는 것임.
+
+```javascript
+// db.js
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+import sqlite3 from 'sqlite3';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+export const db = new sqlite3.Database(join(__dirname, 'data.sqlite'));
+```
+
+```javascript
+// blog.js
+import { promisify } from 'util';
+import { db } from './db.js';
+
+const dbRun = promisify(db.run.bind(db));
+const dbAll = promisify(db.all.bind(db));
+
+export class Blog {
+  initialize() {
+    const initQuery = `CREATE TABLE IF NOT EXISTS posts (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    );`;
+
+    return dbRun(initQuery);
+  }
+
+  createPost(id, title, content, createdAt) {
+    return dbRun(`INSERT INTO posts VALUES(?, ?, ?, ?)`, id, title, content, createdAt);
+  }
+
+  getAllPosts() {
+    return dbAll(`SELECT * FROM posts ORDER BY created_at DESC`);
+  }
+}
+```
+
+```javascript
+// index.js
+import { Blog } from './blog.js';
+
+async function main() {
+  const blog = new Blog();
+  await blog.initialize();
+  const posts = await blog.getAllPosts();
+  if (posts.length === 0) {
+    console.log('No post available. Run `node import-posts.js` to load some sample posts');
+  }
+  for (const post of posts) {
+    console.log(post.title);
+    console.log('-'.repeat(post.title.length));
+    console.log(`Published on ${new Date(post.created_at).toISOString()}`);
+    console.log(post.content);
+  }
+}
+
+main().catch(console.log);
+```
+
+- 위의 예제를 통해, 일관된 접근을 위해 db를 싱글톤으로 만들어두는 것이 꽤나 괜찮다는 것을 알 수 있음.
+- 그러나 테스트를 위해 목을 사용해야 하거나, DB를 변경해야 할 경우 등에 대해 대응 할 수 없음.
+
+7-5-2 종속성 주입(DI; Dependency Injection)
+
+- 컴포넌트의 종속성이 injector라는 외부 요소를 통해 공급되는 패턴
+
+```javascript
+// blog.js - refactor
+import { promisify } from 'util';
+
+export class Blog {
+  constructor(db) {
+    this.db = db
+    this.dbRun = promisify(db.run.bind(db));
+    this.dbAll = promisify(db.all.bind(db));
+  }
+
+  initialize() {
+    const initQuery = `CREATE TABLE IF NOT EXISTS posts (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    );`;
+
+    return this.dbRun(initQuery);
+  }
+
+  createPost(id, title, content, createdAt) {
+    return this.dbRun(`INSERT INTO posts VALUES(?, ?, ?, ?)`, id, title, content, createdAt);
+  }
+
+  getAllPosts() {
+    return this.dbAll(`SELECT * FROM posts ORDER BY created_at DESC`);
+  }
+}
+```
+
+- 더이상 db.js를 임포트하지 않음.
+- 대신 생성자에서 db라는 인자를 주입받음.
+
+```javascript
+// db.js
+import sqlite3 from 'sqlite3';
+
+export function createDb(dbFile) {
+  return new sqlite3.Database(dbFile);
+}
+```
+
+```javascript
+// index.js
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+import { Blog } from './blog.js';
+import { createDb } from './db.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+async function main() {
+  const db = createDb(join(__dirname, 'data.sqlite'));
+  const blog = new Blog(db);
+  await blog.initialize();
+  const posts = await blog.getAllPosts();
+  if (posts.length === 0) {
+    console.log('No post available. Run `node import-posts.js` to load some sample posts');
+  }
+  for (const post of posts) {
+    console.log(post.title);
+    console.log('-'.repeat(post.title.length));
+    console.log(`Published on ${new Date(post.created_at).toISOString()}`);
+    console.log(post.content);
+  }
+}
+
+main().catch(console.log);
+```
