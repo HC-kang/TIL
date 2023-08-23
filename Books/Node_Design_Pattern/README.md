@@ -2557,3 +2557,247 @@ async function main() {
 
 main().catch(console.log);
 ```
+
+## Chapter 08. 구조적 설계 패턴
+
+- 대표적인 구조적 디자인 패턴
+  - 프록시: 다른 객체에 대한 액세스를 제어 할 수 있는 패턴
+  - 데코레이터: 객체의 동작을 동적으로 확장 할 수 있는 패턴
+  - 어댑터: 다른 인터페이스를 통해 객체의 기능에 액세스 할 수 있는 패턴
+- 반응형 프로그래밍(Reactive Programming; RP): 데이터의 흐름과 변경사항의 전파에 중점을 둔 선언적 프로그래밍 패러다임.
+
+### 8-1 프록시
+
+- 프록시란, Subject라는 특정 객체에 대한 액세스를 제어하는 객체임.
+- 프록시는 Subject와 동일한(투명한) 인터페이스를 제공함.
+- 이를 통해 특정 기능을 변경하는 것이 가능함.
+- 다른 이름으로 서로게이트(surrogate)라고도 함.
+- 프록시가 유용하게 사용되는 경우
+  - 데이터 검증: 전달되는 데이터가 Subject에 도달하기 전에 유효성을 검사할 수 있음.
+  - 보안: 클라이언트가 권한이 있는지 확인하고, 권한이 없는 경우에는 Subject에 대한 액세스를 거부할 수 있음.
+  - 캐싱: Subject에 대한 요청을 캐싱하여, 동일한 요청에 대한 응답을 캐시에서 반환할 수 있음.
+  - 느린 초기화: Subject가 초기화되는데 시간이 걸리는 경우, 프록시는 초기화를 꼭 필요할 떄 까지 지연시킬 수 있음.
+  - 기록: Subject에 대한 요청을 기록하여, 통계를 수집하거나, 디버깅을 수행할 수 있음.
+  - 원격 객체: Subject가 원격에 존재하는 경우, 프록시는 원격 객체에 대한 액세스를 로컬에서 제공할 수 있음.
+
+8-1-1 프록시 구현 기술
+
+- 프록시를 작성 할 때, 모든 함수를 가로채거나 일부만 가로채도록 구현 할 수 있음.
+- 설명을 위한 예제로, 아래의 StackCalculator를 사용함.
+
+  ```javascript
+  class StackCalculator {
+    constructor() {
+      this.stack = [];
+    }
+
+    putValue(value) {
+      this.stack.push(value);
+    }
+
+    getValue() {
+      return this.stack.pop();
+    }
+
+    peekValue() {
+      return this.stack[this.stack.length - 1];
+    }
+
+    clear() {
+      this.stack = [];
+    }
+
+    divide() {
+      const divisor = this.getValue();
+      const dividend = this.getValue();
+      const result = dividend / divisor;
+      this.putValue(result);
+      return result;
+    }
+
+    multiply() {
+      const multiplicand = this.getValue();
+      const multiplier = this.getValue();
+      const result = multiplier * multiplicand;
+      this.putValue(result);
+      return result;
+    }
+  }
+
+  // use
+  const calculator = new StackCalculator();
+  calculator.putValue(3);
+  calculator.putValue(2);
+  console.log(calculator.multiply()); // 6
+  calculator.putValue(2);
+  console.log(calculator.multiply()); // 12
+  ```
+
+- 객체 컴포지션
+  - 저장되는 상태는 Subject에 유지되고, 필요시 프록시에서 이를 사용함.
+
+  ```javascript
+  class SafeCalculator {
+    constructor(calculator) {
+      this.calculator = calculator;
+    }
+
+    divide() {
+      const divisor = this.calculator.getValue();
+      if (divisor === 0) {
+        throw Error('Division by 0');
+      }
+      return this.calculator.divide();
+    }
+
+    putValue(value) {
+      return this.calculator.putValue(value);
+    }
+
+    getValue() {
+      return this.calculator.getValue();
+    }
+
+    peekValue() {
+      return this.calculator.peekValue();
+    }
+
+    clear() {
+      return this.calculator.clear();
+    }
+
+    multiply() {
+      return this.calculator.multiply();
+    }
+
+    // use
+    const calculator = new StackCalculator();
+    const safeCalculator = new SafeCalculator(calculator);
+
+    calculator.putValue(3);
+    calculator.putValue(2);
+    console.log(calculator.multiply()); // 6
+
+    safeCalculator.putValue(2);
+    console.log(safeCalculator.multiply()); // 12
+
+    calculator.putValue(0);
+    console.log(calculator.divide()); // Infinity
+
+    safeCalculator.clear();
+    safeCalculator.putValue(4);
+    safeCalculator.putValue(0);
+    console.log(saferCalculator.divide()); // Error: Division by 0
+  }
+  ```
+
+- 객체 리터럴과 팩토리함수 활용
+  - 클래스 기반 구현보다 간단함.
+  - 프록시의 인터페이스를 명시적으로 정의해야 함.
+
+  ```javascript
+  function createSafeCalculator(calculator) {
+    return {
+      divide() {
+        const divisor = calculator.getValue();
+        if (divisor === 0) {
+          throw Error('Division by 0');
+        }
+        return calculator.divide();
+      },
+      putValue(value) {
+        return calculator.putValue(value);
+      },
+      getValue() {
+        return calculator.getValue();
+      },
+      peekValue() {
+        return calculator.peekValue();
+      },
+      clear() {
+        return calculator.clear();
+      },
+      multiply() {
+        return calculator.multiply();
+      },
+    }
+  }
+
+  const calculator = new StackCalculator();
+  const safeCalculator = createSafeCalculator(calculator);
+  ```
+
+- 객체 확장(Object augmentation), 몽키패치(Monkey patch)
+  - 대상 객체를 직접 변경하기에 위험함.
+  - private한 대상에만 사용하는 것이 좋음.
+
+  ```javascript
+  function patchToSafeCalculator(calculator) {
+    const divideOrig = calculator.divide;
+    calculator.divide = () => {
+      const divisor = calculator.getValue();
+      if (divisor === 0) {
+        throw Error('Division by 0');
+      }
+      return divideOrig.call(calculator);
+    }
+    return calculator;
+  }
+
+  const calculator = new StackCalculator();
+  const safeCalculator = patchToSafeCalculator(calculator);
+  ```
+
+- 내장 프록시 객체
+  - 프록시 객체는 대상과 핸들러를 인자로 받음.
+  - 핸들러는 대상에 대한 액세스를 가로채는 함수를 포함함.
+  - target[property] 를 통해, 모든 메서드와 속성에 대한 명시를 하지 않아도 됨.
+
+  ```javascript
+  // Basic
+  const proxy = new Proxy(target, handler);
+  ```
+
+  ```javascript
+  const safeCalculatorHandler = {
+    get: (target, property) => {
+      if (property === 'divide') {
+        return function () {
+          const divisor = target.peekValue();
+          if (divisor === 0) {
+            throw Error('Division by 0');
+          }
+          return target.divide();
+        }
+      }
+      return target[property];
+    }
+  }
+
+  const calculator = new StackCalculator();
+  const safeCalculator = new Proxy(calculator, safeCalculatorHandler);
+  ```
+
+  - 내장 프록시 객체의 특성
+
+    ```javascript
+    const evenNumbers = new Proxy([], {
+      get: (target, index) => index * 2,
+      has: (target, number) => number % 2 === 0,
+    })
+    ```
+
+    - 프록시 객체를 활용한 무한한 크기의 array(모든 짝수)
+    - 다만 Proxy 객체는 구 버전에서는 지원하지 않음 - 완전하게 트랜스파일이나 폴리필 될 수 없음
+
+- 프록시 기술의 비교
+  - 컴포지션
+    - 원래 동작을 변경하지 않고 프록시를 만들 수 있음.
+    - 그러나 단일 함수를 프록시하고자 하는 경우에도 모든 함수를 명시적으로 위임해야 함.
+  - 객체 확장
+    - 위험할 수 있으나, 위임과 관련된 불편함이 없음.
+    - Subject가 수정가능한 상황에서는 선호될 수 있음.
+    - 그러나 객체확장으로는 처리 할 수 없는 경우가 있음: Lazy initialization, Remote object 등
+  - 프록시 객체 활용
+    - 호출을 꼭 가로채야하는 경우에 사용.
+    - 다른 기술보다 더 많은 기능을 제공함.
