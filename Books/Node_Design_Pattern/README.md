@@ -2801,3 +2801,294 @@ main().catch(console.log);
   - 프록시 객체 활용
     - 호출을 꼭 가로채야하는 경우에 사용.
     - 다른 기술보다 더 많은 기능을 제공함.
+
+8-1-2 쓰기가 가능한 로깅 스트림 만들기
+
+- 실제 예제에 적용되는 프록시 패턴 예제
+
+```javascript
+// logging-writable.js
+export function createLoggingWriteable(writable) {
+  return new Proxy(writable, {
+    get (target, propKey, receiver) {
+      if (propKey === 'write') {
+        return function (...args) {
+          const [chunk] = args;
+          console.log('Writing', chunk);
+          return writable.write(...args);
+        }
+      }
+      return target[propKey];
+    }
+  })
+}
+
+// use
+import { createWriteStream } from 'fs';
+import { createLoggingWriteable } from './logging-writable.js';
+
+const writable = createWriteStream('test.txt');
+const writableProxy = createLoggingWriteable(writable);
+
+writableProxy.write('First chunk');
+writableProxy.write('Second chunk');
+writable.write('This is not logged');
+writableProxy.end();
+```
+
+8-1-3 프록시를 사용한 변경 옵저버
+
+- '변경 옵저버'는 '옵저버' 패턴과 유사하지만 다른 개념임. 당연하게도 옵저버가 더 넓은 개념.
+  - 변경 옵저버: 속성 변경을 감지하는 것이 중점
+  - 옵저버: 이벤트 전파를 위해 event emitter를 사용하는, 보다 일반적인 패턴
+
+```javascript
+export function createObservable(target, observer) {
+  const observable = new Proxy(target, {
+    set (obj, prop, value) {
+      if (value !== obj[prop]) {
+        const prev = obj[prop];
+        obj[prop] = value;
+        observer({ prop, prev, value });
+      }
+      return true;
+    }
+  })
+  return observable;
+}
+```
+
+```javascript
+// invoice.js
+import { createObservable } from './observable.js';
+
+function calculateTotal(invoice) {
+  return invoice.subtotal - invoice.discount + invoice.tax;
+}
+
+const invoice = {
+  subtotal: 100,
+  discount: 10,
+  tax: 20,
+};
+let total = calculateTotal(invoice);
+console.log(`Starting total: ${total}`);
+
+const obsInvoice = createObservable(
+  invoice,
+  ({ prop, prev, curr }) => {
+    total = calculateTotal(obsInvoice);
+    console.log(`TOTAL: ${total} (${prop} changed: ${prev} -> ${curr})`);
+  }
+)
+
+obsInvoice.subtotal = 200; // TOTAL: 210
+obsInvoice.discount = 20; // TOTAL: 200
+obsInvoice.discount = 20; // no alert
+obsInvoice.tax = 30; // TOTAL: 210
+
+console.log(`Final total: ${total}`); // 210
+```
+
+8-1-4 실전에서
+
+- LoopBack, Vue3, MobX 등에서 프록시 패턴을 사용함.
+
+### 8-2 데코레이터
+
+- 데코레이터란 기존 객체의 동작을 동적으로 증대시키는 것을 목적으로 하는 패턴.
+- 모든 객체에 적용되는 것이 아닌, 명시적으로 데코레이팅 된 객체에만 영향을 줌.
+  - 따라서 클래스의 상속과는 다름.
+- 프록시 패턴과 매우 유사하나, 의도하는 바가 다름.
+
+8-2-1 데코레이터 구현 기법
+
+- 컴포지션을 활용한 구현
+
+  ```javascript
+  class EnhancedCalculator {
+    constructor(calculator) {
+      this.calculator = calculator;
+    }
+
+    // new function
+    add() {
+      const addend2 = this.getValue();
+      const addend1 = this.getValue();
+      const result = addend1 + addend2;
+      this.putValue(result);
+      return result;
+    }
+
+    // updated function
+    divide() {
+      const divisor = this.calculator.peekValue()
+      if (divisor === 0) {
+        throw Error('Division by 0');
+      }
+      return this.calculator.divide();
+    }
+
+    // delegated functions
+    putValue(value) {
+      return this.calculator.putValue(value);
+    }
+
+    getValue() {
+      return this.calculator.getValue();
+    }
+
+    peekValue() {
+      return this.calculator.peekValue();
+    }
+
+    clear() {
+      return this.calculator.clear();
+    }
+
+    multiply() {
+      return this.calculator.multiply();
+    }
+
+    const calculator = new StackCalculator();
+    const enhancedCalculator = new EnhancedCalculator(calculator);
+
+    enhancedCalculator.putValue(4);
+    enhancedCalculator.putValue(3);
+    console.log(enhancedCalculator.add()); // 7
+    enhancedCalculator.putValue(2);
+    console.log(enhancedCalculator.multiply()); // 14
+  }
+  ```
+
+- 객체 확장
+
+  ```javascript
+  function patchCalculator(calculator) {
+    // new function
+    calculator.add = function () {
+      const addend2 = this.getValue();
+      const addend1 = this.getValue();
+      const result = addend1 + addend2;
+      calculator.putValue(result);
+      return result;
+    }
+
+    // updated function
+    const divideOrig = calculator.divide;
+    calculator.divide = function () {
+      const divisor = this.peekValue();
+      if (divisor === 0) {
+        throw Error('Division by 0');
+      }
+      return divideOrig.call(this);
+    }
+
+    return calculator;
+  }
+
+  const calculator = new StackCalculator();
+  const enhancedCalculator = patchCalculator(calculator);
+  ```
+
+  - calculator와 enhancedCalculator는 동일한 객체를 가리킴.
+
+- Proxy 객체를 이용한 데코레이팅
+
+  ```javascript
+  const enhancedCalculatorHandler = {
+    get (target, property) {
+      if (property === 'add') {
+        // new function
+        return function add() {
+          const addend2 = target.getValue();
+          const addend1 = target.getValue();
+          const result = addend1 + addend2;
+          target.putValue(result);
+          return result;
+        }
+      } else if (property === 'divide') {
+        // updated function
+        return function () {
+          const divisor = target.peekValue();
+          if (divisor === 0) {
+            throw Error('Division by 0');
+          }
+          return target.divide();
+        }
+      }
+
+      // delegated functions
+      return target[property];
+    }
+  }
+
+  const calculator = new StackCalculator();
+  const enhancedCalculator = new Proxy(calculator, enhancedCalculatorHandler);
+  ```
+
+8-2-2 LevelUP 데이터베이스 데코레이트
+
+- LevelUP은 Node.js에서 사용되는 키-값 데이터베이스임.
+- 최초 크롬에서 IndexedDB로 사용하기위하여 만들어진 LevelDB를 감싼 Node.js 래퍼
+- 최소주의와 확장성이 Node.js의 철학과 일치함.
+- 다방면에 걸쳐 발전함.
+- 간단한 플러그인 구현
+
+  ```javascript
+  export function levelSubscribe(db) {
+    db.subscribe = (pattern, listener) => {
+      db.on('put', (key, val) => {
+        const match = Object.keys(pattern).every(k => (pattern[k] === val[k]));
+        if (match) {
+          listener(key, val);
+        }
+      }
+      )
+    }
+    return db;
+  }
+  ```
+
+  ```javascript
+  import { dirname, join } from 'path';
+  import { fileURLToPath } from 'url';
+  import level from 'level';
+  import { levelSubscribe } from './level-subscribe.js';
+
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+
+  const dbPath = join(__dirname, 'db');
+  const db = level(dbPath, { valueEncoding: 'json' });
+  levelSubscribe(db);
+
+  db.subscribe(
+    { doctype: 'tweet', language: 'en' },
+    (k, val) => console.log(val),
+  )
+  db.put('1', {
+    doctype: 'tweet',
+    text: 'Hi',
+    language: 'en',
+  })
+  db.put('2', {
+    doctype: 'company',
+    name: 'ACME',
+  })
+  ```
+
+8-2-3 실전에서
+
+- 생략
+
+### 8-3 프록시와 데코레이터 사이의 경계
+
+- 프록시와 데코레이터는 매우 유사한 패턴임.
+- 때떄로 서로 바꿔서도 사용 가능
+- 프록시
+  - 고정적이거나 가상의 객체에 접근을 제어하는데 사용
+  - 원래의 인터페이스를 변경하지 않음.
+  - 원래 객체를 참조하는 다른 객체들도 안전함.
+- 데코레이터
+  - 새로운 동작을 기존의 객체에 추가
+  - 일종의 래퍼로, 기능을 추가할 수 있음.
