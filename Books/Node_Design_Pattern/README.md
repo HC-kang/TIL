@@ -3092,3 +3092,99 @@ console.log(`Final total: ${total}`); // 210
 - 데코레이터
   - 새로운 동작을 기존의 객체에 추가
   - 일종의 래퍼로, 기능을 추가할 수 있음.
+
+### 8-4 어댑터
+
+- 객체를 다른 인터페이스로 활용하기 위해 사용하는 패턴
+- 가장 대표적인 구현방법은 컴포지션을 활용하는 것
+
+8-4-1 파일시스템 API로 LevelUP 사용하기
+
+- 어댑터를 활용해, LevelUP API를 기본 fs모듈과 호환되도록 하는 예제
+
+```javascript
+import { resolve } from 'path';
+
+export function createFSAdapter(db) {
+  return ({
+    readFile(filename, options, callback) {
+      if (typeof options === 'function') {
+        callback = options;
+        options = {};
+      }
+
+      db.get(resolve(filename), {
+        valueEncoding: options.encoding,
+      }, 
+      (err, value) => {
+        if (err) {
+          if (err.type === 'NotFoundError') {
+            err = new Error(`ENOENT, open "${filename}"`);
+            err.code = 'ENOENT';
+            err.errno = 34;
+            err.path = filename;
+          }
+          return callback && filename;
+        }
+        callback && callback(null, value);
+      })
+    },
+    writeFile(filename, contents, options, callback) {
+      if (typeof options === 'function') {
+        callback = options;
+        options = {};
+      } else if (typeof options === 'string') {
+        options = { encoding: options };
+      }
+
+      db.put(resolve(filename), contents, {
+        valueEncoding: options.encoding,
+      }, callback);
+    }
+  })
+}
+```
+
+```javascript
+// test example
+import fs from 'fs';
+
+fs.writeFile('file.txt', 'Hello!', () => {
+  fs.readFile('file.txt', { encoding: 'utf8' }, (err, contents) => {
+    if (err) {
+      return console.error(err);
+    }
+    console.log(res);
+  })
+})
+
+fs.readFile('missing.txt', { encoding: 'utf8' }, (err, res) => {
+  console.error(err);
+})
+```
+
+```javascript
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+import level from 'level';
+import { createFSAdapter } from './fs-adapter.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const db = level(join(__dirname, 'db'), {
+  valueEncoding: 'json',
+});
+const fs = createFSAdapter(db);
+```
+
+8-4-2 실전에서
+
+- JugglingDB, nanoSQL, level-filesystem 등
+
+## Chapter 09. 행위 디자인 패턴
+
+- 특정 요구사항에 맞게 컴포넌트의 일부를 변경하는 전략(Strategy) 패턴
+- 상태에 따라 컴포넌트의 동작을 변경시킬 수 있는 상태(Status) 패턴
+- 새로운 것을 정의하기 위해 컴포넌트의 구조를 재사용 할 수 있는 템플릿(Template) 패턴
+- 컬렉션을 순회하거나, 컬렉션의 요소를 처리하는 반복자(Iterator) 패턴
+- 모듈식 처리 절차를 정의하는 미들웨어(Middleware) 패턴
+- 루틴 실행에 필요한 정보를 구체화하여 전달하는 명령(Command) 패턴
