@@ -3188,3 +3188,233 @@ const fs = createFSAdapter(db);
 - 컬렉션을 순회하거나, 컬렉션의 요소를 처리하는 반복자(Iterator) 패턴
 - 모듈식 처리 절차를 정의하는 미들웨어(Middleware) 패턴
 - 루틴 실행에 필요한 정보를 구체화하여 전달하는 명령(Command) 패턴
+
+### 9-1 전략 패턴
+
+- 전략패턴은 컨텍스트라는 객체를 바탕으로, 전략 이라는 별도의 상호 교체 가능한 객체로 추출하여 로직의 변경을 지원하는 패턴
+  - 컨텍스트는 다른 산물들의 공통적인 로직을 구현하고,
+  - 전략은 컨텍스트에 의존하는 가변적인 로직을 구현함.
+  - 이를 통해, 시스템 및 사용자 설정 등 다양한 요소로 동작을 조정 할 수 있음.
+- 주어진 문제 내에서 우려사항을 분리해낼 수 있음.
+- 동일한 문제의 다양한 변형에 적용 할 수 있음.
+- 동일한 역할의 범위 에서 다른 컴포넌트들을 교체할 수 있음.
+- 대표적인 구현방법
+  - if-else문을 사용한 방법.
+    - if-else문을 사용하면, 컨텍스트와 전략이 강하게 결합됨.
+    - 전략이 추가되거나 변경될 때마다 컨텍스트를 수정해야 함.
+    - 전략이 많아질수록 코드가 복잡해짐.
+  - 특정 상황에 대한 선택을 전략 객체로 구현하여 위임.
+    - 인터페이스가 유지되는 한, 컨텍스트는 전략의 변경에 영향을 받지 않음.
+    - 전략이 추가되거나 변경될 때마다 컨텍스트를 수정할 필요가 없음.
+    - 사실상 무제한으로 전략을 추가할 수 있음.
+
+9-1-1 여러 형식을 지원하는 환경설정 객체
+
+- 애플리케이션의 환경 설정을 다루는 Config라는 객체 작성
+
+```javascript
+// context.js
+import { promise as fs } from 'fs';
+import objectPath from 'object-path';
+
+export class Config {
+  constructor(formatStrategy) {
+    this.data = {};
+    this.formatStrategy = formatStrategy;
+  }
+
+  get (configPath) {
+    return objectPath.get(this.data, configPath);
+  }
+
+  set (configPath, value) {
+    return objectPath.set(this.data, configPath, value);
+  }
+
+  async load(filePath) {
+    console.log(`Deserializing from ${filePath}`);
+    this.data = this.formatStrategy.deserialize(
+      await fs.readFile(filePath, 'utf-8')
+    );
+  }
+
+  async save(filePath) {
+    console.log(`Serializing to ${filePath}`);
+    await fs.writeFile(filePath, this.formatStrategy.serialize(this.data));
+  }
+}
+```
+
+```javascript
+// strategy.js
+import ini from 'ini';
+
+export const iniStrategy = {
+  deserialize: data => ini.parse(data),
+  serialize: data => ini.stringify(data),
+}
+
+export const jsonStrategy = {
+  deserialize: data => JSON.parse(data),
+  serialize: data => JSON.stringify(data, null, '  '),
+}
+```
+
+```javascript
+// index.js
+import { Config } from './context.js';
+import { jsonStrategy, iniStrategy } from './strategy.js';
+
+async function main() {
+  const iniConfig = new Config(iniStrategy);
+  await iniConfig.load('samples/conf.ini');
+  iniConfig.set('book.nodejs', 'design patterns');
+  await iniConfig.save('samples/conf_mod.ini');
+
+  const jsonConfig = new Config(jsonStrategy);
+  await jsonConfig.load('samples/conf.json');
+  jsonConfig.set('book.nodejs', 'design patterns');
+  await jsonConfig.save('samples/conf_mod.json');
+}
+
+main();
+```
+
+9-1-2 실전에서
+
+- passport.js, express.js 등에서 사용됨.
+
+### 9-2 상태(State) 패턴
+
+- 상태 패턴은 컨텍스트의 상태에 따라 전략이 변경되는, 전략 패턴의 일종임.
+- 예를 들면, 호텔 예약 시스템에서 예약 상태에 따라 다른 전략을 사용하는 것.
+  - 예약 상태가 '미결정'인 경우
+    - confirm() - O
+    - cancel() - X
+    - delete() - O
+  - 예약 상태가 '확정'인 경우
+    - confirm() - X
+    - cancel() - O
+    - delete() - X
+  - 예약일이 임박한 경우
+    - confirm() - X
+    - cancel() - X
+    - delete() - X
+
+9-2-1 기본적인 안전 소켓 구현
+
+```javascript
+// failSafeSocket.js
+import { OfflineState } from './offlineState.js';
+import { OnlineState } from './onlineState.js';
+
+export class FailSafeSocket {
+  constructor (options) {
+    this.options = options;
+    this.queue = [];
+    this.currentState = null;
+    this.socket = null;
+    this.states = {
+      offline: new OfflineState(this),
+      online: new OnlineState(this),
+    }
+    this.changeState('offline');
+  }
+  changeState(state) {
+    console.log(`Activating state: ${state}`);
+    this.currentState = this.states[state];
+    this.currentState.activate();
+  }
+  send(date) {
+    this.currentState.send(date);
+  }
+}
+```
+
+```javascript
+// offlineState.js
+import jsonOverTcp from 'json-over-tcp-2';
+
+export class OfflineState {
+  constructor (failSafeSocket) {
+    this.failSafeSocket = failSafeSocket;
+  }
+
+  send(data) {
+    this.failsafeSocket.queue.push(data);
+  }
+  activate() {
+    const retry = () => {
+      setTimeout(() => this.activate(), 1000);
+    }
+
+    console.log(`Trying to connect...`);
+    this.failsafeSocket.socket = jsonOverTcp.connect(
+      this.failsafeSocket.options,
+      () => {
+        console.log(`Connection established`);
+        this.failsafeSocket.socket.removeListener('error', retry);
+        this.failsafeSocket.changeState('online');
+      }
+    )
+    this.failsafeSocket.socket.once('error', retry);
+  }
+}
+```
+
+```javascript
+// onlineState.js
+export class OnlineState {
+  constructor (failsafeSocket) {
+    this.failsafeSocket = failsafeSocket;
+    this.hasDisconnected = false;
+  }
+  send(data) {
+    this.failsafeSocket.queue.push(data);
+    this._safeWrite(data);
+  }
+  _safeWrite(data) {
+    this.failsafeSocket.socket.write(data, (err) => {
+      if (!this.hasDisconnected && !err) {
+        this.failsafeSocket.queue.shift();
+      }
+    })
+  }
+  activate() {
+    this.hasDisconnected = false;
+    for (const data of this.failsafeSocket.queue) {
+      this._safeWrite(data);
+    }
+
+    this.failsafeSocket.socket.once('error', () => {
+      this.hasDisconnected = true;
+      this.failsafeSocket.changeState('offline');
+    })
+  }
+}
+```
+
+```javascript
+// server.js
+import jsonOverTcp from 'json-over-tcp-2';
+
+const server = jsonOverTcp.createServer({ port: 5000 });
+server.on('connection', socket => {
+  socket.on('data', data => {
+    console.log('Client data', data);
+  })
+})
+
+server.listen(5000, () => console.log('Server started'));
+```
+
+```javascript
+// client.js
+import { FailSafeSocket } from './failSafeSocket.js';
+
+const failsafeSocket = new FailSafeSocket({ port: 5000 });
+
+setInterval(() => {
+  failsafeSocket.send(process.memoryUsage());
+}, 1000)
+```
