@@ -3418,3 +3418,371 @@ setInterval(() => {
   failsafeSocket.send(process.memoryUsage());
 }, 1000)
 ```
+
+### 9-3 템플릿(Template)
+
+- 템플릿 패턴은 추상 클래스를 통해 컴퓨넌트의 공통부분(스켈레톤)을 먼저 구현함.
+- 이후 하위 클래스(템플릿 함수)에서 구체적인 구현을 수행함.
+- 단, Javascript에서는 추상 클래스를 지원하지 않으므로, 무조건 예외를 발생시키는 함수를 구현 해 두어야 함.
+- 템플릿과 전략 패턴의 목적은 매우 유사하지만 구조와 구현에 차이가 있음
+  - 전략 패턴: 실행 시 동적으로 변경 가능
+  - 템플릿 패턴: 하위 클래스가 정의되는 순간 전체 컴포넌트의 동작이 결정됨
+
+9-3-1 환경 설정 관리 템플릿
+
+- 이전 전략 패턴에서 구현했던 Config 객체를 템플릿 패턴으로 다시 구현
+- 전략 패턴과 주요한 차이점은, 템플릿 패턴에서 로직은 런타임에 결정되는 것이 아닌, 클래스 자체에 포함되어 있음.
+
+  ```javascript
+  // configTemplate.js
+  import { promises as fsPromises } from 'fs';
+  import objectPath from 'object-path';
+
+  export class ConfigTemplate {
+    async load (file) {
+      console.log(`Deserializing from ${file}`);
+      this.data = this._deserialize(
+        await fsPromises.readFile(file, 'utf-8');
+      )
+    }
+
+    async save(file) {
+      console.log(`Serializing to ${file}`);
+      await fsPromises.writeFile(file, this._serialize(this.data));
+    }
+
+    get(path) {
+      return objectPath.get(this.data, path);
+    }
+
+    set(path, value) {
+      return objectPath.set(this.data, path, value);
+    }
+
+    _serialize() {
+      throw new Error(`_serialize() must be implemented`);
+    }
+
+    _deserialize() {
+      throw new Error(`_deserialize() must be implemented`);
+    }
+  }
+  ```
+
+  ```javascript
+  // jsonConfig.js
+  import { ConfigTemplate } from './configTemplate.js';
+
+  export class JsonConfig extends ConfigTemplate {
+    _deserialize(data) {
+      return JSON.parse(data);
+    }
+
+    _serialize(data) {
+      return JSON.stringify(data, null, '  ');
+    }
+  }
+  ```
+
+  ```javascript
+  // iniConfig.js
+  import { ConfigTemplate } from './configTemplate.js';
+  import ini from 'ini';
+
+  export class IniConfig extends ConfigTemplate {
+    _deserialize(data) {
+      return ini.parse(data);
+    }
+
+    _serialize(data) {
+      return ini.stringify(data);
+    }
+  }
+  ```
+
+  ```javascript
+  // index.js
+  import { JsonConfig } from './jsonConfig.js';
+  import { IniConfig } from './iniConfig.js';
+
+  async function main() {
+    const jsonConfig = new JsonConfig();
+    await jsonConfig.load('samples/conf.json');
+    jsonConfig.set('book.nodejs', 'design patterns');
+    await jsonConfig.save('samples/conf_mod.json');
+
+    const iniConfig = new IniConfig();
+    await iniConfig.load('samples/conf.ini');
+    iniConfig.set('book.nodejs', 'design patterns');
+    await iniConfig.save('samples/conf_mod.ini');
+  }
+
+  main();
+  ```
+
+9-3-2 실전에서
+
+- 생략
+
+### 9-4 반복자(Iterator)
+
+- 이터레이터 패턴은 배열 또는 트리 데이터 등의 구조에서 컨테이너의 요소들을 반복하기 위한 공통 인터페이스 또는 프로토콜을 정의하는 패턴
+  - 내부 구현은 컨테이너의 실제 구조에 따라 모두 다르지만, 외부에서는 동일한 인터페이스를 통해 접근 가능하도록 구현함.
+- 이터레이터 패턴을 통해, 순회 연산의 처리내용과 순회 알고리즘의 구현을 분리 할 수 있음.
+- 이터레이터 패턴은 컨테이너의 내부 구조에 대한 지식을 외부로 노출시키지 않음.
+
+9-4-1 반복자(Iterator) 프로토콜
+
+- Javascript에서는 주로 이터레이터를 프로토콜을 통해 구현함. - 상속과 같은 형식적인 패턴은 주로 사용하지 않음.
+- 반복할 때 마다 요소를 return하며, done 이라는 변수의 값이 undefined로 설정됨.
+- done이 true가 되면 반복이 종료됨.
+  - 그러나 종료 시에도 값을 return 할 수 있음.
+  - 이런 경우에는 요소의 값이 아닌, 전체 동작에 대한 정보 관련값이 반환됨.(소요시간, 합계, 평균 등)
+
+```javascript
+const A_CHAR_CODE = 65;
+const Z_CHAR_CODE = 90;
+
+function createAlphabetIterator() {
+  let currCode = A_CHAR_CODE;
+
+  return {
+    next() {
+      const currChar = String.fromCharCode(currCode);
+      if (currCode > Z_CHAR_CODE) {
+        return {
+          done: true,
+        }
+      }
+      currCode++;
+      return {
+        value: currChar,
+        done: false,
+      }
+    }
+  }
+}
+```
+
+- 대부분의 경우, 이터레이터는 '현재 요소가 어디쯤인지'를 기억해야 하기에, 상태 저장 객체임.
+- 클로저나 인스턴스 변수에 상태 보관 가능.
+  - 이런 특징으로 인해 디버깅이 수월 할 수 있으나, 반면에 외부 코드에서 상태를 변경할 수 있음.
+- 그럼에도 불구하고, stateless한 경우도 있을 수 있음.
+  - 무작위 요소 반복, 무한 반복 등.
+
+```javascript
+const iterator = createAlphabetIterator();
+
+let iterationResult = iterator.next();
+while (!iterationResult.done) {
+  console.log(iterationResult.value);
+  iterationResult = iterator.next();
+}
+```
+
+9-4-2 반복가능자(Iterable) 프로토콜
+
+- 반복가능자는 반복자를 반환하는 [Symbol.iterator]() 메서드를 구현하는 객체임.
+
+```javascript
+// matrix.js
+export class Matrix {
+  constructor(inMatrix) {
+    this.data = inMatrix;
+  }
+
+  get (row, column) {
+    if (row >= this.data.length ||
+    column >= this.data[row].length) {
+      throw new RangeError('Out of range');
+    }
+  }
+
+  set (row, column, value) {
+    if (row >= this.data.length ||
+    column >= this.data[row].length) {
+      throw new RangeError('Out of range');
+    }
+    this.data[row][column] = value;
+  }
+
+  [Symbol.iterator]() {
+    let nextRow = 0;
+    let nextCol = 0;
+
+    return {
+      next: () => {
+        if (nextRow === this.data.length) {
+          return { done: true },
+        }
+
+        const currVal = this.data[nextRow][nextCol];
+
+        if (nextCol === this.data[nextRow].length - 1) {
+          nextRow++;
+          nextCol = 0;
+        } else {
+          nextCol++;
+        }
+
+        return { value: currVal }
+      }
+    }
+  }
+}
+```
+
+```javascript
+// index.js
+import { Matrix } from './matrix.js';
+
+const matrix2x2 = new Matrix([
+  ['11', '12'],
+  ['21', '22'],
+])
+
+const iterator = matrix2x2[Symbol.iterator]();
+let iterationResult = iterator.next();
+while (!iterationResult.done) {
+  console.log(iterationResult.value);
+  iterationResult = iterator.next();
+}
+```
+
+9-4-3 네이티브 Javascript 인터페이스로서의 Iterator와 Iterable
+
+- iterable 과 iterator라는 표준화된 인터페이스를 통해 제3자의 코드를 모델링 할 수 있게 됨.
+
+```javascript
+// for ...of
+for (const element of matrix2x2) {
+  console.log(element);
+}
+
+// spread operator
+const flattenedMatrix = [...matrix2x2];
+console.log(flattenedMatrix);
+
+// destructuring
+const [oneOne, oneTwo, twoOne, twoTwo] = matrix2x2;
+console.log(oneOne, oneTwo, twoOne, twoTwo);
+
+// Map, WeakMap, Set, WeakSet, Promise.all, Promise.race, Array.from...
+```
+
+9-4-4 제너레이터
+
+- 제너레이터(세미코루틴; semicoroutines)는 이터레이터를 반환하는 함수임.
+- yield를 통해 값을 반환하고 일시정지 할 수 있음.
+
+```javascript
+function * fruitGenerator() {
+  yield 'peach';
+  yield 'watermelon';
+  return 'summer';
+}
+
+const fruitGeneratorObj = fruitGenerator();
+console.log(fruitGeneratorObj.next()); // { value: 'peach', done: false }
+console.log(fruitGeneratorObj.next()); // { value: 'watermelon', done: false }
+console.log(fruitGeneratorObj.next()); // { value: 'summer', done: true }
+```
+
+```javascript
+// generator with for...of
+for (const fruit of fruitGenerator()) {
+  console.log(fruit);
+}
+// peach
+// watermelon
+// * 마지막 summer는 출력되지 않음! - 요소가 아닌 전체 결과값이기 때문.
+```
+
+- 제너레이터는 일반 반복자보다 유용하게 쓰일 수 있음.
+  - next() 함수는 선택적으로 인자를 허용하기 때문
+
+```javascript
+function * twoWayGenerator() {
+  const what = yield null;
+  console.log(`Hello ${what}`);
+}
+
+const twoWay = twoWayGenerator();
+twoWay.next();
+console.log(twoWay.next('World'));
+// Hello World
+```
+
+```javascript
+function * twoWayGenerator() {
+  try {
+    const what = yield null;
+    yield `Hello ${what}`;
+  } catch (err) {
+    console.log(`Error: ${err}`);
+  }
+}
+
+console.log('Using throw(): ');
+const twoWayException = twoWayGenerator();
+twoWayException.next();
+console.log(twoWayException.throw(new Error('Problem!')));
+
+console.log('Using return(): ');
+const twoWayReturn = twoWayGenerator();
+console.log(twoWayReturn.return('myReturnValie'));
+
+/**
+ * Using throw():
+ * { value: 'Hello error: Boom!', done: false }
+ * Using return():
+ * { value: 'myReturnValue', done: true }
+ */
+```
+
+- throw()와 return()은 제너레이터를 종료시키는 역할을 함.
+  - throw()는 첫 번째 yield 명령어가 반환되는 즉시 예외가 발생하며, 제너레이터 내에서 예외가 발생하는 것과 동일하게 처리됨.
+  - return()은 제너레이터를 종료시키고, value 프로퍼티에 전달된 값을 반환함.
+
+```javascript
+export class Matrix {
+  constructor(inMatrix) {
+    this.data = inMatrix;
+  }
+
+  get (row, column) {
+    if (row >= this.data.length ||
+    column >= this.data[row].length) {
+      throw new RangeError('Out of range');
+    }
+  }
+
+  set (row, column, value) {
+    if (row >= this.data.length ||
+    column >= this.data[row].length) {
+      throw new RangeError('Out of range');
+    }
+    this.data[row][column] = value;
+  }
+
+  * [Symbol.iterator]() {
+    let nextRow = 0;
+    let nextCol = 0;
+
+    while (nextRow !== this.data.length) {
+      yield this.data[nextRow][nextCol];
+
+      if (nextCol === this.data[nextRow].length - 1) {
+        nextRow++;
+        nextCol = 0;
+      } else {
+        nextCol++;
+      }
+    }
+  }
+}
+```
+
+- 함수명 앞의 *를 통해 제너레이터 함수임을 표시함.
+- 반복의 상태 유지를 위해 로컬 변수를 사용함.
+- next() 함수가 아닌 while 루프를 사용하며, 이로인해 더 직관적임.
