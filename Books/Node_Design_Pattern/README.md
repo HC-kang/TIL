@@ -4103,3 +4103,165 @@ main();
 
     main();
     ```
+
+9-5-4 실전에서
+
+- Node.js에서 미들웨어 패턴을 대중화한 대표적인 라이브러리가 Express임.
+- 추가적으로, Express의 후속인 Koa
+- Middy: AWS Lambda를 위한 미들웨어 프레임워크
+
+### 9-6 커맨드(Command) 패턴
+
+- 실행에 필요한 정보들을 캡슐화하는 패턴
+- 함수나 기능을 직접 호출하는 것이 아닌, 실행에 필요한 정보를 캡슐화 한 객체를 생성함.
+- 주요개념
+  - 커맨드(Command): 함수 또는 함수를 호출하는데에 필요한 정보를 캡슐화 한 객체
+  - 클라이언트(Client): 명령을 생성하고, 호출자(Invoker)에게 전달하는 컴포넌트
+  - 대상(Target): 호출되는 단일 함수 혹은 객체의 메서드 등.
+  - 호출자(Invoker): 대상(Target)에서 명령의 실행을 담당하는 컴포넌트.
+- 커맨드 패턴의 특징
+  - 나중에 실행할 명령을 저장 할 수 있음.
+  - 쉽게 직렬화하여 전송, 보관 할 수 있음.
+    - 따라서 원격 시스템에서도 활용이 가능함.
+  - 실행된 모든 작업의 기록을 유지하기 쉬움.
+  - 아직 실행되지 않은 예약된 작업을 취소 할 수 있음.
+  - 여러 커맨드를 그룹화하여 트랜잭션을 구현 할 수 있음.
+
+9-6-1 작업(Task) 패턴
+
+- 가장 기본적인 구현 형태
+- Javascript에서 호출을 나타내는 객체를 생성하는 가장 쉬운 방법
+  - 클로저 사용
+  - 함수를 바인딩
+
+  ```javascript
+  // closure
+  function createTask(target, ...args) {
+    return () => {
+      target(...args);
+    }
+  }
+
+  // binding
+  const task = target.bind(null, ...args);
+  ```
+
+9-6-2 좀 더 복잡한 커맨드
+
+- 실행 취소와 직렬화를 지원하는 예제
+
+  ```javascript
+  const statusUpdates = new Map();
+
+  // Target
+  export const statusUpdateService = {
+    postUpdate(state) {
+      const id = Math.floor(Math.random() * 1000000);
+      statusUpdate.set(id, status);
+      console.log(`Status posted: ${status}`);
+      return id;
+    },
+
+    destroyUpdate(id) {
+      statusUpdates.delete(id)
+      console.log(`Status deleted: ${id}`);
+    },
+  }
+  ```
+  
+  ```javascript
+  // createPostStatusCmd.js
+  export function createPostStatusCmd(service, status) {
+    let postId = null;
+
+    // Command
+    return {
+      run() {
+        postId = service.postUpdate(status);
+      },
+      undo() {
+        if (postId) {
+          service.destroyUpdate(postId);
+          postId = null;
+        }
+      },
+      serialize() {
+        return { type: 'status', action: 'post', status: status }
+      }
+    }
+  }
+
+  // Invoker
+  export class Invoker {
+    constructor() {
+      this.history = [];
+    }
+
+    run(cmd) {
+      this.history.push(cmd);
+      cmd.run();
+      console.log(`Command executed`, cmd.serialize());
+    }
+
+    delay(cmd, delay) {
+      setTimeout(() => {
+        console.log(`Executing delayed command`, cmd.serialize());
+        this.run(cmd);
+      }, delay);
+    }
+
+    undo() {
+      const cmd = this.history.pop();
+      cmd.undo();
+      console.log(`Command undone`, cmd.serialize());
+    }
+
+    async runRemotely(cmd) {
+      await superagent
+        .post('http://localhost:3000/cmd')
+        .send({ json: cmd.serialize() });
+      
+      console.log(`Command executed remotely`, cmd.serialize());
+    }
+  }
+  ```
+
+  ```javascript
+  // client.js
+  import { createPostStatusCmd } from './createPostStatusCmd.js';
+  import { statusUpdateService } from './statusUpdateService.js';
+  import { invoker } from './invoker.js';
+
+  const invoker = new Invoker();
+
+  const command = createPostStatusCmd(statusUpdateService, 'Hello World');
+
+  invoker.run(command);
+  invoker.undo();
+  invoker.delay(command, 1000 * 3);
+  invoker.runRemotely(command);
+  ```
+
+- 커맨드 패턴은 꼭 필요한 경우에만 사용하는 것이 중요함
+  - 이외에 사용 시에는 코드가 복잡해지고, 유지보수가 어려워짐.
+
+### 요약
+
+- 생략
+
+## Chapter 10. 웹 어플리케이션을 위한 범용 Javascript
+
+- 주요 개념
+  - 브라우저와 Node.js간에 코드를 공유하는 방법
+  - 크로스플랫폼 개발의 기초(코드 분기, 모듈 교체 및 기타 유용한 패턴)
+  - React에 대한 간략한 소개
+  - React 및 Node.js를 사용하여 완전한 범용 Javascript 어플리케이션을 구축하는 방법
+
+### 10-1 브라우저와 코드 공유
+
+- Node.js
+  - DOM이나 View에 대한 지식이 없음.
+  - 실행되는 버전을 확정할 수 있어 호환성에 대한 우려가 없음.
+- 브라우저
+  - 파일 시스템이나 운영체제에 대한 지식이 없음.
+  - 실행하는 브라우저에 따라 호환성이 달라질 수 있음.
