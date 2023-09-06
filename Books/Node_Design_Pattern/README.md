@@ -3786,3 +3786,482 @@ export class Matrix {
 - 함수명 앞의 *를 통해 제너레이터 함수임을 표시함.
 - 반복의 상태 유지를 위해 로컬 변수를 사용함.
 - next() 함수가 아닌 while 루프를 사용하며, 이로인해 더 직관적임.
+
+9-4-5 비동기 반복자
+
+- Node.js에서는 비동기 연산으로 반복 작업을 하는 것이 매우 일반적임.
+- for await ...of 구문을 사용.
+
+```javascript
+const asyncIterator = iterable[Symbol.asyncIterator]();
+let iterationResult = await asyncIterator.next();
+while (!iterationResult.done) {
+  console.log(iterationResult.value);
+  iterationResult = await asyncIterator.next();
+}
+```
+
+```javascript
+// checkUrls.js
+// Promises의 배열과 같은 반복가능자를 사용하는 예시
+import superagent from 'superagent';
+
+export class CheckUrls {
+  constructor(urls) {
+    this.urls = urls;
+  }
+
+  [Symbol.asyncIterator]() {
+    const urlsIterator = this.urls[Symbol.iterator]();
+
+    return {
+      async next() { // ---> async 키워드를 통해 비동기 반복자임을 표시함.
+        const iteratorResult = urlsIterator.next();
+        if (iteratorResult.done) {
+          return { done: true };
+        }
+
+        const url = iteratorResult.value;
+        try {
+          const checkResult = await superagent
+            .head(url);
+            .redirects(2);
+          return {
+            done: false,
+            value: `${url} is up, status: ${checkResult.status}`,
+          }
+        } catch (err) {
+          return {
+            done: false,
+            value: `${url} is down, error: ${err.message}`,
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+```javascript
+// main.js
+import { CheckUrls } from './checkUrls.js';
+
+async function main() {
+  const checkUrls = new CheckUrls([
+    'https://nodejsdesignpatterns.com',
+    'https://example.com',
+    'https://mustbedownforsurehopefully.com',
+  ]);
+
+  for await (const status of checkUrls) {
+    console.log(status);
+  }
+}
+
+main();
+```
+
+9-4-6 비동기 제너레이터
+
+- 비동기 제너레이터는 비동기 이터레이터를 반환하는 함수.
+- 비동기 이터레이터보다 코드 구현이 간단해지고, 이해하기 쉬워짐.
+
+```javascript
+async function * generatorFunction() { // ---> async 키워드 사용
+  // ... body of generator
+}
+```
+
+```javascript
+export class CheckUrls {
+  constructor(urls) {
+    this.urls = urls;
+  }
+}
+
+async * [Symbol.asyncIterator]() {
+  for (const url of this.urls) {
+    try {
+      const checkResult = await superagent
+        .head(url)
+        .redirects(2);
+      yield `${url} is up, status: ${checkResult.status}`;
+    } catch (err) {
+      yield `${url} is down, error: ${err.message}`;
+    }
+  }
+}
+```
+
+9-4-7 비동기 반복자 및 Node.js 스트림
+
+- Node.js 스트림은 비동기 반복자와 매우 유사한 특성을 보임.
+- 애초에 stream.Readable은 @@asyncIterator 메서드를 구현하고 있음.
+- 이로 인해 for await ...of 구문을 사용할 수 있음.
+
+```javascript
+import split from 'split2';
+
+async function main() {
+  const stream = process.stdin.pipe(split());
+  for await (const line of stream) {
+    console.log(`You wrote: ${line}`);
+  }
+}
+
+main();
+```
+
+- 이렇듯 매우 비슷한 모습으로 인해, 사용 사례와 상황에 따라 선택적으로 사용할 수 있음.
+- 주요 판단 기준이 될 특징은 아래와 같음.
+  - 스트림은 push된다. 반면에 비동기 반복자는 사용자에 의해 pull된다.
+  - 스트림은 내부 버퍼 및 백프레셔를 제공하기에 가벼운 이진 데이터를 처리하는 데에 더 적합하다.
+  - 스트림은 pipe라는 표준화된 메서드로 연결할 수 있지만, 비동기 반복자는 그렇지 않다.
+
+9-4-8 실전에서
+
+- 대부분의 DB 커넥터들은 이터레이터를 통해 queryStream()이라는 함수를 제공함.
+- 이는 내부적으로 for await ...of 구문을 사용함.
+- 다른 예시로는 zeroMQ라는 라이브러리에서도 이에 크게 의존함.
+
+### 9-5 미들웨어(Middleware)
+
+- '미들웨어'라는 용어가 Node.js에서는 여타 프레임워크와는 다른 의미로 사용됨.
+- 일반적인 다른 프레임워크에서는 각종 하위수준 기능을 추상화하는 소프트웨어 제품들을 뜻함.
+- Node.js에서는 매우 작은 단위의 모듈화된 함수들을 뜻함.
+
+9-5-1 Express에서 미들웨어
+
+- 일반적으로 HTTP 요청과 그 응답을 처리하는 함수들을 미들웨어라고 함.
+- 이를 통해 프레임워크의 핵심 기능을 수정하지 않고, 다양한 기능을 추가/변경 할 수 있음.
+- 예시는 아래와 같음.
+  - req의 본문 분석
+  - req, res의 압축/해제
+  - 접근 로그 생성
+  - 세션 관리
+  - 암호화 된 쿠키 관리
+  - CSRF(Cross-site Request Forgery) 보호 제공 등
+- 다시 정리하자면, 실제 요청을 처리하는 핸들러가 주요 비즈니스 로직에 집중 할 수 있도록, 부수적인 것을 처리 해 주는 액세서리들임.
+- 말 그대로, 중간에 위치한 소프트웨어임.
+
+9-5-2 패턴으로서의 미들웨어
+
+- 인터셉터 필터(Interceptor Fiilter), 책임 사슬(Chain of Responsibility) 패턴으로 여겨짐.
+- 파이프라인과도 비슷하다고 볼 수 있음.
+- 매우 높은 유연성과 확장성을 가졌음.
+- 미들웨어 패턴의 특징
+  - use() 함수를 통해 새로운 함수를 호출/추가
+  - 일반적으로는 파이프라인의 끝단에 추가되지만, 엄격하게 지켜지는 규칙은 아님.
+  - 등록된 미들웨어들은 비동기 순차 실행으로 호출되며, 각 이전의 출력값이 입력값으로 전달됨.
+  - 각 미들웨어는 데이터의 처리를 중단할 권한을 가질 수 있음.
+    - 이런 경우는 일반적으로 에러 처리를 전담하는 미들웨어를 호출함.
+
+9-5-3 ZeroMQ를 위한 미들웨어 프레임워크 만들기
+
+- ZeroMQ란, 저수준의 원자 메시지를 전송하는 라이브러리임.
+- 낮은 수준으로 인해, 고수준의 프로토콜을 구현하기 위해서는 사용자가 직접 구현해야 함.
+- 이후 코드에서 이를 사용하기 위한 간단한 프레임워크를 구현
+  - 첫번째로, 파이프라인을 실행할 컴포넌트를 정의 함.
+
+    ```javascript
+    export class ZmqMiddlewareManager {
+      constructor(socket) {
+        this.socket = socket;
+        this.inboundMiddleware = [];
+        this.outboundMiddleware = [];
+        this.handleIncomingMessages()
+          .catch(err => console.error(err));
+      }
+
+      async handleIncomingMessages() {
+        for await (const [message] of this.socket) {
+          await this
+            .executeMiddleware(this.inboundMiddleware, message)
+            .catch(err => console.error(`Error while processing the message`, err));
+        }
+      }
+
+      async send(message) {
+        const finalMessage = await this
+          .executeMiddleware(this.outboundMiddleware, message);
+        return this.socket.send(finalMessage);
+      }
+
+      use(middleware) {
+        if (middleware.inbound) {
+          this.inboundMiddleware.push(middleware.inbound);
+        }
+        if (middleware.outbound) {
+          this.outboundMiddleware.unshift(middleware.outbound);
+        }
+      }
+
+      async executeMiddleware(middleware, initialMessage) {
+        let message = initialMessage;
+        for await (const middlewareFunc of middleware) {
+          message = await middlewareFunc(message);
+        }
+        return message;
+      }
+    }
+    ```
+
+  - 두번째로, 미들웨어를 정의함.
+
+    ```javascript
+    // jsonMiddleware.js
+    export const jsonMiddleware = function () {
+      return {
+        inbound(message) {
+          return JSON.parse(message.toString());
+        },
+        outbound(message) {
+          return Buffer.from(JSON.stringify(message));
+        }
+      }
+    }
+    ```
+
+    ```javascript
+    // zlibMiddleware.js
+    import { inflateRaw, deflateRaw } from 'zlib';
+    import { promisify } from 'util';
+
+    const inflateRawAsync = promisify(inflateRaw); // ---> 압축, 해제에 소요되는 시간이 길기 때문에 비동기로 처리함.
+    const deflateRawAsync = promisify(deflateRaw);
+
+    export const zlibMiddleware = function () {
+      return {
+        inbound (message) {
+          return inflateRawAsync(message);
+        },
+        outbound (message) {
+          return deflateRawAsync(message);
+        },
+      }
+    }
+    ```
+
+  - 마지막으로, 이를 사용하는 예시를 구현함.
+
+    ```javascript
+    // server.js
+    import zeromq from 'zeromq';
+    import { ZmqMiddlewareManager } from './zmqMiddlewareManager.js';
+    import { jsonMiddleware } from './jsonMiddleware.js';
+    import { zlibMiddleware } from './zlibMiddleware.js';
+
+    async function main() {
+      const socket = new zeromq.Reply();
+      await socket.bind('tcp://127.0.0.1:5000');
+
+      const zmqm = new ZmqMiddlewareManager(socket);
+      zmqm.use(zlibMiddleware());
+      zmqm.use(jsonMiddleware());
+      zmqm.use({
+        async inbound(message) {
+          console.log('Received: ', message);
+          if (message.action === 'ping') {
+            await this.send({ action: 'pong', echo: message.echo });
+          }
+          return message;
+        }
+      })
+      console.log('Server started');
+    }
+
+    main();
+    ```
+
+    ```javascript
+    // client.js
+    import zeromq from 'zeromq';
+    import { ZmqMiddlewareManager } from './zmqMiddlewareManager.js';
+    import { jsonMiddleware } from './jsonMiddleware.js';
+    import { zlibMiddleware } from './zlibMiddleware.js';
+
+    async function main() {
+      const socket = new zeromq.Request();
+      await socket.connect('tcp://127.0.0.1:5000');
+
+      const zmqm = new ZmqMiddlewareManager(socket);
+      zmqm.use(zlibMiddleware());
+      zmqm.use(jsonMiddleware());
+      zmqm.use({
+        inbound(message) {
+          console.log('Received: ', message);
+          return message;
+        }
+      })
+
+      setInterval(() => {
+        zmqm.send({ action: 'ping', echo: Date.now() });
+      }, 1000);
+
+      console.log('Client started');
+    }
+
+    main();
+    ```
+
+9-5-4 실전에서
+
+- Node.js에서 미들웨어 패턴을 대중화한 대표적인 라이브러리가 Express임.
+- 추가적으로, Express의 후속인 Koa
+- Middy: AWS Lambda를 위한 미들웨어 프레임워크
+
+### 9-6 커맨드(Command) 패턴
+
+- 실행에 필요한 정보들을 캡슐화하는 패턴
+- 함수나 기능을 직접 호출하는 것이 아닌, 실행에 필요한 정보를 캡슐화 한 객체를 생성함.
+- 주요개념
+  - 커맨드(Command): 함수 또는 함수를 호출하는데에 필요한 정보를 캡슐화 한 객체
+  - 클라이언트(Client): 명령을 생성하고, 호출자(Invoker)에게 전달하는 컴포넌트
+  - 대상(Target): 호출되는 단일 함수 혹은 객체의 메서드 등.
+  - 호출자(Invoker): 대상(Target)에서 명령의 실행을 담당하는 컴포넌트.
+- 커맨드 패턴의 특징
+  - 나중에 실행할 명령을 저장 할 수 있음.
+  - 쉽게 직렬화하여 전송, 보관 할 수 있음.
+    - 따라서 원격 시스템에서도 활용이 가능함.
+  - 실행된 모든 작업의 기록을 유지하기 쉬움.
+  - 아직 실행되지 않은 예약된 작업을 취소 할 수 있음.
+  - 여러 커맨드를 그룹화하여 트랜잭션을 구현 할 수 있음.
+
+9-6-1 작업(Task) 패턴
+
+- 가장 기본적인 구현 형태
+- Javascript에서 호출을 나타내는 객체를 생성하는 가장 쉬운 방법
+  - 클로저 사용
+  - 함수를 바인딩
+
+  ```javascript
+  // closure
+  function createTask(target, ...args) {
+    return () => {
+      target(...args);
+    }
+  }
+
+  // binding
+  const task = target.bind(null, ...args);
+  ```
+
+9-6-2 좀 더 복잡한 커맨드
+
+- 실행 취소와 직렬화를 지원하는 예제
+
+  ```javascript
+  const statusUpdates = new Map();
+
+  // Target
+  export const statusUpdateService = {
+    postUpdate(state) {
+      const id = Math.floor(Math.random() * 1000000);
+      statusUpdate.set(id, status);
+      console.log(`Status posted: ${status}`);
+      return id;
+    },
+
+    destroyUpdate(id) {
+      statusUpdates.delete(id)
+      console.log(`Status deleted: ${id}`);
+    },
+  }
+  ```
+  
+  ```javascript
+  // createPostStatusCmd.js
+  export function createPostStatusCmd(service, status) {
+    let postId = null;
+
+    // Command
+    return {
+      run() {
+        postId = service.postUpdate(status);
+      },
+      undo() {
+        if (postId) {
+          service.destroyUpdate(postId);
+          postId = null;
+        }
+      },
+      serialize() {
+        return { type: 'status', action: 'post', status: status }
+      }
+    }
+  }
+
+  // Invoker
+  export class Invoker {
+    constructor() {
+      this.history = [];
+    }
+
+    run(cmd) {
+      this.history.push(cmd);
+      cmd.run();
+      console.log(`Command executed`, cmd.serialize());
+    }
+
+    delay(cmd, delay) {
+      setTimeout(() => {
+        console.log(`Executing delayed command`, cmd.serialize());
+        this.run(cmd);
+      }, delay);
+    }
+
+    undo() {
+      const cmd = this.history.pop();
+      cmd.undo();
+      console.log(`Command undone`, cmd.serialize());
+    }
+
+    async runRemotely(cmd) {
+      await superagent
+        .post('http://localhost:3000/cmd')
+        .send({ json: cmd.serialize() });
+      
+      console.log(`Command executed remotely`, cmd.serialize());
+    }
+  }
+  ```
+
+  ```javascript
+  // client.js
+  import { createPostStatusCmd } from './createPostStatusCmd.js';
+  import { statusUpdateService } from './statusUpdateService.js';
+  import { invoker } from './invoker.js';
+
+  const invoker = new Invoker();
+
+  const command = createPostStatusCmd(statusUpdateService, 'Hello World');
+
+  invoker.run(command);
+  invoker.undo();
+  invoker.delay(command, 1000 * 3);
+  invoker.runRemotely(command);
+  ```
+
+- 커맨드 패턴은 꼭 필요한 경우에만 사용하는 것이 중요함
+  - 이외에 사용 시에는 코드가 복잡해지고, 유지보수가 어려워짐.
+
+### 요약
+
+- 생략
+
+## Chapter 10. 웹 어플리케이션을 위한 범용 Javascript
+
+- 주요 개념
+  - 브라우저와 Node.js간에 코드를 공유하는 방법
+  - 크로스플랫폼 개발의 기초(코드 분기, 모듈 교체 및 기타 유용한 패턴)
+  - React에 대한 간략한 소개
+  - React 및 Node.js를 사용하여 완전한 범용 Javascript 어플리케이션을 구축하는 방법
+
+### 10-1 브라우저와 코드 공유
+
+- Node.js
+  - DOM이나 View에 대한 지식이 없음.
+  - 실행되는 버전을 확정할 수 있어 호환성에 대한 우려가 없음.
+- 브라우저
+  - 파일 시스템이나 운영체제에 대한 지식이 없음.
+  - 실행하는 브라우저에 따라 호환성이 달라질 수 있음.
