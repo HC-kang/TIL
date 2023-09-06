@@ -5,7 +5,7 @@ import { pipeline, Readable } from 'stream';
 import { createGunzip } from 'zlib';
 import { join, basename } from 'path';
 
-const EOF_MARKER = Buffer.from([0xff, 0xff, 0xff, 0xff]);
+const EOF_MARKER = Buffer.from([0xff, 0xff, 0xff, 0xff]); // 4 bytes of 0xFF
 
 const secret = randomBytes(24);
 console.log(`Generated secret: ${secret.toString('hex')}`);
@@ -17,7 +17,7 @@ function demultiplexChannel(source) {
   let iv = null;
   let id = null;
 
-  const destination = {};
+  const destinations = {};
 
   source
     .on('readable', () => {
@@ -39,7 +39,7 @@ function demultiplexChannel(source) {
               header.slice(21, 21 + filenameLength).toString()
             )}`
           );
-          destination[id] = createWriteStream(filename);
+          destinations[id] = createWriteStream(filename);
         } else if (chunkSize === null) { // if chunkSize is not set,
           chunkSize = chunk.slice(0, 4).readUInt32BE(0); // how can I assume that the chunk's size is 4?
           chunkData = chunk.slice(4);
@@ -53,7 +53,7 @@ function demultiplexChannel(source) {
           Readable.from(chunkData)
             .pipe(decipher)
             .pipe(createGunzip())
-            .pipe(destination[id]);
+            .pipe(destinations[id]);
         }
       }
     })
@@ -71,4 +71,4 @@ const server = createServer((socket) => {
   demultiplexChannel(socket);
 });
 
-server.listen(3000, () => console.log('Server started on port 3000'));
+server.listen(3000, () => console.log('Server started'));
