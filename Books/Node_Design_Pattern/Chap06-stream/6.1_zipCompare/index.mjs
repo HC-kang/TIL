@@ -1,3 +1,8 @@
+/**
+ * 6.1 데이터 압축 효율성
+ * - 파일을 입력을 취하고, zlib모듈에서 사용 할 수 있는 세 가지 압축 알고리즘을 사용하여 압축
+ * - 각 알고리즘의 소요시간과 압축률을 비교한 테이블 생성
+ */
 import fs from 'fs';
 import zlib from 'zlib';
 import { pipeline, Transform, PassThrough } from 'stream';
