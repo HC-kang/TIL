@@ -4312,3 +4312,105 @@ main();
       ```
 
       - 서비스 로케이터 패턴: 서비스 인터페이스와 실제 서비스 제공자 간의 매핑을 유지하고, 필요할 때 해당 서비스를 검색할 수 있는 클래스 또는 컴포넌트
+
+### 10-2 크로스 플랫폼 개발의 기초
+
+- 크로스 플랫폼의 가장 기본이 되는 내용은, 최대한 많은 코드를 재사용 하며 플랫폼에 따라 꼭 필요한 구현만 제공하는 것임.
+
+10-2-1런타임 코드 분기
+
+- 가장 직관적인 기술은 코드를 동적으로 분기하는 것임.
+
+```javascript
+import nunjucks from 'nunjucks';
+
+const template = `<h1>Hello <i>{{ name }}</i></h1>`;
+
+export function sayHello(name) {
+  if (typeof window !== 'undefined' && window.document) {
+    // browser
+    return nunjucks.renderString(template, { name } );
+  }
+
+  // node.js
+  return `Hello \u001b[1m${name}\u001b[22m`;
+}
+```
+
+- 문제점: 번들러는 런타임 변수로 조건을 판별할수 없기에, 모든 코드가 포함됨.
+  - 모든 코드가 양쪽 플랫폼의 번들에 포함되어있음.
+  - 따라서 용량이 크고, 불필요한 코드가 포함됨.
+  - 암호화 키나 API키가 포함되어 있을 경우, 보안상의 문제가 발생할 수 있음.
+  - 분기 로직으로 인해 코드가 복잡해지고 가독성이 떨어짐.
+
+10-2-2 빌드 시 코드 분기
+
+- 웹팩 플러그인을 사용한 빌드 시 코드 분기
+- 이를 통해 보안상의 문제를 해결할 수 있음.
+- 플러그인
+  - DefinePlugin
+    - 소스 파일의 특정 코드를 빌드 시에 대체하는 플러그인
+  - terser-webpack-plugin
+    - 코드를 압축하고 트리쉐이킹을 수행하는 플러그인
+
+```javascript
+import nunjucks from 'nunjucks';
+export function sayHello (name) {
+  if (typeof __BROWSER__ !== 'undefined') {
+    // browser
+    const template = `<h1>Hello <i>{{ name }}</i></h1>`;
+    return nunjucks.renderString(template, { name });
+  }
+  // node.js
+  return `Hello \u001b[1m${name}\u001b[22m`;
+}
+```
+
+```javascript
+// after DefinePlugin
+if (true) {
+  const template = `<h1>Hello <i>{{ name }}</i></h1>`;
+  return nunjucks.renderString(template, { name });
+}
+return `Hello \u001b[1m${name}\u001b[22m`;
+```
+
+```javascript
+// after terser-webpack-plugin
+const template = `<h1>Hello <i>{{ name }}</i></h1>`;
+return nunjucks.renderString(template, { name });
+```
+
+10-2-3 모듈 스와핑
+
+- 빌드 시 모듈 구현 전체를 교체하는 방법
+
+```javascript
+// src/say-hello.js
+import chalk from 'chalk';
+export function sayHello(name) {
+  return `Hello ${chalk.bold(name)}`;
+}
+
+// src/say-hello.browser.js
+import nunjucks from 'nunjucks';
+const template = `<h1>Hello <i>{{ name }}</i></h1>`;
+export function sayHello(name) {
+  return nunjucks.renderString(template, { name });
+}
+```
+
+- 구현 전체가 교체되기에, 서로 다른 모듈을 사용할 수 있음.
+
+10-2-4 크로스 플랫폼 개발을 위한 디자인 패턴
+
+- 주요 디자인 패턴
+  - 전략 및 템플릿
+    - 크로스 플랫폼에서 가장 유용한 패턴
+    - 알고리즘의 공통단계 정의 후, 일부분을 교체하는 방식
+  - 어댑터
+    - 전체 컴포넌트를 교체할 필요가 있을 때 유용함.
+  - 프록시
+    - 어댑터와 유사하나, 요청을 전달하는 방식이 다름.
+  - 종속성 주입 및 서비스 로케이터
+    - 모듈이 주입되는 방식을 변경함.
