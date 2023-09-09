@@ -4414,3 +4414,81 @@ export function sayHello(name) {
     - 어댑터와 유사하나, 요청을 전달하는 방식이 다름.
   - 종속성 주입 및 서비스 로케이터
     - 모듈이 주입되는 방식을 변경함.
+
+### 10-3 React 개요
+
+- React는 컴포넌트에 집중하는 라이브러리임.
+- 가상 DOM을 활용해 수준 높은 추상화를 구현함.
+  - 가상 DOM의 트리 구조로 효율적인 리렌더링을 구현함.
+- '한 번 배우고, 어디서나 사용하세요(Learn it once, use it everywhere)'
+- 주요 특징
+  - 클라이언트와 서버에서 거의 동일한 코드로 컴포넌트를 렌더링 할 수 있음.
+  - hydration을 통해 핸들러, 애니메이션 등 효과를 추가할 수 있음.
+  - 이를 통해 SPA를 구현 할 수 있음.
+    - SPA의 주요 장점
+      - 향상된 검색엔진 최적화(?)
+      - 성능 향상(체감)
+
+10-3-1 Hello React
+
+- 프로젝트 생성
+
+```bash
+npm init -y
+npm i webpack webpack-cli
+node_modules/.bin/webpack init
+
+npm i react react-dom
+```
+
+```javascript
+import react from 'react';
+import ReactDOM from 'react-dom';
+
+const h = react.createElement;
+
+class Hello extends react.Component {
+  render() {
+    return h('h1', null [
+      'Hello ',
+      this.props.name || 'World'
+    ])
+  }
+}
+
+ReactDOM.render(
+  h(Hello, { name: 'React' }),
+  document.getElementsByTagName('body')[0]
+);
+```
+
+10-3-2 react.createElement의 대안
+
+- JSX: Javascript XML
+  - React에서 사용하는 템플릿 언어
+  - Babel을 통해 JSX를 React.createElement로 변환함.
+  - JSX의 장점
+    - 템플릿 언어를 사용함으로써, 가독성이 향상됨.
+    - IDE의 지원을 받을 수 있음.
+    - 템플릿 언어를 사용함으로써, 컴포넌트의 구조를 더 명확하게 표현할 수 있음.
+
+```jsx
+import react from 'react';
+import ReactDOM from 'react-dom';
+
+class Hello extends react.Component {
+  render() {
+    return <h1>Hello {this.props.name || 'World'}</h1>
+  }
+}
+
+ReactDOM.render(
+  <Hello name="React" />,
+  document.getElementsByTagName('body')[0]
+)
+```
+
+10-3-3 상태 저장 컴포넌트
+
+- 상태 저장 컴포넌트: 상태를 저장하고, 이를 통해 렌더링을 수행하는 컴포넌트
+- 코드 생략
