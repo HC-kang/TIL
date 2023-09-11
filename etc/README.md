@@ -82,6 +82,48 @@
 
 ## Redis
 
+### 설치
+
+```bash
+sudo add-apt-repository ppa:redislabs/redis
+sudo apt update
+sudo apt upgrade
+sudo apt install -y redis-server
+```
+
+### 버전확인
+
+```bash
+redis-server -v
+```
+
+### 설정
+
+```bash
+sudo vi /etc/redis/redis.conf
+
+# maxmemory 1g
+# maxmemory-policy allkeys-lru
+
+sudo systemctl restart redis-server.service # restart
+```
+
+- maxmemory: 최대 메모리 크기
+- maxmemory-policy: 메모리가 가득찼을 때의 데이터 삭제 정책. volatile-*은 삭제가능한 대상이 없으면 OOM 오류 발생 / ★은 추천 정책
+  - noeviction(★): 기존 데이터 삭제 안함. 메모리 한계에 도달하면 OOM 오류 반환하며 새 데이터가 저장되지 않음.
+  - allkeys-lru(★): 모든 키 중에서 LRU 기준으로 삭제하여 공간확보
+  - allkeys-random: 모든 키 중에서 랜덤으로 삭제하여 공간확보
+  - volatile-lru(★):  expire set을 가진 것 중 LRU로 삭제하여 공간확보
+  - volatile-ttl(★★): expire set을 가진 것 중 TTL이 짧은 것부터 삭제하여 공간확보
+  - volatile-random: expire set을 가진 것 중에서 랜덤으로 삭제하여 공간확보
+
+### 포트 확인
+
+```bash
+ps -ef | grep redis
+netstat -nlpt | grep 6379
+```
+
 ### 접속
 
 - 사용법 : redis-cli -h [접속 IP] -p [포트] -a [패스워드] -n [DB번호] -c(클러스터)
