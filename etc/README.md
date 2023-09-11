@@ -124,6 +124,16 @@ ps -ef | grep redis
 netstat -nlpt | grep 6379
 ```
 
+### 레디스 삭제
+
+```bash
+sudo systemctl stop redis-server
+sudo systemctl disable redis-server
+sudo apt-get remove redis-server
+sudo apt-get purge redis-server
+sudo rm -rf /etc/redis /var/lib/redis
+```
+
 ### 접속
 
 - 사용법 : redis-cli -h [접속 IP] -p [포트] -a [패스워드] -n [DB번호] -c(클러스터)
