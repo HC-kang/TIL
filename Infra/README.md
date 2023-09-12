@@ -52,3 +52,56 @@
       - Enable Auto-assign Public IP
       - Create Security Group
         - Inbound: SSH(22)
+
+### Github OIDC + Role
+
+- Github에서 제공하는 OIDC를 이용하여 인증을 수행한다.
+- secret을 사용하는 것 보다 안전하다.
+  - [링크](https://docs.github.com/ko/enterprise-cloud@latest/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
+
+- 방법
+  - AWS IAM 콘솔에서 Identity providers 추가
+    - ProviderURL: <https://token.actions.githubusercontent.com>
+    - Audience: sts.amazonaws.com
+  - Assign role, create new role
+    - Trusted entities: Web identity
+    - Identity provider: token.actions.githubusercontent.com
+    - Audience: sts.amazonaws.com
+    - Github organization: {{ YOUR_ORGANIZATION OR USERNAME }}
+    - Github repository: {{ YOUR_REPOSITORY }}(Optional)
+    - Github branch: {{ YOUR_BRANCH }}(Optional)
+  - 생성한 role 선택
+    - Permissions 탭에서 권한 부여
+      - ECR Full Access
+      - Add permission - Create inline policy
+
+        ```json
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "VisualEditor0",
+              "Effect": "Allow",
+              "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:CompleteLayerUpload",
+                "ecr:DescribeImages",
+                "ecr:GetAuthorizationToken",
+                "ecr:DescribeRepositories",
+                "ecr:UploadLayerPart",
+                "ecr:ListImages",
+                "ecr:InitiateLayerUpload",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetRepositoryPolicy",
+                "ecr:PutImage"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+        ```
+
+- 출처
+  - [Github Docs](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)
+  - [정민 님 블로그](https://velog.io/@jeongmin78/CICD-Github-Action-AWS-IAM-Role-%EC%9D%B4%EC%9A%A9%ED%95%B4-%EC%9D%B4%EB%AF%B8%EC%A7%80%EB%A5%BC-ECR%EC%97%90-%EC%98%AC%EB%A6%AC%EA%B8%B0-8n3fmmgn)
