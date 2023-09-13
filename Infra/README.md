@@ -34,9 +34,10 @@
     - Public
       - Inbound
         - 22, 80, 443
-        - 1024-65535: ephemeral port
+        - 1024-65535: ephemeral port - private subnet에 있는 instance가 public subnet에 있는 instance와 통신할 때 사용
       - Outbound
         - allow all
+        - 1024-65535: public subnet에 있는 instance가 ssh 연결시 휘발성 포트를 통한 응답을 받기 위해 사용
     - Private
       - Inbound
         - allow all
@@ -105,3 +106,23 @@
 - 출처
   - [Github Docs](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)
   - [정민 님 블로그](https://velog.io/@jeongmin78/CICD-Github-Action-AWS-IAM-Role-%EC%9D%B4%EC%9A%A9%ED%95%B4-%EC%9D%B4%EB%AF%B8%EC%A7%80%EB%A5%BC-ECR%EC%97%90-%EC%98%AC%EB%A6%AC%EA%B8%B0-8n3fmmgn)
+
+### ECR
+
+- ECR(Elastic Container Registry): AWS에서 제공하는 Docker Registry
+- ECR에 이미지를 push하고, ECS에서 pull하여 사용한다.
+
+### ECS
+
+- ECS(Elastic Container Service): AWS에서 제공하는 Container Orchestration Service
+- ECS Cluster
+  - EC2 Linux + Network Mode
+    - instance type: m5d.large
+    - number of instance: 2~
+    - subnet: Private1, Private2 - ECS Cluster가 생성되는 VPC의 Private Subnet
+    - security group
+      - Inbound: 22, 80, 443
+      - Outbound: allow all
+    - IAM role: ecsInstanceRole
+      - AmazonEC2ContainerServiceforEC2Role
+      - CloudWatchLogsFullAccess(Optional)
