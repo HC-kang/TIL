@@ -4521,3 +4521,243 @@ ReactDOM.render(
   - 애플리케이션의 구조를 제한하여, 렌더링을 위한 최소한의 데이터만 가져오는 방식
   - 말단의 페이지 컴포넌트가 전체의 룩앤필을 모두 담당함.
   - 추상화를 통해 코드의 중복을 최소화 할 수 있음.
+
+## Chapter 11. 고급 레시피
+
+- 주요개념
+  - 비동기적으로 초기화되는 컴포넌트 처리
+  - 비동기식요청 일괄 처리 및 캐싱
+  - 비동기 작업 취소
+  - CPU 바운드 작업의 취소
+
+### 11-1 비동기적으로 초기화되는 컴포넌트 다루기
+
+- Node.js의 많은 모듈에 동기 API가 존재하는 이유는, 초기화 작업에 사용하기 매우 편리하기 때문임.
+- 그러나 초기화 단계에서 네트워크 통신이나, 파일 시스템 접근 등의 작업을 수행하는 경우, 동기 API를 사용하기 어려울 수 있음.
+
+11-1-1 비동기적으로 초기화된 컴포넌트의 문제
+
+- db 모듈을 통해 문제점을 확인 해 볼 수 있음.
+- 일반적으로 db모듈의 경우, 초기화(db와 연결) 전에는 쿼리등 명령을 실행 할 수 없음.
+
+```javascript
+// db.js
+import { EventEmitter } from 'events';
+
+class DB extends EventEmitter {
+  connected = false;
+
+  connect() +
+  // 연결 지연 모킹
+  setTimeout(() => {
+    this.connected = true;
+    this.emit('connected');
+  }, 500);
+}
+
+async query(queryString) {
+  if (!this.connected) {
+    throw new Error('Not connected yet');
+  }
+  console.log(`Query: ${queryString}`);
+}
+
+export const db = new DB();
+```
+
+- 이런 문제점에 대한 두 가지 간단한 해결책이 존재함.
+  - 로컬 초기화
+  - 지연 시작
+
+- 로컬 초기화
+  - 매 요청에서 API가 호출되기 전에 모듈이 초기화되었는지 확인
+
+  ```javascript
+  import { once } from 'event';
+  import { db } from './db.js';
+
+  db.connect();
+
+  async function updateLastAccess() {
+    if (!db.connected) {
+      await once(db, 'connected');
+    }
+    await db.query(`INSERT (${Date.now()}) INTO "LastAccess"`);
+  }
+
+  updateLastAccess();
+  setTimeout(() => {
+    updateLastAccess();
+  }, 600)
+  ```
+
+  - query() 함수를 호출 할 때 마다 컴포넌트가 초기화 되었는지, 즉 db가 연결되었는지 확인해야 함.
+  - 이를 다소 변형한 것이, query() 함수 자체에서 연결 여부를 확인하는 것으로, 이렇게 하면 사용자가 아닌 라이브러리 제작자가 이를 대신 처리하는 형태임.
+
+- 지연 시작
+  - 컴포넌트가 초기화 될 때 까지 의존하는 다른 컴포넌트의 실행을 지연시키는 것.
+
+  ```javascript
+  import { once } from 'event';
+  import { db } from './db.js';
+
+  async function initialize() {
+    db.connect();
+    await once(db, 'connected');
+  }
+
+  async function updateLastAccess() {
+    await db.query(`INSERT (${Date.now()}) INTO "LastAccess"`);
+  }
+
+  initialize()
+    .then(() => {
+      updateLastAccess();
+      setTimeout(() => {
+        updateLastAccess();
+      }, 600);
+    })
+  ```
+
+  - 가장 큰 단점은, db처럼 비동기적으로 초기화되는 컴포넌트를 사용하는, 다른 컴포넌트를 모두 알고있어야 한다는 점임.
+  - 이를 막는 또다른 방법은, 모든 프로그램의 시작을 해당 시간만큼 지연시키는것임.
+    - 이는 간단한 방법이지만 전체 프로그램의 속도를 고려하지 않은 방법임.
+    - 또한 다시 초기화를 수행해야 하는 경우를 고려하고 있지 않음.
+
+11-1-2 사전 초기화 큐
+
+- 컴포넌트가 초기화된 이후에만 서비스가 시작되어야 하는 경우, 이를 위한 큐를 만들 수 있음.
+
+```javascript
+import { EventEmitter } from 'events';
+
+class DB extends EventEmitter {
+  connected = false;
+  commandQueue = [];
+
+  async query(queryString) {
+    if (!this.connected) {
+      console.log(`Request queued: ${queryString}`);
+
+      return new Promise((resolve, reject) => {
+        const command = () => {
+          this.query(queryString)
+            .then(resolve, reject);
+        }
+        this.commandQueue.push(command);
+      })
+    }
+  console.log(`Queue executed: ${queryString}`);
+  }
+
+  connect() {
+    // 연결 지연 모킹
+    setTimeout(() => {
+      this.connected = true;
+      this.emit('connected');
+      this.commandQueue.forEach(command => command());
+      this.commandQueue = [];
+    }, 500);
+  }
+}
+
+export const db = new DB();
+```
+
+- 위의 코드를 상태 패턴을 통해서 좀 더 고도화 할 수 있음.
+  - 초기화 이후: 초기화 여부에 관계없이 비즈니스 로직 구현
+  - 초기화 이전: 호출된 함수를 큐에 저장 / 초기화 시 모두 실행
+
+```javascript
+// initialized state
+class InitializedState {
+  async query(queryString) {
+    console.log(`Query executed: ${queryString}`);
+  }
+}
+```
+
+```javascript
+// queuing state
+const METHODS_REQUIRING_CONNECTION = ['query'];
+const deactivate = Symbol('deactivate');
+
+class QueuingState {
+  constructor(db) {
+    this.db = db;
+    this.commandsQueue = [];
+
+    // this.state.query()(=queue.query()) 등의 함수를 생성
+    METHODS_REQUIRING_CONNECTION.forEach(methodName => {
+      this[methodName] = function(...args) {
+        console.log(`Command queued: ${methodName, args}`);
+        return new Promise((resolve, reject) => {
+          const command = () => {
+            db[methodName](...args)
+              .then(resolve, reject);
+          }
+          this.commandsQueue.push(command);
+        })
+      }
+    })
+  }
+
+  [deactivate]() {
+    this.commandsQueue.forEach(command => command());
+    this.commandsQueue = [];
+  }
+}
+```
+
+```javascript
+// db.js
+class DB extends EventEmitter {
+  constructor() {
+    super();
+    this.state = new QueuingState(this);
+  }
+
+  async query(queryString) {
+    return this.state.query(queryString);
+  }
+
+  connect() {
+    setTimeout(() => {
+      this.connected = true;
+      this.emit('connected');
+      const oldState = this.state;
+      this.state = new InitializedState();
+      oldState[deactivate] && oldState[deactivate]();
+    }, 500);
+  }
+}
+
+export const db = new DB();
+```
+
+- 이러한 방법을 통해, 초기화 검사에 신경 쓸 필요 없이 비즈니스 로직을 구현할 수 있음.
+
+11-1-3 실전에서
+
+- Mongoose 드라이버가 이러한 방식으로 구현되어 있음.
+  - 따라서 몽구스 사용시에는 connection을 기다릴 필요 없이 바로 쿼리를 사용 할 수 있음.
+- PostreSQL 드라이버도 비슷한 방식이지만, 조금 다른 방식으로 구현되어있음.
+
+### 11-2 비동기식 요청 일과 처리 및 캐싱
+
+11-2-1 비동기식 요청 일괄 처리란?
+
+- 이미 요청이 처리중에 새로운 요청이 들어오면, 새로운 요청을 생성하는 대신 이미 실행중인 작업에 피기백(piggyback)하는 것을 의미함.
+  - 피기백(piggyback): 네트워크 통신에서 이미 전송중인 패킷에 추가적인 정보를 담아 전송하는 것을 의미함.
+- 이는 복잡한 캐싱 로직을 구현하지 않아도 되며, 불필요한 요청을 줄일 수 있음.
+
+11-2-2 최적의 비동기 요청 캐싱
+
+- 작업 소요시간이 짧거나, 요청이 많이 발생하지 않는 경우에는 일괄 처리가 효과적이지 않음.
+- 이러한 경우에는 공격적인 캐싱을 통해 성능을 향상 시킬 수 있음.
+- 최적의 비동기 캐싱 알고리즘의 두 단계
+  - 캐시 설정되지 않은 요청들은 일괄 처리 / 캐시 설정
+  - 캐시 설정 후에는 캐시된 데이터 사용
+- 이 과정에서 3장(Zalgo)에서 다룬 내용에 다시 주의해야 함.
+  - 동기와 비동기가 혼재된 코드는 가독성이 떨어지고, 버그가 발생하기 쉬움.
+  - 따라서 캐시된 값이더라도 동일하게 비동기로 반환해야 함.
