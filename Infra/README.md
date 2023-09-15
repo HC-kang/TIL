@@ -26,8 +26,11 @@
     - Route Table for Public
       - associate with Public1, Public2
       - route to Internet Gateway
-    - Route Table for Private
-      - associate with Private1, Private2
+    - Route Table for Private1
+      - associate with Private1
+      - route to NAT Gateway
+    - Route Table for Private2
+      - associate with Private2
       - route to NAT Gateway
 
   - ACL(Access Control List)
@@ -84,6 +87,7 @@
               "Sid": "VisualEditor0",
               "Effect": "Allow",
               "Action": [
+                "iam:PassRole",
                 "ecr:GetDownloadUrlForLayer",
                 "ecr:BatchGetImage",
                 "ecr:CompleteLayerUpload",
@@ -95,7 +99,10 @@
                 "ecr:InitiateLayerUpload",
                 "ecr:BatchCheckLayerAvailability",
                 "ecr:GetRepositoryPolicy",
-                "ecr:PutImage"
+                "ecr:PutImage",
+                "ecs:UpdateService",
+                "ecs:RegisterTaskDefinition",
+                "ecs:DescribeServices",
               ],
               "Resource": "*"
             }
