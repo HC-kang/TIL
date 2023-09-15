@@ -4761,3 +4761,340 @@ export const db = new DB();
 - 이 과정에서 3장(Zalgo)에서 다룬 내용에 다시 주의해야 함.
   - 동기와 비동기가 혼재된 코드는 가독성이 떨어지고, 버그가 발생하기 쉬움.
   - 따라서 캐시된 값이더라도 동일하게 비동기로 반환해야 함.
+
+11-2-3 캐싱 혹은 일괄 처리가 없는 API서버
+
+- '특정 유형의 상품에 대한 거래 내역의 합계를 반환하는 서버'를 구현하는 예제
+
+```javascript
+// totalSales.js
+import level from 'level';
+import sublevel from 'subleveldown';
+
+const db = level('example-db');
+const salesDb = sublevel(db, 'sales', { valueEncoding: 'json' });
+
+export async function totalSales(product) {
+  const now = Date.now();
+  let sum = 0;
+  for await (const transaction of salesDb.createValueStream()) {
+    if (!product || transaction.product === product) {
+      sum += transaction.amount;
+    }
+  }
+
+  console.log(`totalSales() took: ${Date.now() - now}ms`);
+
+  return sum;
+}
+```
+
+```javascript
+// server.js
+import { createServer } from 'http';
+import { totalSales } from './totalSales.js';
+
+createServer(async (req, res) => {
+  const url = new URL(req.url, 'http://localhost:3000');
+  const product = url.searchParams.get('product');
+  console.log(`Processing query: ${url.search})`);
+
+  const sum = await totalSales(product);
+  res.setHeader(`Content-Type`, `application/json`);
+  res.writeHead(200);
+  res.end(JSON.stringify({
+    product,
+    sum,
+  }))
+}).listen(8000, () => console.log('Server started'));
+```
+
+```javascript
+// populateDb.js
+import level from 'level'
+import sublevel from 'subleveldown'
+import nanoid from 'nanoid'
+
+const db = level('example-db')
+const salesDb = sublevel(db, 'sales', { valueEncoding: 'json' })
+const products = ['book', 'game', 'app', 'song', 'movie']
+
+async function populate () {
+  for (let i = 0; i < 100000; i++) {
+    await salesDb.put(nanoid(), {
+      amount: Math.ceil(Math.random() * 100),
+      product: products[Math.floor(Math.random() * 5)]
+    })
+  }
+
+  console.log('DB populated')
+}
+
+populate()
+```
+
+```javascript
+// loadTest.js
+import superagent from 'superagent'
+
+const start = Date.now()
+let count = 20
+let pending = count
+const interval = 200
+const query = process.argv[2] ? process.argv[2] : 'product=book'
+
+function sendRequest () {
+  superagent.get(`http://localhost:8000?${query}`)
+    .then(result => {
+      console.log(result.status, result.body)
+      if (!--pending) {
+        console.log(`All completed in: ${Date.now() - start}ms`)
+      }
+    })
+
+  if (--count) {
+    setTimeout(sendRequest, interval)
+  }
+}
+
+sendRequest()
+```
+
+11-2-4 Promises를 사용한 일괄 처리 및 캐싱
+
+- 프로미스는 비동기 일괄 처리와 요청 캐싱을 구현하는 매우 유용한 도구임.
+  - 여러 then()을 동일한 리스너에 연결 할 수 있음.
+  - then() 리스너는 한 번의 호출이 보장되며, 연속적으로 연결되어 있을 때에도 동작함.
+  - 또한 무조건 비동기적으로 호출됨.
+
+- 배치 처리 코드
+
+  ```javascript
+  import { totalSales as totalSalesRaw } from './totalSales.js';
+
+  const runningRequests = new Map();
+
+  export function totalSales(product) {
+    if (runningRequests.has(product) { // 이미 요청이 실행중인 경우
+      console.log('Batching')
+      return runningRequests.get(product); // 해당 프로미스를 반환
+    })
+
+    const resultPromise = totalSalesRaw(product); // 요청이 없는 경우, 새로운 프로미스 생성
+    runningRequest.set(product, resultPromise);
+    resultPromise.finally(() => { // 프로미스가 완료되면, 맵에서 제거
+      runningRequests.delete(product);
+    })
+
+    return resultPromise;
+  }
+  ```
+
+  - 이 방법의 중요한 점은, 캐시 무효화 전략에 대해 전혀 고민하지 않아도 된다는점임.
+    - 캐시 무효화는 이전부터 많은 문제를 야기해왔음.
+
+- 캐싱 처리 코드
+
+  ```javascript
+  import { totalSales as totalSalesRaw } from './totalSales.js';
+
+  const CACHE_TTL = 30 * 1000; // 30초
+  const cache = new Map();
+
+  export function totalSales(product) {
+    if (cache.has(product)) { // 캐시에 이미 존재하는 경우
+      console.log('Cache hit');
+      return cache.get(product);
+    }
+
+    const resultPromise = totalSalesRaw(product);
+    cache.set(product, resultPromise); // 캐시에 저장
+    resultPromise.then(() => {
+      setTimeout(() => { // 캐시 무효화, 30초 후에 캐시에서 제거
+        cache.delete(product); 
+      }, CACHE_TTL);
+    }, err => { // 에러 발생시 캐시에서 제거
+      cache.delete(product);
+      throw err;
+    })
+    return resultPromise;
+  }
+  ```
+
+- 캐싱 메커니즘 구현에 대한 참고사항
+  - 캐시값이 많으면 메모리 낭비가 심함.
+  - 여러 인스턴스 사이의 캐시 동기화 문제가 발생할 수 있음.
+    - 레디스, 멤캐시드 등의 외부 캐시 서버를 사용하는 것이 좋음.
+  - TTL이 아닌, 수동 무효화 방법은 최신 데이터를 제공 할 수 있지만 관리가 어려움.
+
+### 11-3 비동기 작업 취소
+
+11-3-1 취소 가능한 함수를 만들기 위한 기본 레시피
+
+- 모든 비동기 호출 후에, 취소 요청여부가 확인되면 해당 작업을 조기에 종료.
+- 구현을 위해 추가되는 코드가 매우 많아, 가독성이 떨어짐.
+
+```javascript
+import { asyncRoutine } from './asyncRoutine.js';
+import { CancelError } from './CancelError.js';
+
+async function cancelable(cancelObj) {
+  const resA = await asyncRoutine('A');
+  console.log(resA);
+  if (cancelObj.cancelled) {
+    throw new CancelError();
+  }
+
+  const resB = await asyncRoutine('B');
+  console.log(resB);
+  if (cancelObj.cancelled) {
+    throw new CancelError();
+  }
+
+  const resC = await asyncRoutine('C');
+  console.log(resC);
+}
+
+// use
+const cancelObj = { cancelled: false };
+cancelable(calcelObj)
+  .catch(err => {
+    if (err instanceof CancelError) {
+      console.log('Cancelled');
+    } else {
+      console.log('Error', err);
+    }
+  })
+
+setTimeout(() => {
+  cancelObj.cancelled = true;
+}, 100);
+```
+
+11-3-2 비동기 호출 래핑
+
+- 비동기 루틴을 호출하는 래핑함수 내부에 취소 로직을 포함하는 방법
+- 훨씬 읽기 쉽고 간결해짐.
+- 그러나 매 함수를 래핑해야 하기에, 코드가 중복될 수 있고 누락될 수 있음.
+- 또한 적지만 여전히 가독성에 영향을 끼침.
+
+```javascript
+import { CancelError } from './CancelError.js';
+
+export function createCancelWrapper() {
+  let cancelRequested = false;
+
+  function cancel() {
+    cancelRequested = true;
+  }
+
+  function cancelWrapper(func, ...args) {
+    if (cancelRequested) {
+      return Promise.reject(new CancelError());
+    }
+    return func(...args);
+  }
+
+  return { cancelWrapper, cancel };
+}
+
+// use
+import { asyncRoutine } from './asyncRoutine.js';
+import { createCancelWrapper } from './createCancelWrapper.js';
+import { CancelError } from './CancelError.js';
+
+async function cancelable(cancelWrapper) {
+  const resA = await cancelWrapper(asyncRoutine, 'A');
+  console.log(resA);
+  const resB = await cancelWrapper(asyncRoutine, 'B');
+  console.log(resB);
+  const resC = await cancelWrapper(asyncRoutine, 'C');
+  console.log(resC);
+}
+
+const { cancelWrapper, cancel } = createCancelWrapper();
+
+cancelable(cancelWrapper)
+  .catch(err => {
+    if (err instanceof CancelError) {
+      console.log('Cancelled');
+    } else {
+      console.log('Error', err);
+    }
+  })
+
+setTimeout(() => {
+  cancel();
+}, 100);
+```
+
+11-3-3 제너레이터를 사용한 취소 가능한 비동기 함수
+
+- 함수의 비동기 흐름을 제어하는 수퍼바이저를 작성 할 수 있음.
+
+```javascript
+import { CancelError } from './CancelError.js';
+
+export function createAsyncCancelable(geneatorFunction) {
+  return function asyncCancelable(...args) {
+    const generatorObject = generatorFunction(...args) // 제너레이터 객체 생성
+    let cancelRequested = false;
+
+    function cancel() {
+      cancelRequested = true;
+    }
+
+    const promise = new Promise((resolve, reject) => {
+      async function nextStep(prevResult) { // 제너레이터 객체의 next()를 호출하는 함수
+        if (cancelRequested) {
+          return reject(new CancelError());
+        }
+
+        if (prevResult.done) {
+          return resolve(prevResult.value);
+        }
+
+        try { // 제너레이터 객체의 next()를 호출하고, 결과를 받아옴.
+          nextStep(generatorObject.next(await prevResult.value));
+        } catch (err) {
+          try {
+            nextStep(generatorObject.throw(err));
+          } catch (err) {
+            reject(err);
+          }
+        }
+      }
+      nextStep(generatorObject.next());
+    })
+
+    return { promise, cancel }; // 취소 가능한 프로미스 반환
+  }
+
+  // use
+  import { asyncRoutine } from './asyncRoutine.js';
+  import { createAsyncCancelable } from './createAsyncCancelable.js';
+  import { CancelError } from './CancelError.js';
+
+  const cancelable = createAsyncCancelable(function*() {
+    const resA = yield asyncRoutine('A');
+    console.log(resA);
+    const resB = yield asyncRoutine('B');
+    console.log(resB);
+    const resC = yield asyncRoutine('C');
+    console.log(resC);
+  });
+
+  const { promise, cancel } = cancelable();
+  promise.catch(err => {
+    if (err instanceof CancelError) {
+     console.log('Function canceled'); 
+    } else {
+      console.error(err);
+    }
+  })
+
+  setTimeout(() => {
+    cancel();
+  }, 100);
+}
+```
