@@ -5098,3 +5098,267 @@ export function createAsyncCancelable(geneatorFunction) {
   }, 100);
 }
 ```
+
+### 10-4 CPU 바운드 작업의 실행
+
+- 위에서 다룬 totalScale() 함수는 CPU 바운드 작업이 아님.
+  - 비동기 작업을 호출하면 스택이 항상 이벤트 루프로 다시 돌아가 다른 요청을 처리 할 수 있으므로, CPU 바운드 작업이 아님.
+- 이와 달리 동기 작업을 싱행하는 경우, 즉 CPU 바인딩된 작업은 제어권을 다른 요청에게 넘기지 않으므로, 이벤트 루프가 블로킹됨.
+  - 동기 작업의 예시: 파일 IO, 압축, 암호화, 해시 등
+
+10-4-1 부분집합 합계 문제 풀기
+
+- CPU 바인딩된 작업의 예시로, 조합(Combination) 알고리즘을 사용할 것임.
+  - 공집합이 아닌 부분집합 중 합이 0인 부분집합을 찾는 문제
+
+```javascript
+// subsetSum.js
+export class SubsetSum extends EventEmitter {
+  constructor(sum, set) {
+    super();
+    this.sum = sum;
+    this.set = set;
+    this.totalSubsets = 0;
+  }
+
+  _combine(set, subset) { // 조합 알고리즘
+    for (let i = 0; i < set.length; i++) {
+      const newSubset = subset.concat(set[i]); 
+      this._combine(set.slice(i + 1), newSubset);
+      this._processSubset(newSubset);
+    }
+  }
+
+  _processSubset(subset) {
+    console.log('Subset', ++this.totalSubsets, subset);
+    const res = subset.reduce((prev, item) => (prev + item), 0);
+    if (res === this.sum) {
+      this.emit('match', subset);
+    }
+  }
+
+  start() {
+    this._combine(this.set, []); // 동기 작업
+    this.emit('end');
+  }
+}
+```
+
+```javascript
+// index.js
+import { createServer } from 'http';
+import { SubsetSum } from './subsetSum.js';
+
+createServer((req, res) => {
+  const url = new URL(req.url, 'http://localhost:3000');
+  if (url.pathname !== '/subsetSum') {
+    res.writeHead(200);
+    return res.end('I\'m alive!\n');
+  }
+
+  const data = JSON.parse(url.searchParams.get('data'));
+  const sum = JSON.parse(url.searchParams.get('sum'));
+  res.writeHead(200);
+  const subsetSum = new SubsetSum(sum, data);
+  subsetSum.on('match', match => {
+    res.write(`Match: ${JSON.stringify(match)}\n`);
+  })
+  subsetSum.on('end', () => res.end());
+  subsetSum.start();
+}).listen(8000, () => console.log('Server started'));
+```
+
+```zsh
+node index.js
+
+curl -G http://localhost:8000/subsetSum --data-urlencode "data=[16, 19, 1, 1, -16, 9, 1, -5, -2, 17, -15, -97, 19, -16, -4, -5, 15]" --data-urlencode "sum=0"
+
+curl -G http://localhost:8000 # 한동안 응답 없음
+```
+
+- 첫 번째 요청이 완료될 때 까지 두 번째 요청은 응답을 받지 못함.
+- 이러한 노드의 단일 스레드 문제를 해결하기 위해 다음과 같은 세가지 방법이 존재함.
+  - 인터리빙
+  - 외부 프로세스 사용
+  - 워커 스레드 사용
+
+11-4-2 setImmediate를 사용한 인터리빙
+
+- CPU 바인딩 알고리즘은 일반적으로 여러 페이즈를 가짐.
+- 결과적으로 각 페이즈가 종료되거나, 특정 횟수만큼 실행된 후 이벤트 루프에 제어권을 넘기는 것.
+
+```javascript
+// subsetSumDefer.js
+// ... 기타 코드
+_combineInterleaved(set, subset) {
+  this.runningCombine++;
+  setImmediate(() => {
+    this._combine(set, subset);
+    if (--this.runningCombine === 0) {
+      this.emit('end');
+    }
+  })
+}
+```
+
+- 그러나 이 방법에서는, setImmediate()를 사용해서 비동기적으로 _combine을 호출하기에, 모든 조합이 완료된 시기를 알기가 어려움.
+- 이를 위해서는 _combine()을 실행하는 모든 인스턴스의 결과를 추적해야 함.
+- 이를 위해 runningCombine 변수를 사용함.
+
+```javascript
+_combine(set, subset) {
+  for (let i = 0; i < set.length; i++) {
+    const newSubset = subset.concat(set[i]);
+    this._combineInterleaved(set.slice(i + 1), newSubset);
+    this._processSubset(newSubset);
+  }
+}
+
+start() {
+  this.runningCombine = 0;
+  this._combineInterleaved(this.set, []);
+}
+```
+
+- 위와 동일한 커맨드를 사용해서, 시간을 측정 해 보면, 거의 요청 즉시 "I'm alive!"가 출력됨.
+- 고려사항
+  - setImmediate()를 사용하면, 이벤트 루프가 블로킹되지 않음. 다만 오버헤드가 발생함.
+  - 각 페이즈가 오래 걸리는 경우, 인터리빙은 원활하게 동작하지 않음.
+  - 즉, 한 페이즈가 지나치게 오래걸리지 않고, 오버헤드를 감수할 수 있는 경우에는 꽤나 좋은 방법이 될 수 있음
+- 참고사항
+  - setImmediate()가 아닌 nextTick()은 장기 실행 작업을 인터리브 할 수 없음.
+  - 이는 nextTick()이 대기중인 IO 이전에 작없을 예약하기 때문으로, 이를 다수 호출시 IO부족으로 에러가 발생함.
+
+11-4-3 외부 프로세스의 사용
+
+- 외부 프로세스를 사용하는 방법은, 노드의 단일 스레드 문제를 해결하는 가장 유용한 방법임.
+  - 인터리브 할 필요 없이, 단일 스레드에서 최고의 성능을 발휘할 수 있음.
+  - 수정이 쉽고, 작업 소요가 적음
+  - 필요 시 저수준의 언어를 사용해서 더욱 빠른 코드를 작성할 수 있음.
+- child_process.fork()함수 덕분에 매우 쉽게 외부 프로세스를 생성 할 수 있음.
+  - 이 함수는 자식 프로세스의 표준 입출력을 통해 통신할 수 있는 IPC 채널을 생성함.
+  - 이를 통해 자식 프로세스와 통신하고, 종료를 감지 할 수 있음.
+- 이를 활용한 subsetSum의 리팩토링 예시
+
+  ```javascript
+  // processPool.js
+  import { fork } from 'child_process';
+
+  export class ProcessPool {
+    constructor(file, poolMax) {
+      this.file = file;
+      this.poolMax = poolMax;
+      this.pool = []; // 준비된 프로세스 집합
+      this.active = []; // 현재 작업중인 프로세스 집합
+      this.waiting = []; // 실행 대기중인 작업 집합
+    }
+
+    acquire() {
+      return new Promise((resolve, reject) => {
+        let worker;
+        if (this.pool.length > 0) { // 준비된 프로세스가 있는 경우
+          worker = this.pool.pop();
+          this.active.push(worker); // 현재 작업중인 프로세스에 추가
+          return resolve(worker);   // 프로미스 반환
+        }
+
+        if (this.active.length >= this.poolMax) { // 최대 프로세스 개수를 초과한 경우
+          return this.waiting.push({ resolve, reject }); // 대기중인 작업에 추가
+        }
+
+        worker = fork(this.file);   // 준비된 프로세스가 없지만, 최대 개수를 초과하지 않은 경우 새로운 프로세스 생성
+        worker.once('message', message => { // 리스너 등록하고 프로세스 반환
+          if (message === 'ready') {
+            this.active.push(worker);
+            return resolve(worker);
+          }
+          worker.kill();
+          reject(new Error('Improper precess start'));
+        })
+        worker.once('exit', code => { // 프로세스가 종료되면, 종료 코드를 출력하고, 작업중인 프로세스, 대기중인 프로세스에서 제거
+          console.log(`Worker exited with code ${code}`);
+          this.active = this.active.filter(w => worker !== w);
+          this.pool = this.pool.filter(w => worker !== w);
+        })
+      })
+    }
+
+    release(worker) {
+      if (this.waiting.length > 0) { // 실행 대기중인 작업이 있는 경우
+        const { resolve } = this.waiting.shift();
+        return resolve(worker);
+      }
+      this.active = this.active.filter(w => worker !== w); // 대기중인 작업이 없는 경우, 작업중인 프로세스에서 제거하고, 준비된 프로세스에 추가
+      this.pool.push(worker);
+    }
+  }
+  ```
+
+  - worker는 중지되지 않고 재할당되므로 시간을 절약 할 수 있음.
+  - 그러나 어플리케이션의 목표에 따라, 장기 미사용 시 프로세스를 종료하는 것이 더 효율적일 수 있음.
+  - 또한 응답하지 않거나 충돌한 프로세스를 감지하고, 이를 종료하는 로직이 필요함.
+
+  ```javascript
+  // subsetSumFork.js
+  import { EventEmitter } from 'events';
+  import { dirname, join } from 'path';
+  import { fileURLToPath } from 'url';
+  import { ProcessPool } from './processPool.js';
+
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const workerFile = join(__dirname, 'workers', 'subsetSumProcessWorker.js');
+  const workers = new ProcessPool(workerFile, 2);
+
+  export class SubsetSum extends EventEmitter {
+    constructor(sum, set) {
+      super();
+      this.sum = sum;
+      this.set = set;
+    }
+
+    async start() {
+      const worker = await workers.acquire(); // 프로세스 풀에서 프로세스를 가져옴
+      worker.send({ sum: this.sum, set: this.set }); // send()는 fork()를 통해 생성된 프로세스에 자동으로 할당된 메서드임.
+      const onMessage = msg => {
+        if (msg.event === 'end') { // 종료 이벤트가 발생한 경우
+          worker.removeListener('message', onMessage);
+          workers.release(worker);
+        }
+
+        this.emit(msg.event, msg.data);
+      }
+
+      worker.on('message', onMessage); // 메시지 리스너 등록
+    }
+  }
+  ```
+
+  - 실제 작업을 수행하는 subsetSumProcessWorker.js 구현.
+
+  ```javascript
+  import { SubsetSum } from '../subsetSum.js';
+
+  process.on('message', msg => {
+    const subsetSum = new SubsetSum(msg.sum, msg.set);
+
+    subsetSum.on('match', data => {
+      process.send({ event: 'match', data });
+    })
+
+    subsetSum.on('end', data => {
+      process.send({ event: 'end', data });
+    })
+
+    subsetSum.start();
+  })
+
+  process.send('ready');
+  ```
+
+  - 최초에 작성한 동기식 subsetSum.js을 그대로 사용하고 있음
+    - 독립된 스레드이기에 문제 없음.
+  - 다만 자식 프로세스가 다른 언어로 작성된 작업인 경우, 통신을 별도로 구현해주어야 함.
+  - 최초 프로그램과 같은 방식으로 실행 해 보면, "I'm alive!"가 출력되고, 다른 요청도 즉시 응답을 받음.
+  - 두번 실행해도 마찬가지로, "I'm alive!"가 출력되고, 다른 요청도 즉시 응답을 받음.
+  - 그러나 세번 실행하는 경우에는 세 번째 작업이 진행되지 않음.
+    - 이는 프로세스 풀의 최대 개수가 2개이기 때문임.
