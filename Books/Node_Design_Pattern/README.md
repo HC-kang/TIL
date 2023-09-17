@@ -5362,3 +5362,116 @@ start() {
   - 두번 실행해도 마찬가지로, "I'm alive!"가 출력되고, 다른 요청도 즉시 응답을 받음.
   - 그러나 세번 실행하는 경우에는 세 번째 작업이 진행되지 않음.
     - 이는 프로세스 풀의 최대 개수가 2개이기 때문임.
+
+11-4-4 작업자 스레드(worker threads) 사용
+
+- Node.js 10.5.0부터 워커 스레드가 추가되었음.
+- 워커 스레드는 child_process.fork()에 대한 보다 가벼운 대안임.
+- 기본 프로세스 내에서 실행되지만, 별도의 스레드에서 실행되므로, 메모리 공간이 더 작고 시작 시간이 빠름.
+- 그러나 다른 언어와 달리 심층 동기화 및 공유 기능을 지원하지 않음.
+  - 심층 동기화(deep synchronization): 경쟁조건, 무결성 손실 등의 문제를 해결하기 위한 동기화 기능. 뮤텍스, 세마포어 등
+- 기본적으로 워커 스레드는 메인 스레드와 동일한 메모리 공간을 공유하지 않음.
+- 따라서 메인 스레드와의 통신은 다른 방법으로 구현해야 함.
+  - 메시지 기반 통신 채널
+  - ArrayBuffer 객체의 전송
+  - SharedArrayBuffer 객체의 사용
+- SubsetSum 예제에 적용
+
+  ```javascript
+  // subsetSumWorker.js
+  import { Worker } from 'worker_threads';
+
+  // ProcessPool.js 와 유사
+  export class ThreadPool {
+    // ...
+    acquire() {
+      return new Promise((resolve, reject) => {
+        let worker;
+        if (this.pool.length > 0) {
+          worker = this.pool.pop();
+          return resolve(worker);
+        }
+
+        if (this.active.length >= this.poolMax) {
+          return this.waiting.push({ resolve, reject });
+        }
+        worker = new Worker(this.file);
+        worker.once('online', () => {
+          this.active.push(worker);
+          resolve(worker);
+        })
+        worker.once('exit', code => {
+          console.log(`Worker exited with code ${code}`);
+          this.active = this.active.filter(w => worker !== w);
+          this.pool = this.pool.filter(w => worker !== w);
+        })
+      })
+    }
+    // ...
+  }
+  ```
+
+  ```javascript
+  // subsetSumThreadWorker.js
+  import { parentPort } from 'worker_threads';
+  import { SubsetSum } from '../subsetSum.js';
+
+  parentPort.on('message', msg => {
+    const subsetSum = new SubsetSum(msg.sum, msg.set);
+
+    subsetSum.on('match', data => {
+      parentPort.postMessage({ event: 'match', data });
+    })
+
+    subsetSum.on('end', data => {
+      parentPort.postMessage({ event: 'end', data });
+    })
+
+    subsetSum.start();
+  })
+  ```
+
+  ```javascript
+  import { EventEmitter } from 'events';
+  import { dirname, join } from 'path';
+  import { fileURLToPath } from 'url';
+  import { ThreadPool } from './threadPool.js';
+
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const workerFile = join(__dirname, 'workers', 'subsetSumThreadWorker.js');
+  const workers = new ThreadPool(workerFile, 2);
+
+  export class SubsetSum extends EventEmitter {
+    constructor(sum, set) {
+      super();
+      this.sum = sum;
+      this.set = set;
+    }
+
+    async start() {
+      const worker = await workers.acquire();
+      worker.postMessage({ sum: this.sum, set: this.set });
+
+      const onMessage = msg => {
+        if (msg.event === 'end') {
+          worker.removeListener('message', onMessage);
+          workers.release(worker);
+        }
+
+        this.emit(msg.event, msg.data);
+      }
+
+      worker.on('message', onMessage);
+    }
+  }
+  ```
+
+11-4-5 운영에서 CPU 바인딩된 태스크의 실행
+
+- 위의 과정을 거치며 CPU 바인딩된 작업을 실행하는 방법에 대해 알아봄.
+- 다만, 위 방법들은 아이디어를 제공 할 뿐 실제 사용하기엔 각종 에러처리와 테스트가 필요함.
+- 따라서 실제 업무에는 보다 검증된 라이브러리를 사용하는 것이 좋음.
+
+### Chapter 11 요약
+
+- 생략
