@@ -5539,3 +5539,127 @@ start() {
   - 이러한 점은 단점일수도 있으나, 시스템에서 공유 할 수 없는 리소스에 의존하는것을 방지하는 장점이 되기도 함.
 
 12-2-1 클러스터 모듈
+
+- 단일 머신에서 Node.js를 사용할 때 사용 할 수 있는 가장 간단한 방법은 클러스터 모듈을 사용하는 것임.
+- 이러한 클러스터 모듈은 기본적으로 라운드로빈 알고리즘을 사용함.
+- 클러스터 모듈을 사용 할 때, 워커 스레드의 server.listen() 호출은 마스터 프로세스에 위임됨.
+  - 주의사항
+    - server.listen({ fileDescriptor }) 를 사용하는 경우, 마스터 프로세스가 이를 이해하지 못할 수 있음.
+      - 따라서, 마스터 프로세서에서 file descriptor를 생성하고, 이를 워커에 전달해야 함.
+    - server.listen(handle)을 사용하는 경우, 마스터 프로세스가 작업을 위임하지 않고 직접 handle을 사용함.
+    - server.listen(0)을 사용하는 경우, 최초에는 랜덤한 포트를 사용하나, 두번째 이후부터는 고정된 포트를 사용함.
+      - 따라서, 임의의 포트를 사용하려면 포트를 직접 생성해서 사용해야 함.
+- 활용해보기
+
+```javascript
+// cpu-bounded-single.js
+import { createServer } from 'http';
+
+const { pid } = process;
+const server = createServer((req, res) => {
+  // CPU bounded task
+  let i = 1e7;
+  while (i > 0) {
+    i--;
+  }
+
+  console.log(`Handling request from ${pid}`);
+  res.end(`Hello from ${pid}\n`);
+})
+
+server.listen(8000, () => console.log(`Started ${pid}`));
+```
+
+```zsh
+npx autocannon -c 200 -d 10 http://localhost:8000
+```
+
+```javascript
+// cpu-bounded-cluster.js
+import { createServer } from 'http';
+import { cpus } from 'os';
+import cluster from 'cluster';
+
+if (cluster.isMaster) {
+  const availableCpus = cpus();
+  console.log(`Clustering to ${availableCpus.length} processes`);
+  availableCpus.forEach(() => cluster.fork());
+} else {
+  const { pid } = process;
+  const server = createServer((req, res) => {
+    let i = 1e7; while (i > 0) { i--; }
+    console.log(`Handling request from ${pid}`);
+    res.end(`Hello from ${pid}\n`);
+  })
+}
+
+server.listen(8000, () => console.log(`Started ${pid}`));
+```
+
+- 참고: cluster 모듈은 내부적으로 child_process.fork()를 사용하므로, 아래와 같이 사용 할 수도 있음.
+
+  ```javascript
+  Object.values(cluster.workers).forEach(worker => worker.send('Hello from the master'));
+  ```
+
+```zsh
+npx autocannon -c 200 -d 10 http://localhost:8000
+```
+
+- 위의 두 예시를 비교해보면, 클러스터링을 사용한 경우, CPU 바운드 작업을 처리하는 데에 더욱 효율적임을 알 수 있음.
+- 더불어 클러스터링을 사용하면 오작동이나 충돌에 대한 복원력도 높아지게 됨.
+
+  ```javascript
+  // cpu-bounded-cluster.js
+  if (cluster.isMaster) {
+    const availableCpus = cpus();
+    console.log(`Clustering to ${availableCpus.length} processes`);
+    availableCpus.forEach(() => cluster.fork());
+
+    cluster.on('exit', (worker, code) => {
+      if (code !== 0 && !worker.exitedAfterDisconnect) {
+        console.log(`Worker ${worker.process.pid} crashed. ` + 'Starting a new worker...');
+      }
+      cluster.fork();
+    })
+  } else {
+    setTimeout(() => {
+      throw new Error('Ooops');
+    }, Math.ceil(Math.random() * 3) * 1000);
+  // ...
+  }
+  ```
+
+  - 위 코드는 마스터 프로세스가 'exit' 이벤트를 수신하면, 임의 종료인지 확인하고, 임의 종료가 아닌 경우 새로운 워커를 생성함.
+  - 프로세스 일부가 죽더라도, 다른 프로세스가 이를 대신 처리하므로, 애플리케이션의 가용성이 높아짐.
+
+- 또한 다운타임 제로 재시작도 구현이 가능함.
+  - 새 버전을 릴리즈하는 등의 재시작 상황에서, 서비스의 중단 없이 이어서 배포가 가능함.
+
+  ```javascript
+  // cpu-bounded-cluster.js
+  import { once } from 'events';
+
+  if (cluster.isMaster) {
+    // ...
+    process.on('SIGUSR2', async () => { // SIGUSR2: 사용자 정의 시그널
+      const workers = Object.values(cluster.workers);
+      for (const worker of workers) {
+        console.log(`Stopping worker: ${worker.process.pid}`);
+        worker.disconnect();
+        await once(worker, 'exit'); // exit 이벤트가 발생할 때 까지 대기
+        if (!worker.exitedAfterDisconnect) continue;
+        const newWorker = cluster.fork();
+        await once(newWorker, 'listening'); // listening 이벤트가 발생할 때 까지 대기
+      }
+    })
+  } else {
+    // ...
+  }
+  ```
+
+  ```zsh
+  kill -SIGUSR2 <pid>
+  ```
+
+  - 위 코드는 SIGUSR2 시그널을 수신하면, 모든 워커를 종료하고, 종료가 완료되면 새로운 워커를 생성함.
