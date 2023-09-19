@@ -5663,3 +5663,84 @@ npx autocannon -c 200 -d 10 http://localhost:8000
   ```
 
   - 위 코드는 SIGUSR2 시그널을 수신하면, 모든 워커를 종료하고, 종료가 완료되면 새로운 워커를 생성함.
+
+12-2-2 상태 저장 통신 다루기
+
+- 클러스터링은 큰 단점이 있는데, 상태저장이 필요한 경우가 그것임.
+  - 인증, 세션, 캐시 등 상태 저장이 필요한 경우
+- 이를 해결하기 위해 상태를 공유하는 방법이 필요함.
+  - Redis, Memcached 등의 외부 서비스를 사용하는 방법
+  - 그러나 이런 방법은 코드가 상당량 변경되어야 한다는 단점이 있음.
+- 두번째 해결방법으로, 고정 로드 밸런싱이 있음.
+  - 고정 로드 밸런싱: 세션 등 상태가 필요한 경우, 항상 동일한 인스턴스로 라우팅 하는 것.
+  - 그러나 이 방법은 사실상 클러스터링의 장점을 대부분 상실시키는 방법임.
+
+12-2-3 리버스 프록시 확장
+
+- 클러스터의 또다른 대안은, 리버스 프록시를 사용하는 것임.
+  - 리버스 프록시: 클라이언트와 서버 사이에 위치한 서버
+  - 클라이언트가 리버스 프록시에 요청을 보내면, 리버스 프록시는 이를 서버에 전달하고, 서버의 응답을 클라이언트에 전달함.
+  - 이를 통해 클라이언트는 서버의 존재를 알지 못하게 됨.
+  - 프로세스 뿐 아닌 서버 자체를 여러개로 확장 할 수 있음.
+  - 언어 또는 플랫폼에 상관없이 사용 가능함.
+  - 보다 강력한 로드 밸런싱 알고리즘을 사용 할 수 있음.
+- 필요시 리버스 프록시와 클러스터를 동시에 적용 할 수도 있음
+  - 클러스터를 활용한 수직 확장
+  - 리버스 프록시를 활용한 수평 확장
+- 리버스 프록시를 사용하는 방법은 여러가지가 있음.
+  - Nginx, HAProxy, Apache 등의 서버를 사용하는 방법
+  - Node.js 기반의 서버를 사용하는 방법
+- 여기서는 Nginx를 사용한 예제를 다뤄볼 것임. 이를 위해 포트를 직접 지정할 수 있도록 간단한 변경이 필요함.
+
+```javascript
+// app.js
+import { createServer } from 'http';
+
+const { pid } = process;
+const server = createServer((req, res) => {
+  let i = 1e7; while (i > 0) { i--; }
+  console.log(`Handling request from ${pid}`);
+  res.end(`Hello from ${pid}\n`);
+})
+const port = Number.parseInt(process.env.PORT || process.argv[2]) || 8000;
+server.listen(port, () => console.log(`Started ${pid}`));
+```
+
+- 클러스터 대신 리버스 프록시를 사용하는 경우, 충돌 시 자동 재시작 기능을 사용 할 수 없음.
+- 이를 해결하기 위한 여러 도구가 있음
+  - PM2, Forever, Nodemon 등 Node.js 기반의 도구
+  - systemd, runit, upstart 등의 리눅스 기반의 도구
+  - monit, supervisord 등의 프로세스 관리 도구
+  - Kubernetes, Nomad, Docker Swarm 등의 오케스트레이션 도구
+
+```conf
+daemon off; # nginx를 독립 실행형 프로세스로 실행
+error_log /dev/stderr info;
+
+events {
+  worker_connections 2048;
+}
+
+http {
+  access_log /dev/stdout;
+
+  upstream my-load-balanced-app { # 로드 밸런싱 대상 서버 목록
+    server 127.0.0.1:8081;
+    server 127.0.0.1:8082;
+    server 127.0.0.1:8083;
+    server 127.0.0.1:8084;
+  }
+
+  server {
+    listen 8080;
+
+    location / {
+      proxy_pass http://my-load-balanced-app;
+    }
+  }
+}
+```
+
+```zsh
+nginx -c ${PWD}/nginx.conf
+```
