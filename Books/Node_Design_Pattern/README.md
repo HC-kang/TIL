@@ -5744,3 +5744,205 @@ http {
 ```zsh
 nginx -c ${PWD}/nginx.conf
 ```
+
+12-2-4 동적 수평 확장
+
+- 클라우드 인프라의 가장 큰 확장은 동적 수평 확장임.
+  - 동적 수평 확장: 애플리케이션의 트래픽/부하에 따라 자동으로 인스턴스를 생성하고, 삭제하는 것.
+- 이는 또한, 트래픽/부하가 적은 환경에서는 인스턴스를 줄요 비용을 감축할 수도 있다는 의미임.
+  - 이러한 동작을 위해서는 로드밸런서가 네트워크의 토폴로지를 알고, 이를 기반으로 어느 인스턴스가 작동중인지 알고있어야 함.
+- 이러한 동작을 위한 가장 대표적으로 사용되는 방법은 서비스 레지스트리(Service Registry)임.
+  - 서비스 레지스트리: 서비스의 위치를 추적하는 중앙 저장 데이터베이스
+  - 각각의 인스턴스가 온라인이 되면, 서비스 레지스트리에 자신의 위치를 등록함.
+  - 반대로 인스턴스가 오프라인이 되면, 서비스 레지스트리에서 자신의 위치를 제거함.
+  - 대표적인 예시로, Consul을 사용한 예제를 살펴볼 것임.
+    - http-proxy: Node.js에서 리버스 프록시/로드 밸런서 생성을 위한 모듈
+    - portfinder: 사용 가능한 포트를 찾는 모듈
+    - consul: Consul과 통신을 위한 모듈
+
+      ```javascript
+      // app.js - 서비스 레지스트리에 등록하는 코드
+      import { createServer } from 'http';
+      import consul from 'consul';
+      import portfinder from 'portfinder';
+      import { nanoid } from 'nanoid';
+
+      const serviceType = process.argc[2];
+      const { pid } = process;
+
+      async function main() {
+        const consulClient = consul();
+
+        const port = await portfinder.getPortPromise();
+        const address = process.env.ADDRESS || 'localhost';
+        const serviceId = nanoid();
+
+        function registerService() {
+          consulClient.agent.service.register(
+            {
+              id: serviceId,
+              name: serviceType,
+              address,
+              port,
+              tags: [serviceType],
+            },
+            () => {
+              console.log(`${serviceType} registered successfully`);
+            }
+          );
+        }
+
+        function unregisterService(err) {
+          err && console.error(err);
+          console.log(`deregistering ${serviceId}...`);
+          consulClient.agent.service.deregister(serviceId, () => {
+            process.exit(err ? 1 : 0);
+          });
+        }
+
+        process.on('exit', unregisterService);
+        process.on('uncaughtException', unregisterService);
+        process.on('SIGINT', unregisterService);
+
+        const server = createServer((req, res) => {
+          let i = 1e7;
+          while (i > 0) {
+            i--;
+          }
+          console.log(`Handling request from ${pid}`);
+          res.end(`${serviceType} from ${pid}\n`);
+        });
+
+        server.listen(port, address, () => {
+          registerService();
+          console.log(`Started ${serviceType} at ${pid} on port ${port}`);
+        });
+      }
+
+      main().catch((err) => {
+        console.error(err);
+        process.exit(1);
+      })
+      ```
+
+      ```javascript
+      // loadBalancer.js
+      import { createServer } from 'http';
+      import httpProxy from 'http-proxy';
+      import consul from 'consul';
+
+      const routing = [
+        {
+          path: '/api',
+          service: 'api-service',
+          index: 0,
+        },
+        {
+          path: '/',
+          service: 'webapp-service',
+          index: 0,
+        },
+      ];
+
+      const consulClient = consul();
+      const proxy = httpProxy.createProxyServer();
+
+      const server = createServer((req, res) => {
+        const route = routing.find((route) => 
+          req.url.startsWith(route.path));
+        consulClient.agent.service.list((err, services) => {
+          const servers = !err && Object.values(services)
+            .filter(service => service.Tag.includes(route.service))
+          
+          if (err || !server.length) {
+            res.wrightHead(502);
+            return res.end('Bad gateway');
+          }
+
+          route.index = (route.index + 1) % servers.length;
+          const server = servers[route.index];
+          const target = `http://${server.Address}:${server.Port}`;
+          proxy.web(req, res, { target });
+        })
+
+        server.listen(8080, () => {
+          console.log('Load balancer started on port 8080');
+        })
+      })
+      ```
+
+      ```zsh
+      consul agent -dev # consul 실행
+
+      forever start loadBalancer.js # 로드 밸런서 실행
+
+      curl localhost:8080/api # Bad gateway
+
+      forever start --killSignal=SIGINT app.js api-service # api-service 실행
+      forever start --killSignal=SIGINT app.js api-service
+      forever start --killSignal=SIGINT app.js webapp-service
+
+      curl localhost:8080/api # api-service from 12345
+      curl localhost:8080/api # api-service from 12346
+      ```
+
+12-2-5 피어 투 피어 로드 밸런싱
+
+- 내부 내트워크를 공용 네트워크에 노출해야 하는 경우, 리버스 프록시는 필수적임.
+- 그러나 내부용으로 사용 할 떄에는 아래의 이유로 불필요한 선택일 수 있음
+  - 관리 포인트의 증가
+  - 추가적인 네트워크 오버헤드
+  - 로드 밸런서의 스펙이 제한적임.
+- 따라서 내부망에서는 로드밸런서를 두는 대신, 피어 투 피어 로드 밸런싱을 사용하는 것도 좋은 선택임.
+
+  ```javascript
+  // balancedRequest.js
+  import { request } from 'http';
+  import getStream from 'get-stream';
+
+  const servers = [
+    { host: 'localhost', port: 8081 },
+    { host: 'localhost', port: 8082 },
+  ];
+  let i = 0;
+
+  export function balancedRequest(options) {
+    return new Promise((resolve) => {
+      i = (i + 1) % servers.length; // 라운드 로빈 알고리즘
+      options.hostname = servers[i].host;
+      options.port = servers[i].port;
+
+      request(options, (response) => {
+        resolve(getStream(response));
+      }).end();
+    })
+  }
+  ```
+
+  ```javascript
+  import { balancedRequest } from './balancedRequest.js';
+
+  async function main() {
+    for (let i = 0; i < 10; i++) {
+      const body = await balancedRequest({
+        method: 'GET',
+        path: '/',
+      });
+      console.log(`Request ${i} completed: ${body}`);
+    }
+  }
+
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  })
+  ```
+
+  ```zsh
+  node app.js 8081
+  node app.js 8082
+
+  node client.js
+  ```
+
+  - 위 코드로 서버를 실행시키면 로드밸런서 없이도, 라운드로빈 알고리즘을 통해 인스턴스가 직접 요청을 분산하는 것을 볼 수 있음.
