@@ -5946,3 +5946,114 @@ nginx -c ${PWD}/nginx.conf
   ```
 
   - 위 코드로 서버를 실행시키면 로드밸런서 없이도, 라운드로빈 알고리즘을 통해 인스턴스가 직접 요청을 분산하는 것을 볼 수 있음.
+
+12-2-5 컨테이너를 사용한 애플리케이션 확장
+
+- 컨테이너란?
+  - 애플리케이션을 실행하는 데 필요한 모든 것을 포함하는 패키지
+  - OCI(Open Container Initiative)에 의해 표준화된 컨테이너
+  - 코드와 모든 종속성을 패키지화하여, 다른 환경에서도 빠르고 안정적으로 애플리케이션을 실행 할 수 있게 해주는  소프트웨어의 표준 단위
+  - 이식성이 매우 좋음
+  - 실행 시 오버헤드가 매우 작음(VM에 비해)
+
+```javascript
+// app.js
+import { createServer } from 'http';
+import { hostname } from 'os';
+
+const version = 1;
+const server = createServer((req, res) => {
+  let i = 1e7; while (i > 0) { i--; }
+  res.end(`Hello from ${hostname()} v${version}\n`);
+})
+server.listen(8080);
+```
+
+- 위와 같은 서버를 컨테이너로 서빙하기 위해, 가장 먼저 package.json이 필요함
+
+```json
+{ 
+  "name": "my-app",
+  "version": "1.0.0",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node app.js"
+  },
+}
+```
+
+```dockerfile
+FROM node:14-alpine
+EXPOSE 8080
+COPY app.js package.json /app/
+WORKDIR /app
+CMD ["npm", "start"]
+```
+
+```zsh
+docker build -t hello-web:v1 # tag name 지정
+docker run -it -p 8080:8080 ${ DOCKER_IMAGE_ID } || ${ DOCKER_IMAGE_TAG_NAME }
+```
+
+- 이렇게 실행하게 되는 경우, 호스트 이름이 바뀌게 됨
+  - 이는 컨테이너가 기본적으로 운영체제와 격리된 샌드박스 형태로 실행되기 떄문임.
+
+- Kubernetes?
+  - 컨테이너를 사용한 애플리케이션을 관리하기 위한 플랫폼
+  - 대표적인 컨테이너 오케스트레이션 툴
+  - '최종 상태'를 정의한 YAML 파일을 사용하여 애플리케이션을 배포함.
+    - 일종의 '의도 기록'이라고 할 수 있음.
+  - 이하 k8s
+- 컨테이너 오케스트레이션 툴의 역할
+  - 여러 클라우드를 하나의 논리적 클러스터로 결합할 수 있음
+  - 또한 이런 클라우드 서버를 서비스의 가용성에 영향없이 노드를 추가/제거 할 수 있음.
+  - 다운타임 없는 배포를 지원함.
+  - 컨테이너가 멈추거나 죽으면 자동으로 재시작함
+  - 서비스 검색 및 로드밸런싱 기능 제공
+  - 스토리지에 대한 관리된 접근방식 제공
+  - 다운타임 없이 어플리케이션의 롤아웃, 롤백 가능
+  - 데이터 보호를 위한 보안 저장공간 제공
+- 예제 커맨드
+
+  ```zsh
+  docker build -t hello-web:v1 .
+  # docker build -t ${ IMAGE_NAME } .
+
+  kubectl create deployment hello-web --image=hello-web:v1
+  # kubectl create deployment ${ DEPLOYMENT_NAME } --image=${ IMAGE_NAME }
+  kubectl get deployments # hello-web deployment 확인
+  kubectl get pods # hello-web-xxxxx-xxxxx 형태의 pod 확인
+
+  kubectl expose deployment hello-web --type=LoadBalancer --port=8080 # 로드밸런서 객체 생성 및 8080포트 외부 노출
+  # kubectl expose deployment ${ DEPLOYMENT_NAME } --type=LoadBalancer --port=${ PORT_NUMBER }
+  minikube service hello-web # hello-web 서비스 확인
+
+  kubectl scale --replicas=5 deployment hello-web # hello-web deployment의 인스턴스를 5개로 확장
+  # kubectl scale --replicas=5 deployment ${ DEPLOYMENT_NAME } # 인스턴스 확장 명령어
+
+
+  docker build -t hello-web:v2 . # v2 이미지 생성
+  kubectl set image deployment hello-web hello-web=hello-web:v2 # v2 이미지로 롤아웃, deployment.apps/hello-web image updated
+  # kubectl set image deployment ${ DEPLOYMENT_NAME } ${ CONTAINER_NAME }=${ IMAGE_NAME } # 롤아웃 명령어
+  ```
+
+  - pod: K8s의 기본단위
+  - 일반적으로 하나의 컨테이너만 포함하지만, 여러 컨테이너를 포함할 수도 있음.
+
+### 12-3 복잡한 애플리케이션 분해
+
+- 이전까지는 어플리케이션을 X축 방향으로 확장하는 내용이었음.
+- 이제는 Y축 방향으로, 기능별 분해를 다룰 것임.
+
+12-3-1 모놀리식 아키텍처
+
+- 모놀리식 아키텍처: 모든 기능을 단일 서비스로 구현하는 아키텍처
+- 모놀리식 아키텍처의 장점
+  - 개발 및 배포가 단순함
+  - 테스트가 단순함
+  - 코드를 공유하기 쉬움
+- 모놀리식 아키텍처의 단점
+  - 코드가 커지면, 개발 및 배포가 어려워짐
+  - 모듈간의 상호 연결성이 높아, 확장성이 떨어짐
+  - 한 곳에서 발생한 문제가 전체 시스템에 영향을 미침
