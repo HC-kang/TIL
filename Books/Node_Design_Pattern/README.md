@@ -6124,3 +6124,195 @@ docker run -it -p 8080:8080 ${ DOCKER_IMAGE_ID } || ${ DOCKER_IMAGE_TAG_NAME }
   - 발행/구독(pub/sub) 패턴
   - 작업 배포 패턴 및 파이프라인
   - 요청/응답 패턴
+
+### 13-1 메시징 시스템의 기초(575p)
+
+- 메시징 시스템의 네 가지 기본 요소
+  - 통신방향: 단방향, 요청/응답
+  - 메시지의 목적: 발행/구독, 작업 배포, 요청/응답
+  - 메시지 타이밍: 컨텍스트 안(동기), 컨텍스트 밖(비동기)
+  - 메시지 전달 유형: 직접 전달(피어 투 피어), 중개자(브로커)
+
+13-1-1 단방향 대 요청/응답 패턴
+
+- 가장 기본적인 요소인 통신방향에 대한 내용임.
+- 단방향 통신
+  - WebSocket을 사용해 브라우저에 메시지를 보내는 실시간 배포
+- 양방향 통신
+  - 요청/응답 패턴
+  - 웹 서비스를 호출하거나 DB에 쿼리를 보내는 것 등
+  - 단방향 통신만으로도 루프 형태로 양방향 통신을 구현 할 수 있음.
+  
+13-1-2 메시지 유형
+
+- 메시지의 목적에 따라, 아래의 세 가지로 분류 할 수 있음
+  - 명령(Command) 메시지
+  - 이벤트(Event) 메시지
+  - 문서(Document) 메시지
+- 명령 메시지
+  - 직렬화된 명령 객체
+  - 수신자에서의 작업, 또는 작업의 실행을 트리거 하기 위함.
+  - 작업 실행을 위한 필수정보가 포함되어있음
+    - 작업의 이름, 인자의 목록 등
+- 이벤트 메시지
+  - 무엇인가 일어난 사실을 전달하기 위한 메시지
+  - 이벤트 유형, 컨텍스트, 기타 세부정보로 구성됨.
+  - 분산 어플리케이션에서 매우 중요한 포지션
+- 문서 메시지
+  - 쿼리의 결과 전송 등 순전히 데이터 전송을 위한 메시지
+  - 수행할 작업을 전달하지도 않으며, 특정 이벤트와 연관성도 없음.
+
+13-1-3 비동기 메시징, 큐 및 스트림
+
+- 메시지의 타이밍에 따라, 아래의 두 가지로 분류 할 수 있음
+  - 동기 메시징
+    - 전화통화와 비슷, 실시간으로 즉시 응답이 주어짐
+  - 비동기 메시징
+    - SMS와 비슷, 즉시 또는 일정시간 후 받거나 혹은 받지 못 할 수도 있음.
+    - 대체로 더 나은 성능을 보임
+    - 메시지 대기열(큐; Queue)를 사용해서 메시지의 유실을 막음.
+    - 혹은 로그, 데이터스트림을 사용하기도 함.
+      - 큐: 소비자에게 한번에 하나의 메시지를 노출
+      - 스트림: 소비자에게 여러 메시지를 노출. 동시에 여러 방식을 사용해서 메시지에 접근 할 수 있음.
+
+13-1-4 피어 투 피어 또는 중개자 기반의 메시징
+
+- 피어 투 피어
+  - 장점
+    - 단일장애점을 없앨 수 있음.
+    - 브로커가 없으므로, 브로커의 오버헤드가 없음.
+    - 브로커의 확장 없이 단일 노트만 확장하면 됨.
+    - 사용자가 더 높은 유연성과 자유도를 가질 수 있음.
+  - 단점
+    - 모든 노드는 수신자에게 메시지를 전달할 책임이 있음
+    - 노드는 수신자의 주소와 포트를 알아야 함.
+    - 프로토콜과 메시지 형식도 모두 알고있어야 함.
+- 브로커
+  - 장점
+    - 위와 같은 복잡성을 전혀 알 필요가 없음.
+    - 각 노드는 완전히 독립적이며, 브로커가 메시지를 전달함.
+    - 각 노드는 서로를 직접 알지 못해도 통신 할 수없음.
+    - 메시지 관리 이외에도, 영구 대기열, 라우팅, 메시지 변환 및 모니터링 등의 추가기능을 제공할 수 있음.
+  - 단점
+    - 브로커가 단일장애점이 될 수 있음.
+    - 브로커가 메시지를 전달하는데 오버헤드가 발생함.
+    - 브로커 자체의 확장이 필요함
+  - 예시
+    - RabbitMQ, AMQP, MQTT, STOMP, Kafka, Redis 등
+
+### 13-2 발행/구독(Pub/Sub) 패턴
+
+- 분산된 관찰자 패턴
+- 가장 큰 장점은 발행자와 구독자가 서로를 알지 못해도 통신이 가능하다는 것임.
+- 시스템의 결합을 전반적으로 느슨하게 만들어 노드를 통합하는 데에 이상적인 환경을 만들 수 있음.
+- 추가적으로 메시지 대기열을 제공해서 노드 간 연결에 문제가 발생해도 메시지가 유실되지 않도록 할 수 있음.
+
+13-2-1 간단한 실시간 채팅 애플리케이션 만들기
+
+- 순수 WebSocket을 사용해 기본적인 pub/sub구조의 채팅을 구현해볼 것임.
+
+  ```javascript
+  // server.js
+  import { createServer } from 'http';
+  import staticHandler from 'serve-handler';
+  import ws from 'ws';
+
+  const server = createServer((req, res) => {
+    return staticHandler(req, res, { public: 'www' })
+  })
+
+  const wss = new ws.Server({ server });
+  wss.on('connection', client => {
+    console.log('Client connected');
+    client.on('message', msg => {
+      console.log(`Message: ${msg}`);
+      broadcast(msg);
+    })
+  })
+
+  function broadcast(mag) {
+    for (const client of wss.clients) {
+      if (client.readyState === ws.OPEN) {
+        client.send(msg);
+      }
+    }
+  }
+
+  server.listen(process.argv[2] || 8080);
+  ```
+
+  ```html
+  <!-- client.html -->
+  <!DOCTYPE html>
+  <html>
+    <body>
+      Message: 
+      <div id="messages"></div>
+      <form id="msgForm">
+        <input type="text" placeholder="Send a message" id="msgBox" />
+        <input type="submit" value="Send" />
+      </form>
+      <script>
+        const ws = new WebSocket(
+          `ws://${window.document.location.host}`
+        )
+        ws.onmessage = function (message) {
+          const msgDiv = document.createElement('div');
+          msgDiv.innerHTML = message.data;
+          document.getElementById('messages').appendChild(msgDiv);
+        }
+        const form = document.getElementById('msgForm');
+        form.addEventListener('submit', (event) => {
+          event.preventDefault();
+          const message = document.getElementById('msgBox').value;
+          ws.send(message);
+          document.getElementById('msgBox').value = '';
+        })
+      </script>
+    </body>
+  </html>
+  ```
+
+  - 다만 이러한 형태의 단점은, 여러 인스턴스가 띄워졌을 경우, 상호간에 통신이 불가능하다는 점임.
+
+13-2-2 Redis를 간단한 메시지 브로커로 사용하기
+
+- 위의 문제점을 극복하기 위해, Redis를 간단한 메시지 브로커로 활용하는 예제임.
+- Redis의 publish, subscribe 기능을 활용
+
+  ```javascript
+  // server-redis.js
+  import { createServer } from 'http';
+  import staticHandler from 'serve-handler';
+  import ws from 'ws';
+  import Redis from 'ioredis';
+
+  const redisSub = new Redis(); // 구독과 발행을 위한 레디스 인스턴스를 각각 생성
+  const redisPub = new Redis();
+
+  const server = createServer((req, res) => {
+    return staticHandler(req, res, { public: 'www' })
+  })
+
+  const wss = new ws.Server({ server });
+  wss.on('connection', client => {
+    console.log('Client connected');
+    client.on('message', msg => {
+      console.log(`Message: ${msg}`);
+      redisPub.publish('chat', msg); // 메시지를 발행
+    })
+  })
+
+  redisSub.subscribe('chat_messages');
+  redisSub.on('message', (channel, msg) => {
+    for (const client of wss.clients) {
+      if (client.readyState === ws.OPEN) {
+        client.send(msg);
+      }
+    }
+  })
+
+  server.listen(process.argv[2] || 8080);
+  ```
+
+  - 위와 같이 레디스를 사용하면, 여러 인스턴스 간에도 메시지를 주고받을 수 있음.
