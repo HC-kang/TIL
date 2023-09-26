@@ -6316,3 +6316,195 @@ docker run -it -p 8080:8080 ${ DOCKER_IMAGE_ID } || ${ DOCKER_IMAGE_TAG_NAME }
   ```
 
   - 위와 같이 레디스를 사용하면, 여러 인스턴스 간에도 메시지를 주고받을 수 있음.
+
+13-2-3 ZeroMQ로 피어 투 피어 Pub/Sub
+
+- 브로커를 사용하면 시스템의 전반적인 아키텍처를 단순화할 수 있음.
+- 그러나 목적에 따라, 아래와 같은 경우 피어 투 피어가 필요해지는 경우가 있음.
+  - 짧은 지연시간이 매우 중요한 경우
+  - 단일 장애지점이 존재하면 안되는 경우
+- ZeroMQ: 저수준의, 최소한의 API 만 제공하는 네트워킹 라이브러리임.
+  - 원자 메시지, 부하분산, 대기열 등 기본적 구성요소를 모두 제공
+- 피어 투 피어에서는 모든 노드가 서로에게 직접 연결해야 함.
+  - ZeroMQ에서 제공하는 Pub/Sub 소켓을 사용
+
+    ```javascript
+    import { createServer } from 'http';
+    import staticHandler from 'serve-handler';
+    import ws from 'ws';
+    import yargs from 'yargs';
+    import zmq from 'zeromq';
+
+    const server = createServer((req, res) => {
+      return staticHandler(req, res, { public: 'www' });
+    })
+
+    let pubSocket;
+    async function initializeSockets() {
+      pubSocket = new zmq.Publisher();
+      await pubSocket.bind(`tcp://127.0.0.1:${yargs.argv.pub}`);
+
+      const subSocket = new zmq.Subscriber();
+      const subPorts = [].concat(yargs.argv.sub);
+      for (const port of subPorts) {
+        console.log(`Subscribing to ${port}`);
+      }
+      subSocket.subscribe('chat');
+
+      for await (const [msg] of subSocket) {
+        console.log(`Message from another server: ${msg}`);
+        broadcast(msg.toString().split(' ')[1]);
+      }
+    }
+
+    initializeSockets();
+
+    const wss = new ws.Server({ server });
+    wss.on('connection', client => {
+      console.log('Client connected');
+      client.on('message', msg => {
+        console.log(`Message: ${msg}`);
+        broadcast(msg);
+        pubSocket.sen(`chat ${msg}`);
+      })
+    })
+
+    function broadcast(msg) {
+      for (const client of wss.clients) {
+        if (client.readyState === ws.OPEN) {
+          client.send(msg);
+        }
+      }
+    }
+
+    server.listen(yargs.argv.http || 8080);
+    ```
+
+    - ZeroMQ는 Sub 소켓이 Pub 소켓에 연결되지 않아도 문제가 없음.
+      - 이는 장애에 대해 더욱 강력한 시스템을 만들 수 있음.
+      - 특히 노드가 중단되거나 재시작되는 경우에도 문제가 없음.
+
+13-2-4 큐를 통한 안정적인 메시지 전달
+
+- 메시지 전달에서 가장 중요하게 추상화되는 부분은 메시지 큐임.
+- 이를 통해 발신자와 구독자가 동시에 실행되지 않더라도 메시지를 안전하게 전달할 수 있음.
+- 이는 큐가 구독자가 메시지를 받을 때 까지 메시지를 저장하기 때문임.
+  - 구독자가 구독 상태가 아닐때 받은 메시지도 안정적으로 구독할 수 있는 구독자를 영구 구독자(durable subscriber)라고 함
+  - 이는 구독자가 메시징 시스템에 연결되어 있을 때에만 구독을 하는 발사 후 망각(fire-and-forget)과는 정 반대의 패러다임임.
+
+- 메시징 시스템에서 전달의 범주
+  - 최대 한 번: 구독중 충돌하거나, 연결이 끊어지는 경우 메시지가 유실 될 수 있음.
+  - 최소 한 번: 메시지가 최소 한 번은 수신되도록 보장. 그러나 모종의 사유로 중복이 발생 할 수 있음.
+  - 적어도 한 번: 가장 안정적인 전달방식이나, 가장 느리고 고도화된 메커니즘을 갖추어야 함.
+
+- AMQP(Advanced Message Queuing Protocol)
+  - 많은 대기열 시스템에서 지원하는 개방형 표준 프로토콜
+  - 미션 크리티컬한 시스템에서 사용하기에 적합함.
+  - 세 가지 필수 컴포넌트를 가짐
+    - 큐: 메시지를 저장하는 곳
+      - 영구(Durable): 브로커가 다시 시작되면 대기열이 자동으로 복구됨. 모든 내용이 영구히 보존되는것을 의미하는 게 아님.
+      - 독점(Exclusive): 큐가 하나의 연결에만 연결되어있음. 연결이 끊어지면 큐도 삭제됨.
+      - 자동삭제(Auto-delete): 큐가 사용되지 않으면(마지막 구독자가 연결을 끊으면) 자동으로 삭제됨.
+    - 익스체인지(Exchange): 메시지가 처음 게시되는 곳. 알고리즘에 따라 하나 이상의 큐로 라우팅함.
+      - 다이렉트 익스체인지(Direct Exchange): 라우팅 키를 사용하여 메시지를 큐로 라우팅함.
+      - 토픽 익스체인지(Topic Exchange): 라우팅 키와 일치하는 glob-like 패턴으로 라우팅함. 라우팅 키는 와일드카드를 사용할 수 있음.
+        - glob-like: glob 패턴은 와일드카드를 사용하여 파일 이름을 일치시키는데 사용되는 패턴임.
+      - 팬아웃 익스체인지(Fanout Exchange): 모든 큐에 메시지를 브로드캐스팅함.
+    - 바인딩(Binding): 익스체인지와 큐 사이의 링크. 익스체인지로 들어온 메시지를 필터하는 데 사용됨.
+
+```javascript
+// history.js
+import { createServer } from 'http';
+import level from 'level';
+import timestamp from 'monotonic-timestamp';
+import JSONStream from 'JSONStream';
+import amqp from 'amqplib';
+
+async function main() {
+  const db = level('./msgHistory');
+
+  const connection = await amqp.connect('amqp://localhost');
+  const channel = await connection.createChannel();
+  await channel.assertExchange('chat', 'fanout');
+  const { queue } = channel.assertQueue('chat_history');
+  await channel.bindQueue(queue, 'chat');
+
+  channel.consume(queue, async msg => {
+    const content = msg.content.toString();
+    console.log(`Saving message: ${content}`);
+    await db.put(timestamp(), content);
+    channel.ack(msg);
+  })
+
+  createServer((req, res) => {
+    res.writeHead(200);
+    db.createValueStream()
+      .pipe(JSONStream.stringify())
+      .pipe(res)
+  }).listen(8090);
+}
+
+main().catch(err => console.error(err));
+```
+
+```javascript
+// server.js
+import { createServer } from 'http';
+import staticHandler from 'serve-handler';
+import ws from 'ws';
+import amqp from 'amqplib';
+import JSONStream from 'JSONStream';
+import superagent from 'superagent';
+
+const httpPort = process.argv[2] || 8080;
+
+async function main() {
+  const connection = await amqp.connect('amqp://localhost');
+  const channel = await connection.createChannel();
+  await channel.assertExchange('chat', 'fanout');
+  const { queue } = await channel.assertQueue(
+    `chat_srv_${httpPort}`,
+    { exclusive: true },
+  );
+  await channel.bindQueue(queue, 'chat');
+  channel.consume(queue, msg => {
+    msg = msg.content.toString();
+    console.log(`From queue: ${msg}`);
+    broadcast(msg);
+  }, { noAck: true });
+
+  const server = createServer((req, res) => {
+    return staticHandler(req, res, { public: 'www' });
+  })
+
+  const wss = new ws.Server({ server });
+  wss.on('connection', client => {
+    console.log('Client connected');
+    
+    client.on('message', msg => {
+      console.log(`Message: ${msg}`);
+      channel.publish('chat', '', Buffer.from(msg));
+    })
+
+    superagent
+    .get('http://localhost:8090')
+    .on('error', err => console.error(err))
+    .pipe(JSONStream.parse('*'))
+    .on('data', msg => client.send(msg));
+  })
+
+  function broadcast(msg) {
+    for (const client of wss.clients) {
+      if (client.readyState === ws.OPEN) {
+        client.send(msg);
+      }
+    }
+  }
+  server.listen(httpPort);
+}
+
+main().catch(err => console.error(err));
+```
+
+- 위처럼 작성시 서비스가 다운타임일 때 작동하는 방식을 확인해야 함.
+- 히스토리 서버가 중지된 채 메시지를 계속 보내면, 이후 다시 시작되었을 때 메시지를 한번에 받는 모습을 확인 할 수 있음
