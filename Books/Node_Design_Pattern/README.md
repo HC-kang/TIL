@@ -6508,3 +6508,99 @@ main().catch(err => console.error(err));
 
 - 위처럼 작성시 서비스가 다운타임일 때 작동하는 방식을 확인해야 함.
 - 히스토리 서버가 중지된 채 메시지를 계속 보내면, 이후 다시 시작되었을 때 메시지를 한번에 받는 모습을 확인 할 수 있음
+
+13-2-5 스트리을 통한 안정적인 메시징
+
+- 대기열(Queue) 대신, 스트림을 사용해도 메시징 처리가 가능함
+- 스트림: 본직적으로 메시지 브로커보다는 데이터 저장소처럼 만듦.
+  - 자동으로 삭제되지 않음.
+  - 순서가 지정되어있음.
+  - 추가 전용(append-only)
+  - 큐와 달리 스트림을 소비자가 직접 가져오게 됨.
+    - 이는 메시지를 가져오는 속도를 제어할 수 있음.
+    - 문제가 발생하더라도 소비자가 문제 지점부터 다시 읽기를 시도하면 됨.
+- 이러한 특징들 때문에, 안정적인 메시징 시스템을 구축 할 수 있음.
+
+- 스트림 vs 큐
+  - 스트림
+    - 소비자가 메시지를 일괄처리 방식으로 다루거나,
+    - 과거 메시지와의 상관관계를 찾아야 할 수 있는 순차 데이터를 사용하는 경우 효율적
+    - 동시에 여러 노드에서 같은 스트림을 바라보고 작업 할 수 있음.
+  - 큐
+    - 고급 메시지 라우팅을 지원함
+    - 각각의 메시지에 우선순위를 설정 할 수 있음.
+      - 보다 복잡한 시스템을 구성 할 수 있음.
+  - 결과적으로 단순한 구성에서는 스트림으로 간단하게 메시징을 구현 할 수 있고, 보다 복잡하고 안정적인 시스템을 구축하려면 큐를 사용하는 것이 좋음.
+
+  ```javascript
+  // index.js - Redis stream
+  import { createServer } from 'http';
+  import staticHandler from 'serve-handler';
+  import ws from 'ws';
+  import Redis from 'ioredis';
+
+  const  redisClient = new Redis();
+  const redisClientXRead = new Redis();
+
+  const server = createServer((req, res) => {
+    return staticHandler(req, res, { public: 'www' });
+  })
+
+  const wss = new ws.Server({ server });
+  wss.on('connection', async client => {
+    console.log('Client connected');
+
+    client.on('message', msg => {
+      console.log(`Message: ${msg}`);
+      redisClient.xadd('chat_stream', '*', 'message', msg);
+    })
+
+    const logs = await redisClient.xrange(
+      'chat_stream', '-', '+'
+    );
+    for (const [, [, message]] of logs) {
+      client.send(message);
+    }
+  })
+
+  function broadcast(msg) {
+    for (const client of wss.clients) {
+      if (client.readyState === ws.OPEN) {
+        client.send(msg);
+      }
+    }
+  }
+
+  let lastRecordId = '$';
+
+  async function processStreamMessages() {
+    while (true) {
+      const [[, records]] = await redisClientXRead.xread(
+        'BLOCK', '0', 'STREAMS', 'chat_stream', lastRecordId
+      );
+      for (const [recordId, [, message]] of records) {
+        console.log(`Message from stream: ${message}`);
+        broadcast(message);
+        lastRecordId = recordId;
+      }
+    }
+  }
+
+  processStreamMessages().catch(err => console.error(err));
+
+  server.listen(process.argv[2] || 8080);
+  ```
+
+### 13-3 작업 배포(Task distribution) 패턴
+
+- 이전에 로컬에서 다른 프로세스에게 작업을 위임하는 패턴을 보았음
+- 이번에는 네트워크상의 다른 원격작업자를 사용하는 방법을 살펴볼 것임.
+- 마치 로드밸런서와 유사하게, 작업을 분배하는 생산자를 둔 이 패턴을 다음과 같은 여러 명칭으로 부름
+  - 경쟁 소비자 패턴
+  - 팬아웃 배포 패턴
+  - 벤틸레이터 패턴
+- 이전의 로드밸런서와의 큰 차이점은, 소비자가 더 적극적으로 행동한다는 것임.
+  - 소비자가 연결의 주체로, 소비자가 직접 생산자나 대기열에 연결함.
+  - 이러한 형태로 인해, 다른 부분의 수정 없이도 쉽게 워커의 수를 확장 할 수 있음.
+- 나아가서, 단방향 비동기 통신을 사용한 파이프라인을 구축해서, 보다 빠르게, 오버헤드 없이 작없을 처리 할 수 있음.
+- 일반적으로 분배(팬아웃) -> 처리 -> 결과(팬인)의 순서로 진행됨.
