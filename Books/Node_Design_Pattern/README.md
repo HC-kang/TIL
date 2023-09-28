@@ -6604,3 +6604,208 @@ main().catch(err => console.error(err));
   - 이러한 형태로 인해, 다른 부분의 수정 없이도 쉽게 워커의 수를 확장 할 수 있음.
 - 나아가서, 단방향 비동기 통신을 사용한 파이프라인을 구축해서, 보다 빠르게, 오버헤드 없이 작없을 처리 할 수 있음.
 - 일반적으로 분배(팬아웃) -> 처리 -> 결과(팬인)의 순서로 진행됨.
+
+13-3-1 ZeroMQ Fanout/Fanin 패턴
+
+- PUSH, PULL 소켓을 사용한 병렬 파이프라인 구현
+- PUSH 소켓: 메시지를 보내는 소켓
+- PULL 소켓: 메시지를 받는 소켓
+- 추가기능
+  - 바인드모드 또는 연결모드에서 동작 가능
+    - 바인드모드: PUSH 소켓을 생성하고 로컬 포트에 바인딩한후 PULL 소켓에서 들어오는 연결을 수신. 생산자 및 싱크와 같은 내구성을 요하는 노드에 적합
+    - 연결모드: PULL 소켓이 PUSH 소켓에서 들어오는 연결을 수신. 일반적으로 임시적인 노드에 적합.
+  - 로드밸런싱과 공정대기열이 자동으로 적용됨
+    - 로드밸런싱: 단일 PUSH 소켓이 여러개의 PULL 소켓에 연결된 경우 고르게 메시지를 전달
+    - 공정대기열: 여러 PUSH 소켓이 단일 PULL 소켓에 연결된 경우, 라운드로빈으로 균일하게 처리됨.
+- ZeroMQ를 통한 해시썸 크래커 작성 예제
+  - 개략적인 구조(상->하)
+    - 변형 생성기(벤틸레이터) - 바인드
+    - 작업자 노드 - 연결 주체
+    - 결과 수집자(싱크) - 바인드
+
+```javascript
+// generateTask.js
+export function * generateTasks(searchHash, alphabet, maxWordLength, batchSize) {
+  let nVariations = 0;
+  for (let n = 1; n <= maxWordLength; n++) {
+    nVariations += Math.pow(alphabet.length, n);
+  }
+  console.log(`Finding the hashsum source string over ${nVariations} variations`);
+
+  let batchStart = 1;
+  while (batchStart <= nVariations) {
+    const batchEnd = Math.min(
+      batchStart + batchSize - 1, nVariations
+    );
+    yield {
+      searchHash,
+      alphabet,
+      batchStart,
+      batchEnd,
+    }
+
+    batchStart = batchEnd + 1
+  }
+}
+```
+
+```javascript
+// producer.js
+import zmq from 'zeromq';
+import delay from 'delay';
+import { generateTasks } from './generateTasks.js';
+
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
+const BATCH_SIZE = 10_000;
+
+const [, , maxLength, searchHash] = process.argv;
+
+async function main() {
+  const ventilator = new zmq.Push();
+  await ventilator.bind('tcp://*:5016');  // 바인드모드로 생성.
+  await delay(1000);                      // 연결 대기
+
+  const generatorObj = generateTasks(searchHash, ALPHABET, maxLength, BATCH_SIZE);
+  for (const task of generatorObj) {
+    await ventilator.send(JSON.stringify(task));  // 작업 전송
+  }
+}
+
+main().catch(err => console.error(err));
+```
+
+```javascript
+// ProcessTask.js
+import isv from 'indexed-string-variation';
+import { createHash } from 'crypto';
+
+export function processTask(task) {
+  const variationGen = isv.generator(task.alphabet);
+  console.log(`Processing from ${variationGen(task.batchStart)} (${task.batchStart}) to ${variationGen(task.batchEnd)} (${task.batchEnd})`);
+
+  for (let idx = task.batchStart; idx <= task.batchEnd; idx++) {
+    const word = variationGen(idx);
+    const shasum = createHash('sha1');
+    shasum.update(word);
+    const digest = shasum.digest('hex');
+
+    if (digest === task.searchHash) {
+      return word;
+    }
+  }
+}
+```
+
+```javascript
+// worker.js
+
+import zmq from 'zeromq';
+import { processTask } from './processTask.js';
+
+async function main() {
+  const fromVentiator = new zmq.Pull();
+  const toSink = new zmq.Push();
+
+  fromVentilator.connect('tcp://localhost:5016');
+  toSink.connect('tcp://localhost:5017');
+
+  for await (const rawMessage of fromVentilator) {
+    const found = processTask(JSON.parse(rawMessage.toString()));
+    if (found) {
+      console.log(`Found! => ${found}`);
+      await toSink.send(`Found: ${found}`);
+    }
+  }
+}
+
+main().catch(err => console.error(err));
+```
+
+```javascript
+import zmq from 'zeromq';
+
+async function main() {
+  const sink = new zmq.Pull();
+  await sink.bind('tcp://*:5017');
+
+  for await (const rawMessage of sink) {
+    console.log('Message from worker: ', rawMessage.toString());
+  }
+}
+
+main().catch(err => console.error(err));
+```
+
+13-3-2 AMQP의 파이프라인 및 경쟁 소비자
+
+- RabbitMQ를 사용한 브로커 기반 병렬 파이프라인
+- 브로커를 사용하는 경우, 브로커가 메시지를 전달하기에 누가 연결되어있는지 알 수 없는 상태가 발생함.
+- 이런 경우, 대상 큐에 직접 점대점으로 메시지를 전달 할 수 있음.
+
+```javascript
+import amqp from 'amqplib';
+import { generateTasks } from './generateTasks.js';
+
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
+const BATCH_SIZE = 10_000;
+
+const [, , maxLength, searchHash] = process.argv;
+
+async function main() {
+  const connection = await amqp.connect('amqp://localhost');
+  const channel = await connection.createConfirmChannel();  // 표준 채널이 아닌 confirmChannel 생성. waitForConfirm() 사용을 위함.
+  await channel.assertQueue('tasks_queue');
+
+  const generatorObj = generateTasks(searchHash, ALPHABET, maxLength, BATCH_SIZE);
+  for (const task of generateObj) {
+    channel.sendToQueue('tasks_queue', Buffer.from(JSON.stringify(task)));  // queue로 메시지 직접 전송
+
+    await channel.waitForConfirms();
+    channel.close();
+    connection.close();
+  }
+}
+```
+  
+```javascript
+import amqp from 'amqplib';
+import { processTask } from './processTask.js';
+
+async function main() {
+  const connection = await amqp.connect('amqp://localhost');
+  const channel = await connection.createChannel();
+  const { queue } = await channel.assertQueue('tasks_queue');
+
+  channel.consume(queue, async (rawMessage) => {
+    const found = processTask(
+      JSON.parse(rawMessage.content.toString())
+    );
+    if (found) {
+      console.log(`Found! => ${found}`);
+      await channel.secondToQueue('results_queue', Buffer.from(found));
+    }
+
+    await channel.ack(rawMessage);
+  })
+}
+
+main().catch(err => console.error(err));
+```
+
+```javascript
+import amqp from 'amqplib';
+
+async function main() {
+  const connection = await amqp.connect('amqp://localhost');
+  const channel = await connection.createChannel();
+  const { queue } = await channel.assertQueue('results_queue');
+  channel.consume(queue.msg => {
+    console.log(`Message from worker: ${msg.content.toString()}`);
+  })
+}
+
+main().catch(err => console.error(err));
+```
+
+- 이전 ZeroMQ의 예제와 비교했을 때, 성능이 다소 낮은것을 확인 할 수 있음.
+- 그러나 AMQP를 사용함으로서 그에 상응하는 사용성과 안정성을 얻을 수 있음.
