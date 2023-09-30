@@ -6809,3 +6809,201 @@ main().catch(err => console.error(err));
 
 - 이전 ZeroMQ의 예제와 비교했을 때, 성능이 다소 낮은것을 확인 할 수 있음.
 - 그러나 AMQP를 사용함으로서 그에 상응하는 사용성과 안정성을 얻을 수 있음.
+
+13-3-3 Redis Stream을 사용한 작업 배포
+
+- Redis 소비자 그룹(Consumer Groups)
+  - Redis Stream 위에 경쟁 소비자 패턴과 일부 추가기능을 구현한 것.
+  - 이름으로 식별되는 상태 저장 엔티티.
+  - 이름으로 식별되는 소비자들로 구성됨.
+  - 각 레코드는 명시적으로 응답확인(ack; acknowledge) 되어야 함
+    - 비정상 종료 시 복구하기 위함
+    - 종료 후 다시 온라인 상태가 되면, 새 레코드를 받기 전에 이 pending 리스트부터 처리해야 함.
+  - 또한, 소비자그룹 내에 마지막에 읽은 레코드의 ID를 저장하므로, 다음에 읽을 레코드를 알 수 있음.
+
+```javascript
+// producer.js
+import Redis from 'ioredis';
+import { generateTasks } from './generateTasks.js';
+
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz';
+const BATCH_SIZE = 10_000;
+const redisClient = new Redis();
+
+const [, , maxLength, searchHash] = process.argv;
+
+async function main() {
+  const generatorObj = generateTasks(searchHash, ALPHABET, maxLength, BATCH_SIZE);
+  for (const task of generatorObj) {
+    await redistClient.xadd('tasks_stream', '*', 'task', JSON.stringify(task));
+  }
+
+  redisClient.disconnect();
+}
+
+main().catch(err => console.error(err));
+```
+
+```javascript
+// worker.js
+import Redis from 'ioredis';
+import { processTask } from './processTask.js';
+
+const redisClient = new Redis();
+const [, , consumerName] = process.argv;
+
+async function main() {
+  await redisClient.xgroup('CREATE', 'tasks_stream', '$', 'MKSTREAM') // 소비자 그룹 생성
+    .catch(() => console.log('Consumer group already exists'));
+
+  const [[, records]] = await redisClient.xreadgroup('GROUP', 'workers_group', consumerName, 'STREAMS', 'tasks_stream', '0'); // 현재 소비자가 읽어야 할 모든 pending된 레코드 읽기 시도
+  for (const [recordId, [, rawTask]] of records) {
+    await processAndAck(recordId, rawTask);
+  }
+
+  while (true) {
+    const [[, records]] = await redisClient.xreadgroup('GROUP', 'workers_group', consumerName, 'BLOCK', '0', 'COUNT', '1', 'STREAMS', 'tasks_stream', '>'); // 스트림으로부터 새로운 레코드를 하나씩 읽기 시도
+    for (const [recordId, [, rawTask]] of records) {
+      await processAndAck(recordId, rawTask);
+    }
+  }
+}
+
+async function processAndAck(recordId, rawTask) { // 레코드 처리 후 응답확인
+  const found = processTask(JSON.parse(rawTask));
+  if (found) {
+    console.log(`Found! => ${found}`);
+    await redisClient.xadd('results_stram', '*', 'result', `Found: ${found}`);  // results stream 에 결과 레코드 추가
+  }
+
+  await redisClient.xack('tasks_stream', 'workers_group', recordId);  // 응답확인
+}
+
+main().catch(err => console.error(err));
+```
+
+### 13-4 요청(Request)/응답(Reply) 패턴
+
+- 이전의 단방향 통신은 병렬성/효율성에서 뛰어난 이점이 있지만, 모든 문제를 다루기엔 부족함.
+- 따라서, 일부 문제의 경우 요청/응답 패턴을 사용한 양방향 통신으로 문제를 해결해야 함.
+
+13-4-1 상관 식별자
+
+- 상관식별자(Correlation Idendtifier)
+  - 단방향 채널 위에 요청/응답 패턴을 구현하기 위해 사용되는 메시지의 특성
+  - 각 요청을 식별자로 구분하고, 응답을 요청과 연결시킴.
+
+```javascript
+// createRequestChannel.js
+import { nanoid } from 'nanoid';
+
+export function createRequestChannel(channel) {
+  const correlationMap = new Map();
+  
+  function sendRequest(data) {
+    console.log('Sending request', data);
+    return new Promise((resolve, reject) => {
+      const correlationId = nanoid();
+
+      const replyTimeout = setTimeout(() => {
+        correlationMap.delete(correlationId);
+        reject(new Error('Request timeout'));
+      }, 10000);
+
+      correlationMap.set(correlationId, (replyData) => {
+        correlationMap.delete(correlationId);
+        clearTimeout(replyTimeout);
+        resolve(replyData);
+      })
+
+      channel.send({
+        type: 'request',
+        data,
+        id: correlationId,
+      })
+    })
+  }
+
+  channel.on('message', message => {
+    const callback = correlationMap.get(message.inReplyTo);
+    if (callback) {
+      callback(message.data);
+    }
+  })
+
+  return sendRequest;
+}
+```
+
+```javascript
+// createReplyChannel.js
+export function createReplyChannel(channel) {
+  return function registerHandler(handler) {
+    channel.on('message', async message => {
+      if (message.type !== 'request') {
+        return;
+      }
+
+      const replyData = await handler(message.data);
+      channel.send({
+        type: 'response',
+        data: replyData,
+        inReplyTo: message.id,
+      })
+    })
+  }
+}
+```
+
+```javascript
+// replier.js
+import { createReplyChannel } from './createReplyChannel.js';
+
+const registerReplyHandler = createReplyChannel(process);
+
+registerReplyHandler(req => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve({ sum: req.a + req.b });
+    }, req.delay);
+  })
+})
+
+process.send('ready');
+```
+  
+```javascript
+// requester.js
+import { fork } from 'child_process';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+import { once } from 'events';
+import { createRequestChannel } from './createRequestChannel.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+async function main() {
+  const channel = fork(join(__dirname, 'replier.js'));
+  const request = createRequestChannel(channel);
+
+  try {
+    const [message] await once(channel, 'message');
+    console.log(`Child process initialized: ${message}`);
+    const p1 = request({ a: 1, b: 2, delay: 500 })
+      .then(res => {
+        console.log(`Reply: 1 + 2 = ${res.sum}`)
+      });
+    
+    const p2 = request({ a: 6, b: 1, deplay: 100 })
+      .then(res => {
+        console.log(`Reply: 6 + 1 = ${res.sum}`)
+      });
+
+    await Promiseall([p1, p2]);
+  } finally {
+    channel.disconnect();
+  }
+}
+
+main().catch(err => console.error(err));
+```
