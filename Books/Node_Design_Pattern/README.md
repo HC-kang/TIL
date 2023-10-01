@@ -7007,3 +7007,150 @@ async function main() {
 
 main().catch(err => console.error(err));
 ```
+
+13-4-2 반환주소(Return address)
+
+- 상관식별자는 단방향 채널을 사용해 요청/응답 통신을 구현하기 위한 기초적인 방법임.
+  - 그러나 이는 잠재적으로 둘 이상의 소스에서 메시지가 주어진다면, 문제가 발생할 수 있음.
+- 따라서, 요청을 보낸 소스를 식별할 수 있는 방법(반환주소)이 필요함.
+- 반환주소: 요청자가 응답의 수신을 기다리는 대기열.
+  - 이는 상호 식별을 위해 소비자간 공유되지 않아야 함
+  - 따라서 각 소비자는 반환 대기열과 점대점 통신을 해야 함.
+
+```javascript
+// amqpRequest.js
+export class AMQPRequest {
+  constructor() {
+    this .correlationMap = new Map(); // 각 메시지ID와 핸들러간의 연결을 위해 상관식별자와 동일하게 MAP이 필요함.
+  }
+}
+
+async initialize() {
+  this.connection = await amqp.connect('amqp://localhost');
+  this.channel = await this.connection.createChannel();
+  /** 
+   * 반환주소 큐 생성, 이름을 별도로 설정하지 않고 랜덤으로 생성하고,
+   * 또한 exclusive: true로 설정하여, 요청자가 연결을 끊으면 큐가 자동으로 삭제되도록 함.
+   * 이는 반환주소 큐가 오직 하나의 요청자만을 위한 것이기 때문임.
+   */
+  const { queue } await this.channel.assertQueue('', { exclusive: true });
+  this.replyQueue = queue;
+
+  this.channel.consume(this.replyQueue, msg => {
+    const correlationId = msg.properties.correlationId;
+    const handler = this.correlationMap.get(correlationId);
+    if (handler) {
+      handler(JSON.parse(msg.content.toString()));
+    }
+  }, { noAck: true });
+}
+
+send(queue, message) {
+  return new Promise((resolve, reject) => {
+    const id = nanoid();
+    const replyTimeout = setTimeout(() => {
+      this.correlationMap.delete(id);
+      reject(new Error('Request timeout'));
+    }, 10000);
+
+    this.correlationMap.set(id, (replyData) => {
+      this.correlationMap.delete(id);
+      clearTimeout(replyTimeout);
+      resolve(replyData);
+    })
+
+    this.channel.sendToQueue(queue, // publish() 대신 sendToQueue() 사용
+      Buffer.from(JSON.stringify(message)),
+      { correlationId: id, replyTo: this.replyQueue },
+    );
+  });
+}
+```
+
+```javascript
+// amqpReply.js
+import amqp from 'amqplib';
+
+export class AMQPReply {
+  constructor(requestsQueueName) {
+    this.requestsQueueName = requestsQueueName;
+  }
+
+  async initialize() {
+    const connection = await amqp.connect('amqp://localhost');
+    this.channel = await connection.createChannel();
+    const { queue } = await this.channel.assertQueue(
+      this.requestsQueueName,
+    );
+    this.queue = queue;
+  }
+
+  handleRequests(handler) {
+    this.channel.consume(this.queue, async msg => {
+      const content = JSON.parse(msg.content.toString());
+      const replyData = await handler(content);
+      this.channel.sendToQueue(
+        msg.properties.replyTo,
+        Buffer.from(JSON.stringify(replyData)),
+        { correlationId: msg.properties.correlationId },
+      );
+      this.channel.ack(msg);
+    })
+  }
+}
+```
+
+```javascript
+import { AMQPReply } from './amqpReply.js';
+
+async function main() {
+  const reply = new AMQPReply('requests_queue');
+  await reply.initialize();
+
+  reply.handleRequests(req => {
+    console.log('Request received', req);
+    return { sum: req.a + req.b };
+  })
+}
+
+main().catch(err => console.error(err));
+```
+
+```javascript
+import { AMQPRequest } from './amqpRequest.js';
+import delay from 'delay';
+
+async function main() {
+  const request = new AMQPRequest();
+  await request.initialize();
+
+  async function sendRandomRequest() {
+    const a = Math.round(Math.random() * 100);
+    const b = Math.round(Math.random() * 100);
+    const reply = await request.send('requests_queue', { a, b });
+    console.log(`Reply: ${a} + ${b} = ${reply.sum}`);
+  };
+
+  for (let i = 0; i < 20; i++) {
+    await sendRandomRequest();
+    await delay(1000);
+  }
+
+  request.destroy();
+}
+
+main().catch(err => console.error(err));
+```
+
+- 위처럼 AMQP를 사용하여 얻을 수 있는 또다른 이점은, 응답자(Replier)가 별도의 소요없이 확장 가능하다는 점임.
+- 이는 요청자가 시작 될 때 마다 동일한 영구대기열에 자신을 리스너로 추가함으로써 가능함.
+  - 브로커가 큐의 모든 소비자에게 메시지를 로드 밸런싱 하기 때문ㅇ.ㅁ
+
+### Chapter 13 요약
+
+- 대표적인 세 가지 메시지 교환 패턴을 살펴봄
+  - 게시/구독(Pub/Sub)
+  - 작업 배포(Task distribution)
+  - 요청/응답(Request/Reply)
+- 브로커(메시지 큐 또는 데이터 스트림)을 사용할 때와 사용하지 않을 때, 각각의 장단점
+- 기타 노드를 활용하는데에 있어서 중요한 장점과 단점 등
