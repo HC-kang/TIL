@@ -134,6 +134,140 @@
    1. 따라서 이러한 계산을 찾아내기 어려움.
    2. 결정과 계획은 계산이 될 가능성이 높다는 점을 기억하기
 
+### 쿠폰 보내는 과정을 그려보기
+
+1. 구독자 목록 - 데이터
+2. DB에서 구독자를 가져오기 - 액션
+3. 쿠폰 목록 - 데이터
+4. DB에서 쿠폰 목록 가져오기 - 액션
+5. 이메일 목록 - 데이터
+6. 보내야 할 이메일 목록 만들기 - 계산
+7. 이메일 전송하기 - 액션
+
+- 위처럼 이메일 목록을 먼저 만드는 것이 테스트하기 좋음. 계산으로 구분되어있기에 언제든 테스트 해 볼 수 있기 때문임.
+
+- 이 과정에서 이메일 목록을 만드는 계산을 좀 더 세분화 할 수 있음
+  - 쿠폰의 등급 구분하기
+    1. 쿠폰 목록 - 데이터
+    2. Good 등급 쿠폰 선택하기 - 계산
+    3. Good 등급 쿠폰 목록 - 데이터
+    4. Best 등급 쿠폰 선택하기 - 계산
+    5. Best 등급 쿠폰 목록 - 데이터
+  - 구독자의 쿠폰 등급 구분하기
+    1. 구독자 목록 - 데이터
+    2. 구독자별 쿠폰 등급 구분하기 - 계산
+    3. 구독자별 쿠폰 등급 목록 - 데이터
+
+- 결과적으로 아래과 같은 과정을 거쳐, 이메일 목록을 만들 수 있음
+  1. 구독자 목록 - 데이터
+  2. Good 등급 쿠폰 목록 - 데이터
+  3. Best 등급 쿠폰 목록 - 데이터
+  4. 구독자별 쿠폰 등급 결정하기 - 계산
+  5. 구독자별 쿠폰 등급 목록 - 데이터
+  6. 구독자 쿠폰 등급에 따라 쿠폰을 첨부한 이메일 목록 만들기 - 계산
+  7. 이메일 목록 - 데이터
+
+- 코드
+
+  ```ts
+  type Subscriber = {
+    email: string
+    rec_count: number,
+  }
+  const subscriber = {
+    email: 'sample@email.com',
+    rec_count: 16,
+  }
+
+  const rank1 = 'best';
+  const rank2 = 'good';
+
+  // 계산. 이 함수는 명확하고, 테스트하기 쉬움.
+  function subCouponRank(subscriber) {
+    if (subscriber.rec_count > 10) {
+      return 'best';
+    } else {
+      return 'good';
+    }
+  }
+
+  type Coupon = {
+    code: string,
+    rank: 'best' | 'good' | 'bad',
+  }
+  const coupon = {
+    code: '10PERCENT',
+    rank: 'bad',
+  }
+
+  // 계산.
+  function selectCouponsByRank(coupons, rank) {
+    const ret = [];
+    for (let c = 0; c < coupons.length; c++) {
+      let coupon = coupons[c];
+      if (coupon.rank === rank) {
+        ret.push(coupon);
+      }
+      return ret;
+    }
+  }
+
+  type Message = {
+    from: string,
+    to: string,
+    subject: string,
+    body: string,
+  }
+  const message = {
+    from: 'newsletter@coupondog.co',
+    to: 'sample@email.com',
+    subject: 'Your weekly coupons inside',
+    body: 'Here are your coupons for this week...',
+  }
+
+  // 계산. 구독자가 받을 이메일을 계획하는 함수
+  function emailForSubscriber(subscriber, goods, bests) {
+    const rank = subCouponRank(subscriber);
+    if (rank === 'best')
+      return {
+        from: 'newsletter@coupondog.co',
+        to: subscriber.email,
+        subject: 'Your weekly coupons inside',
+        body: 'Here are the best coupons: ' + bests.join(', '),
+      };
+    else
+      return {
+        from: 'newsletter@coupondog.co',
+        to: subscriber.email,
+        subject: 'Your weekly coupons inside',
+        body: 'Here are the good coupons: ' + goods.join(', '),
+      };
+  }
+
+  // 계산, 단순히 위쪽 계산 함수를 반복 호출하는 함수
+  function emailForSubscribers(subscribers, goods, bests) {
+    const emails = [];
+    for (let s = 0; s < subscribers.length; s++) {
+      const subscriber = subscribers[s];
+      emails.push(emailForSubscriber(subscriber, goods, bests));
+    }
+    return emails;
+  }
+
+  // 액션. 실행 시점과 횟수에 의존하는 emailSystem.send 함수를 내부적으로 호출하고있음.
+  function sendIssue() {
+    const coupons = fetchCouponsFromDB();
+    const goodCoupons = selectCouponsByRank(coupons, 'good');
+    const bestCoupons = selectCouponsByRank(coupons, 'best');
+    const subscribers = fetchSubscribersFromDB();
+    const emails = emailForSubscribers(subscribers, goodCoupons, bestCoupons);
+    for (let e = 0; e < emails.length; e++) {
+      const email = emails[e];
+      emailSystem.send(email);
+    }
+  }
+  ```
+
 ## CHAPTER 4 액션에서 계산 빼내기(p61)
 
 ## CHAPTER 5 더 좋은 액션 만들기(p87)
