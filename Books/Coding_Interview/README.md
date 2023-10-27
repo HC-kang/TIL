@@ -357,3 +357,399 @@
     - 굉장히 독특한 취미를 가진 경우
     - 기술적인 면이 포함된 경우
     - 긍정적인 성격적 특성을 보여주는 경우 등
+
+## Chapter 06. big-O
+
+### 비유하기
+
+- 파일전송의 예제: A가 B에게 파일을 전송한다면?
+  - 일반적으로는 인터넷으로 전송하는것이 가장 빠를 것임.: 100Mb/s -> 10테라 기준, 약 1.1~1.2일 정도 소요
+  - 그러나 용량이 크다면(수십 테라), 데이터 저장장치를 직접 들고 비행기 등으로 운송하는 것이 더 빠를 수 있음.: 1일(용량에 상관없음. 고정)
+
+### 시간복잡도
+
+- 점근적 실행 시간(asymptotic running time): 입력의 크기가 무한대로 향할 때의 실행 시간
+- 예시
+  - 온라인 전송: O(s)
+    - s: 전송할 데이터의 용량. 용량이 증가하면 시간은 선형적으로 증가함.
+  - 비행기를 통한 이동: O(1)
+    - 1: 비행기가 이동하는 시간. 용량이 커져도 이는 고정된 상수값임.
+- 이외에도 O(log n), O(n log n), O(n^2), O(2^n) 등이 있음.
+- big-Ω, big-O, big-Θ 등이 있음.
+  - big-Ω: 최선의 경우
+  - big-O: 최악의 경우
+  - big-Θ: 평균의 경우
+- 일반적으로 big-O를 사용함.
+- 구체적인 예시
+  - 퀵 정렬
+    - 최선의 경우: O(n) -> 이미 정렬된 경우
+    - 최악의 경우: O(n^2) -> 역순으로 정렬된 경우
+    - 평균의 경우: O(n log n)
+
+### 공간복잡도
+
+- 크기가 n인 배열을 만들어야 한다면, O(n)의 공간이 필요하다.
+- 크기가 n x n 크기의 2차원 배열을 만들어야 한다면, O(n^2)의 공간이 필요하다.
+- 재귀 호출을 사용 시 스택 공간 또한 계산에 포함된다.
+- 그러나 단순히 n번 호출했다고 해서 O(n)의 공간을 사용하는 것은 아니다.
+
+### 상수항은 무시하라
+
+- O(n + 1), O(2n) 등의 표기는 무의미하고, 더 정확하지도 않다.
+
+### 지배적이지 않은 항은 무시하라
+
+- O(n^2 + n) = O(n^2)
+- big-O에서 가장 중요한 것은, '입력의 크기가 무한대로 향할 때의 실행 시간' 이다.
+- 따라서 상수항이나 지배적이지 않은 항은 무시해야한다.
+- 단 O(n^2 + m)과 같이, 서로 다른 입력의 크기를 가지는 경우는 무시할 수 없다.
+  - m과 n의 관계를 모르는 이상 무시할 수 없다.
+  
+![Alt text](images/image03.png)
+
+- n = 10일 때 각각의 값
+  - n!: 3,628,800
+  - 2^n: 1,024
+  - n^2: 100
+  - n log n: 33
+  - n: 10
+  - log n: 3
+
+### 여러 부분으로 이루어진 알고리즘: 덧셈 vs 곱셈
+
+- 덧셈: O(A + B)
+
+  ```ts
+  for (a of arrA) {
+    print(a);
+  }
+
+  for (b of arrB) {
+    print(b);
+  }
+  ```
+
+- 곱셈: O(A * B)
+
+  ```ts
+  for (a of arrA) {
+    for (b of arrB) {
+      print(a + ',' + b);
+    }
+  }
+  ```
+
+### 상환 시간
+
+- ArrayList(동적 가변크기 배열)는 일반적으로 O(1)의 시간복잡도를 가진다.
+- 그러나, 배열의 크기가 커지면서 배열의 크기를 늘려야 하는 경우가 생긴다.
+  - 이 경우, 2n 크기의 배열을 새로 만들고 원소 전체를 복사하는 데에 O(n)의 시간이 소요된다.
+  - 하지만 이런 경우는 극히 드물다.
+    - 1, 2, 4, 8, 16, 32, ... X 마다 발생하며, 이를 모두 더하면 대략 2X가 된다.
+- 결과적으로 ArrayList의 삽입연산은 O(2X / X) -> O(1)의 시간복잡도를 가진다.
+
+### log N 수행 시간
+
+- 이진 탐색 트리의 탐색 시간은 O(log n)이다.
+- 이진 탐색 트리의 높이는 log n이다.
+- big-O에서는 로그의 밑을 명시하지 않는다. 이는 고려 할 필요가 없기 때문이다.
+
+### 재귀적으로 수행 시간 구하기
+
+```ts
+function f(n: number): number {
+  if (n <= 1) {
+    return 1;
+  }
+  return f(n-1) + f(n-1);
+}
+```
+
+- 이 경우는 O(2^n)이다.
+- 이는 재귀 호출이 두 번 일어나기 때문에 이진 트리의 노드 수와 같다.
+
+### 예제 및 연습문제
+
+예제 1.
+  
+  ```ts
+  function foo(arr: number[]) {
+    let sum = 0;
+    let product = 1;
+    for (let i = 0; i < arr.length; i++) {
+      sum += arr[i];
+    }
+    for (let i = 0; i < arr.length; i++) {
+      product *= arr[i];
+    }
+    console.log(sum + ',' + product);
+  }
+  ```
+
+- 답: O(n)
+
+예제 2.
+
+  ```ts
+  function printPairs(arr: number[]) {
+    for (let i = 0; i < arr.length; i++) {
+      for (let j = 0; j < arr.length; j++) {
+        console.log(arr[i] + ',' + arr[j]);
+      }
+    }
+  }
+  ```
+
+- 답: O(n^2)
+
+예제 3.
+
+  ```ts
+  function printUnorderedPairs(arr: number[]) {
+    for (let i = 0; i < arr.length; i++) {
+      for (let j = i + 1; j < arr.length; j++) {
+        console.log(arr[i] + ',' + arr[j]);
+      }
+    }
+  }
+  ```
+
+- 답: O(n^2) -> 2번보다 약 절반의 케이스만 다루지만, O(n^2 / 2) = O(n^2)이다.
+
+예제 4.
+
+  ```ts
+  function printUnorderedPairs(arrA: number[], arrB: number[]) {
+    for (let i = 0; i < arrA.length; i++) {
+      for (let j = 0; j < arrB.length; j++) {
+        if (arrA[i] < arrB[j]) {
+          console.log(arrA[i] + ',' + arrB[j]);
+        }
+      }
+    }
+  }
+  ```
+
+- 답: O(ab) -> a, b의 관계를 알 수 없으므로, a, b를 모두 고려해야 한다.
+
+예제 5.
+
+  ```ts
+  function printUnorderedPairs(arrA: number[], arrB: number[]) {
+    for (let i = 0; i < arrA.length; i++) {
+      for (let j = 0; j < arrB.length; j++) {
+        for (let k = 0; k < 100000; k++) {
+          console.log(arrA[i] + ',' + arrB[j]);
+        }
+      }
+    }
+  }
+  ```
+
+- 답: O(ab) -> 100000은 상수이므로 무시한다.
+
+예제 6.
+
+  ```ts
+  function reverse(arr: number[]) {
+    for (let i = 0; i < arr.length / 2; i++) {
+      const other = arr.length - i - 1;
+      const temp = arr[i];
+      arr[i] = arr[other];
+      arr[other] = temp;
+    }
+  }
+  ```
+
+- 답: O(n) -> 배열의 절반만큼만 반복하지만, O(n / 2) = O(n)이다.
+
+예제 7. 다음 중 O(n)과 같은 것은 무엇인가?
+
+- 보기
+  1. O(n + p), p < n/2
+  2. O(2n)
+  3. O(n + log n)
+  4. O(n + m)
+
+- 답: 1, 2, 3 -> 4는 m과 n의 관계를 알 수 없으므로, 무시할 수 없다.
+
+예제 8. 여러 개의 문자열로 구성된 배열이 주어졌을 때, 각각의 문자열을 정렬하고 전체 배열을 다시 정렬하는 알고리즘이 있다. 이 알고리즘의 시간복잡도는 무엇인가?
+
+- 대표적인 오답
+  - 각각의 문자열을 정렬하는데 O(n * n log n)이 소요된다.
+  - 전체 배열을 다시 정렬하는데 O(n log n)이 소요된다.
+  - 따라서 결과적으로 O(n^2 log n + n log n) = O(n^2 log n)이 소요된다.
+- 오답인 이유
+  - 두 가지 정렬은 서로 다른 입력을 가지므로, 두 가지 정렬을 합쳐서 계산할 수 없다.
+  - 정렬에 필요한 비교에 소요되는 시간 복잡도를 고려하지 않았다.
+- 답: O(a * s(log a + log s)) -> a: 배열의 크기, s: 문자열의 길이
+  - 각각의 문자열을 정렬하는데 O(s log s)가 소요된다.
+  - 전체 배열을 다시 정렬하는데 O(s * a log a)가 소요된다.
+    - 각 배열의 문자열을 비교하는 시간 O(s) * 비교 횟수 O(a log a) = O(s * a log a)가 소요된다.
+
+예제 9.
+
+  ```ts
+  function sum(node: Node) {
+    if (node === null) {
+      return 0;
+    }
+    return sum(node.left) + node.value + sum(node.right);
+  }
+  ```
+
+- 답: O(n) -> 이진 트리의 노드 수와 같다.
+  - 두 가지 해법
+    - 코드가 무엇을 의미하는가?
+      - 이 코드는 트리의 각 노드를 방문한 뒤, 각 노드에서 상수 시간이 소요되는 연산을 수행한다.
+      - 즉, 트리의 노드 수와 같은 시간이 소요된다.
+    - 재귀호출 패턴분석
+      - 재귀함수의 수행시간은 일반적으로 O(분기 ^ 깊이)이다.
+      - 그렇다면 이 함수의 경우는 O(2 ^ 깊이)가 될 것이다.
+      - 그런데 이 트리는 균형 이진 트리이므로, 깊이는 대략 log n이다.
+      - 따라서 O(2 ^ log n) = O(n)이 된다.
+
+예제 10.
+
+  ```ts
+  function isPrime(n: number): boolean {
+    for (let x = 2; x * x <= n; x++) {
+      if (n % x === 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+  ```
+
+- 답: O(n ^ 1/2)
+
+예제 11.
+
+  ```ts
+  function factorial(n: number): number {
+    if (n < 0) {
+      return -1;
+    } else if (n === 0) {
+      return 1;
+    } else {
+      return n * factorial(n - 1);
+    }
+  }
+  ```
+
+- 답: O(n) -> 단순히 n번 재귀호출을 수행하므로, O(n)이다.
+
+예제 12.
+
+  ```ts
+  function permutations(str: string) {
+    permutation(str, '');
+  }
+  
+  function permutation(str: string, prefix: string) {
+    if (str.length === 0) {
+      console.log(prefix);
+    } else {
+      for (let i = 0; i < str.length; i++) {
+        const rem = str.substring(0, i) + str.substring(i + 1);
+        permutation(rem, prefix + str.charAt(i));
+      }
+    }
+  }
+  ```
+
+- 답: O(n^2 * n!)
+  - 순열이 완성되는 시점에 permutation 함수가 호출되는 횟수 = n!
+  - 순열이 완성되기 전까지 permutation 함수가 호출되는 횟수 = n * n! 미만
+    - 말단 노드의 수는 n!개, 트리의 높이는 n이므로, 말단 노드의 수는 n * n! 미만이다.
+  - 각 함수 호출을 처리하는 데에 걸리는 시간 = O(n)
+  - 총 수행시간 = O(n * n!) = O(n^2 * n!)
+
+예제 13.
+
+  ```ts
+  function fib(n: number): number {
+    return fib(n-1) + fib(n-2);
+  }
+  ```
+
+- 답: O(2^n), O(1.6^n)
+  - 재귀호출 패턴(O(분기 ^ 깊이))을 사용하면, O(2^n)이 된다.
+  - 그러나 일부 말단이 단말 노드이므로 O(1.6^n)이 된다.
+
+예제 14.
+
+  ```ts
+  function allFib(n: number) {
+    for (let i = 0; i < n; i++) {
+      console.log(i + ': ' + fib(i));
+    }
+  }
+
+  function fib(n: number): number {
+    if (n <= 0) return 0;
+    else if (n === 1) return 1;
+    return fib(n-1) + fib(n-2);
+  }
+  ```
+
+- 오답: O(n * 2^n)
+  - fib 함수의 호출 횟수는 O(2^n)이다.
+  - 그러나 각 호출은 O(n)의 시간이 소요된다.
+  - 따라서 총 수행시간은 O(n * 2^n)이 될 것이다.
+    => n이 매 호출마다 변화되는 점을 무시한 결과
+- 답: O(2^n)
+  - fib(1) -> 2^1번 호출
+  - fib(2) -> 2^2번 호출
+  - fib(3) -> 2^3번 호출
+  - ...
+  - 합계는 2^1 + 2^2 + 2^3 + ... + 2^n = 2^(n+1)
+  - 따라서 총 수행시간은 O(2^n)이 된다.
+
+예제 15.
+
+  ```ts
+  function allFib(n: number) {
+    const memo = new Array(n + 1).fill(-1);
+    for (let i = 0; i < n; i++) {
+      console.log(i + ': ' + fib(i, memo));
+    }
+  }
+
+  function fib(n: number, memo: number[]): number {
+    if (n <= 0) return 0;
+    else if (n === 1) return 1;
+    else if (memo[n] > 0) return memo[n];
+    memo[n] = fib(n-1, memo) + fib(n-2, memo);
+    return memo[n];
+  }
+  ```
+
+- 답: O(n)
+  - fib 함수의 호출 횟수는 O(n)이다.
+  - 각 호출은 memo에서 값을 가져와 더하는, 상수 시간이 소요되는 연산을 수행한다.
+  - 따라서 총 수행시간은 O(n)이 된다.
+
+예제 16.
+
+  ```ts
+  function powersOf2(n: number): number {
+    if (n < 1) {
+      return 0;
+    } else if (n === 1) {
+      console.log(1);
+      return 1;
+    } else {
+      const prev = powersOf2(Math.floor(n / 2));
+      const curr = prev * 2;
+      console.log(curr);
+      return curr;
+    }
+  }
+  ```
+
+- 답: O(log n)
+  - powersOf2 함수의 호출 횟수는 O(log n)이다.
+  - 각 호출은 상수 시간이 소요되는 연산을 수행한다.
+  - 따라서 총 수행시간은 O(log n)이 된다.
