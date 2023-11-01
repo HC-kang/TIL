@@ -1112,3 +1112,215 @@ function f(n: number): number {
 - 꾸준히 면접을 보라
   - 적극적인 이직 의사가 없더라고 적어도 일년에 한 번은 면접을 보는 것이 좋다.
   - 이를 통해 자신의 가치를 알 수 있고, 최신 면접 동햐을 알 수 있다.
+
+## Chapter 09. 면접 문제
+
+- 자료구조
+  1. 배열과 문자열
+  2. 연결 리스트
+  3. 스택과 큐
+  4. 트리와 그래프
+
+### 1. 배열과 문자열
+
+#### 해시 테이블
+
+- 해시 테이블에 키와 값을 저장하는 과정
+  1. 해시 코드 계산
+  2. 해시 코드를 인덱스로 변환
+  3. 해당 인덱스에 존재하는 연결 리스트에 키와 값을 저장
+      - 여기서는 충돌을 해결하기 위해 연결 리스트를 사용한다.
+      - 이 경우 최악의 시나리오에서 수행 시간은 O(n)이 된다. 하지만 해시가 잘 구현되어있다면, O(1)이 된다.
+      - 혹은 이진 트리를 사용할 수도 있다.
+
+#### ArrayList와 가변 크기 배열
+
+- ArrayList는 내부적으로 배열을 사용한다.
+- ArrayList의 크기를 늘리는 방법
+  1. 새로운 배열을 생성한다.
+  2. 기존의 배열을 새로운 배열로 복사한다.
+  3. 새로운 배열에 새로운 항목을 추가한다.
+- 이러한 ArrayList는 최악의 경우 O(n)의 시간이 소요된다.
+  - 하지만 이런 경우는 드물기에, 상환시간을 고려했을 때 O(1)이라고 할 수 있다.
+
+#### StringBuilder
+
+- 길이가 x인 n개의 문자열이 주어진다고 했을 때, 이를 모두 하나로 연결하려면 수행시간은 O(xn^2)이 된다.
+- 그러나 StringBuilder를 사용하면, O(xn)의 수행시간으로 해결할 수 있다.
+  - StringBuilder는 내부적으로 가변 크기 배열을 사용한다.
+
+#### 면접 문제
+
+1.1 중복이 없는가
+
+- 나의 풀이
+
+  ```ts
+  function hasUniqueChar(str: string): boolean {
+    const set = new Set();
+    for (let i = 0; i < str.length; i++) {
+      if (set.has(str[i])) {
+        return false;
+      } else {
+        set.add(str[i]);
+      }
+    }
+    return true;
+  }
+  ```
+
+- 도서의 풀이 1
+
+  ```ts
+  function isUniqueChar(str: string): boolean {
+    if (str.length > 128) return false;
+    const set = new Set();
+    for (let i = 0; i < str.length; i++) {
+      const val = str[i];
+      if (set.has(val)) {
+        return false;
+      }
+      set.add(val);
+    }
+    return true;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function isUniqueChar(str: string): boolean {
+    let checker = 0;
+    for (let i = 0; i < str.length; i++) {
+      const val = str[i];
+      const bit = val.charCodeAt(0) - 'a'.charCodeAt(0); // 0 ~ 25
+      if ((checker & (1 << bit)) > 0) {
+        return false;
+      }
+      checker |= 1 << bit; // 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, ...
+    }
+    return true;
+  }
+  ```
+
+1.2 순열 확인
+
+- 내 풀이
+
+  ```ts
+  function isPermutation(str1: string, str2: string): boolean {
+    if (str1.length !== str2.length) return false;
+    const map = new Map();
+    for (let i = 0; i < str1.length; i++) {
+      const char = str1[i];
+      if (map.has(char)) {
+        map.set(char, map.get(char) + 1);
+      } else {
+        map.set(char, 1);
+      }
+    }
+    for (let i = 0; i < str2.length; i++) {
+      const char = str2[i];
+      if (map.has(char)) {
+        map.set(char, map.get(char) - 1);
+        if (map.get(char) < 0) {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    }
+  }
+  ```
+
+- 도서의 풀이 1. 정렬
+
+  ```ts
+  function sort(str: string): string {
+    const arr = str.split('');
+    arr.sort();
+    return arr.join('');
+  }
+
+  function permutation(s: string, t: string): boolean {
+    if (s.length !== t.length) return false;
+    return sort(s) === sort(t);
+  }
+  ```
+
+- 도서의 풀이 2. 출현횟수 확인
+
+  ```ts
+  function permutation(s: string, t: string): boolean {
+    if (s.length !== t.length) return false;
+
+    const letters = new Array(128).fill(0); // ASCII로 가정
+
+    for (let i = 0; i < s.length; i++) {
+      letters[s.charCodeAt(i)]++;
+    }
+    for (let i = 0; i < t.length; i++) {
+      letters[t.charCodeAt(i)]--;
+      if (letters[t.charCodeAt(i)] < 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+  ```
+
+1.3 URL화
+
+- 내 풀이
+
+  ```ts
+  function urlize(str: string): string {
+    return str.replace(/\s/g, '%20');
+  }
+  ```
+
+  ```ts
+  function urlize(str: string): string {
+    const arr = str.split('');
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i] === ' ') {
+        arr[i] = '%20';
+      }
+    }
+    return arr.join('');
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+  function replaceSpaces(str: string, trueLength: number): string {
+    const arr = str.split('');
+
+    // 최종 문자열의 길이를 계산한다.
+    let spaceCount = 0;
+    for (let i = 0; i < trueLength; i++) {
+      if (arr[i] === ' ') {
+        spaceCount++;
+      }
+    }
+    let index = trueLength + spaceCount * 2;
+    if (trueLength < str.length) {
+      arr[trueLength] = '\0'; // 배열의 끝
+    }
+
+    // 문자열을 뒤에서부터 확인하며, 공백이면 %20으로 대체한다.
+    for (let i = trueLength - 1; i >= 0; i--) {
+      if (arr[i] === ' ') {
+        arr[index - 1] = '0';
+        arr[index - 2] = '2';
+        arr[index - 3] = '%';
+        index -= 3;
+      } else {
+        arr[index - 1] = arr[i];
+        index--;
+      }
+    }
+    return arr.join('');
+  }
+  ```
