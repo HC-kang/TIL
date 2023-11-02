@@ -1873,3 +1873,301 @@ function f(n: number): number {
     return s1.includes(s2);
   }
   ```
+
+### 2. 연결리스트
+
+![Alt text](images/image05.png)
+
+- 배열과 달리 연결 리스트에서는 특정 인덱스를 상수 시간에 접근 할 수 없다.
+- 다만 중간에 노드를 삽입하거나 삭제하는 것은 상수시간에 가능하다.
+
+#### 연결리스트 만들기
+
+```ts
+class Node {
+  data: number;
+  next: Node | null;
+
+  constructor(data: number) {
+    this.data = data;
+    this.next = null;
+  }
+
+  appendToTail(data: number) {
+    const end = new Node(data);
+    let n: Node | null = this;
+    while (n.next !== null) {
+      n = n.next;
+    }
+    n.next = end;
+  }
+}
+```
+
+- 위의 코드에서는 head가 고정되어있음. 따라서 head가 변경되는 경우 문제가 발생 할 수 있음
+- 개선된 코드: LinkedList 클래스 추가
+
+  ```ts
+  class Node {
+    data: number;
+    next: Node | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  class LinkedList {
+    head: Node | null = null;
+
+    appendToTail(data: number) {
+      const end = new Node(data);
+      if (this.head === null) {
+        this.head = end;
+      } else {
+        let n: Node | null = this.head;
+        while (n.next !== null) {
+          n = n.next;
+        }
+        n.next = end;
+      }
+    }
+  }
+  ```
+
+#### 단방향 연결리스트에서 노드 삭제
+
+- 삭제할 노드의 앞 노드를 찾아, 삭제할 노드의 다음 노드를 앞 노드의 다음 노드로 바꾸면 된다.
+  - prev.next = n.next;
+- 만약 삭제할 노드가 head라면, head를 다음 노드로 바꾸면 된다.
+  - head = head.next;
+- 양방향 리스트라면 뒤 노드의 이전 노드를 앞 노드의 이전 노드로 바꿔주어야 한다.
+  - n.next.prev = n.prev;
+- 이 때, 널 포인터 예외를 처리해주어야 하고,
+- 필요시 메모리 해제를 해주어야 한다.
+- 코드
+
+  ```ts
+  function deleteNode(head: Node, d: number): Node {
+    let n: Node | null = head;
+
+    if (n.data === d) { // 삭제할 노드가 head라면
+      return head.next; // head를 다음 노드로 바꿈
+    }
+
+    while (n.next !== null) {
+      if (n.next.data === d) {
+        n.next = n.next.next; // 삭제할 노드의 다음 노드를 앞 노드의 다음 노드로 바꿈
+        return head; // head는 그대로
+      }
+      n = n.next;
+    }
+    return head;
+  }
+  ```
+
+#### Runner 기법
+
+- 연결리스트 문제를 풀 때, 두 개의 포인터를 동시에 사용하는 기법
+
+#### 재귀 문제
+
+- 연결 리스트 관련 문제의 상당수는 재귀 호출에 의존함.
+- 유의할 점은, 재귀 호출의 깊이만큼 시간복잡도가 증가한다는 점이다.
+
+#### 면접 문제
+
+2.1 중복 없애기
+
+- 내 풀이
+
+  ```ts
+  class MyNode {
+    data: number;
+    next: MyNode | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  function dropDuplicates(node: MyNode): MyNode {
+    if (node === null || node.next === null) return node;
+
+    let buffer = new Set<number>();
+    let current = node;
+    buffer.add(current.data);
+
+    while (current.next !== null) {
+      if (buffer.has(current.next.data)) {
+        current.next = current.next.next;
+      } else {
+        buffer.add(current.next.data);
+        current = current.next;
+      }
+    }
+    return node;
+  }
+  ```
+
+- 도서의 풀이 1
+
+  ```ts
+  function deleteDups(n: LinkedListNode | null) {
+    let set = new Set();
+    let previous: LinkedListNode | null = null;
+    while (n !== null) {
+      if (set.has(n.data)) {
+        previous!.next = n.next;
+      } else {
+        set.add(n.data);
+        previous = n;
+      }
+      n = n.next;
+    }
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function deleteDups(head: LinkedListNode | null) {
+    let current = head;
+    while (current !== null) {
+      let runner = current;
+      while (runner.next !== null) {
+        if (runner.next.data === current.data) {
+          runner.next = runner.next.next;
+        } else {
+          runner = runner.next;
+        }
+      }
+      current = current.next;
+    }
+  }
+  ```
+
+  - 이 코드는 1번 코드와 달리 buffer를 사용하지 않지만, 시간 복잡도는 O(n^2)이다.
+
+2.2 뒤에서 k번째 원소 구하기
+
+- 내 풀이
+
+  ```ts
+  class MyNode {
+    data: number;
+    next: MyNode | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  function kThFromBehind(node: MyNode | null, k: number): number {
+    if (k < 0) return -1;
+    let count = 0;
+    let current = node;
+    
+    while (current !== null) {
+      count++;
+      current = current.next;
+    }
+
+    if (k > count) return -1;
+
+    let target = count + 1 - k;
+    current = node;
+    while (target > 1) {
+      current = current!.next;
+      target--;
+    }
+    return current!.data;
+  }
+  ```
+
+- 도서의 풀이 1
+
+  ```ts
+  function printKthToLast(head: LinkedListNode | null, k: number): number {
+    if (head === null) {
+      return 0;
+    }
+
+    const index = printKthToLast(head.next, k) + 1;
+    if (index === k) {
+      console.log(head.data);
+    }
+    return index;
+  }
+  ```
+
+  - 단순히 뒤에서 k번째 값을 콘솔에 출력하는 방법임.
+
+- 도서의 풀이 2(생략)
+
+- 도서의 풀이 3
+
+  ```ts
+  class LinkedListNode {
+    data: number;
+    next: LinkedListNode | null = null;
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  class Index {
+    value = 0;
+  }
+
+  function kthToLast(head: LinkedListNode | null, k: number): number {
+    const idx = new Index();
+    const node = kthToLastHelper(head, k, idx);
+    if (node !== null) {
+      return node.data;
+    }
+    return -1;
+  }
+
+  function kthToLastHelper(head: LinkedListNode | null, k: number, idx: Index): LinkedListNode | null {
+    if (head === null) {
+      return null;
+    }
+    const node = kthToLastHelper(head.next, k, idx);
+    idx.value = idx.value + 1;
+    if (idx.value === k) {
+      return head;
+    }
+    return node;
+  }
+  ```
+
+- runner를 사용한 풀이
+
+  ```ts
+  class LinkedListNode {
+    data: number;
+    next: LinkedListNode | null = null;
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  function kthToLast(head: LinkedListNode | null, k: number): number {
+    let p1: LinkedListNode | null = head;
+    let p2: LinkedListNode | null = head;
+
+    while (k > 0) {
+      if (p1 === null) return -1;
+      p1 = p1.next;
+      k--;
+    }
+
+    while (p1 !== null) {
+      p1 = p1.next;
+      p2 = p2!.next;
+    }
+
+    return p2!.data;
+  }
+  ```
