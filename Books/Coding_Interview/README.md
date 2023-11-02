@@ -1324,3 +1324,552 @@ function f(n: number): number {
     return arr.join('');
   }
   ```
+
+1.4 회문 순열
+
+- 내 풀이
+
+  ```ts
+  function isPalindrome(str: string): boolean {
+    const s = str.replace(/\s/g, '');
+    const half = Math.floor(s.length / 2);
+    for (let i = 0; i < half; i++) {
+      if (s[i] !== s[s.length - 1 - i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+  ```
+
+- 도서의 풀이 1
+
+  ```ts
+  function isPermutationOfPalindrome(phrase: string): boolean {
+    const table = buildCharFrequencyTable(phrase);
+    return checkMaxOneOdd(table);
+  }
+
+  function checkMaxOneOdd(table: number[]): boolean {
+    let foundOdd = false;
+    for (let count of table) {
+      if (count % 2 === 1) {
+        if (foundOdd) {
+          return false;
+        }
+        foundOdd = true;
+      }
+    }
+    return true;
+  }
+
+  function buildCharFrequencyTable(phrase: string): number[] {
+    const table = new Array<number>(getCharNumber('z') - getCharNumber('a') + 1).fill(0);
+    for (let c of phrase) {
+      const x = getCharNumber(c);
+      if (x !== -1) {
+        table[x]++;
+      }
+    }
+    return table;
+  }
+
+  function getCharNumber(c: string): number {
+    const a = 'a'.charCodeAt(0);
+    const z = 'z'.charCodeAt(0);
+    const val = c.charCodeAt(0);
+    if (a <= val && val <= z) {
+      return val - a;
+    }
+    return -1;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function isPermutationOfPalindrome(phrase: string): boolean {
+    let countOdd = 0;
+    const table = new Array<number>(getCharNumber('z') - getCharNumber('a') + 1).fill(0);
+    for (const c of phrase) {
+      const x = getCharNumber(c);
+      if (x !== -1) {
+        table[x]++;
+        if (table[x] % 2 === 1) {
+          countOdd++;
+        } else {
+          countOdd--;
+        }
+      }
+    }
+    return countOdd <= 1;
+  }
+
+  function getCharNumber(c: string): number {
+    const a = 'a'.charCodeAt(0);
+    const z = 'z'.charCodeAt(0);
+    const val = c.charCodeAt(0);
+    if (a <= val && val <= z) {
+      return val - a;
+    }
+    return -1;
+  }
+  ```
+
+  - 도서의 풀이 1과 2의 차이점
+    - 도서의 풀이 1은 문자열을 두 번 순회한다.
+    - 도서의 풀이 2는 문자열을 한 번 순회한다.
+    - 그러나 도서의 풀이 2가 더 최적화 된 형태라고 하기는 어렵다.
+
+- 도서의 풀이 3
+
+  ```ts
+  function isPermutationOfPalindrome(phrase: string): boolean {
+    const bitVector = createBitVector(phrase);
+    return bitVector === 0 || checkExactlyOneBitSet(bitVector);
+  }
+
+  function createBitVector(phrase: string): number {
+    let bitVector = 0;
+    const arr = phrase.split('');
+    for (const c of arr) {
+      const x = getCharNumber(c);
+      bitVector = toggle(bitVector, x);
+    }
+    return bitVector;
+  }
+
+  function toggle(bitVector: number, index: number): number {
+    if (index < 0) return bitVector;
+    const mask = 1 << index;
+    if ((bitVector & mask) === 0) { // 해당 비트가 0이면
+      bitVector |= mask; // 비트를 1로 바꾼다.
+    } else { // 해당 비트가 1이면
+      bitVector &= ~mask; // 비트를 0으로 바꾼다.
+    }
+    return bitVector;
+  }
+
+  function getCharNumber(c: string): number {
+    const a = 'a'.charCodeAt(0);
+    const z = 'z'.charCodeAt(0);
+    const val = c.charCodeAt(0);
+    if (a <= val && val <= z) {
+      return val - a;
+    }
+    return -1;
+  }
+
+  function checkExactlyOneBitSet(bitVector: number): boolean {
+    return (bitVector & (bitVector - 1)) === 0; // 1을 뺀 값과 AND 연산을 했을 때 0이면 1이 하나만 있다는 뜻이다.
+  }
+  ```
+
+1.5 하나 빼기
+
+- 내 풀이
+
+  ```ts
+  function isOneEdit(str1: string, str2: string): boolean {
+    if (Math.abs(str1.length - str2.length) > 1) return false;
+
+    if (str1.length === str2.length) {
+      let diff = 0;
+      for (let i = 0; i < str1.length; i++) {
+        if (str1[i] !== str2[i]) diff++;
+        if (diff > 1) return false;
+      }
+      return true;
+    }
+
+    const long = str1.length > str2.length ? str1 : str2;
+    const short = str1.length > str2.length ? str2 : str1;
+
+    let diff = 0;
+    for (let i = 0; i < short.length; i++) {
+      if (long[i + diff] !== short[i]) {
+        diff++;
+        i--;
+      }
+      if (diff > 1) return false;
+    }
+    return true;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+  function oneEditAway(first: string, second: string): boolean {
+    if (first.length === second.length){
+      return oneEditReplace(first, second);
+    } else if (first.length + 1 === second.length){
+      return oneEditInsert(first, second);
+    } else if (first.length - 1 === second.length){
+      return oneEditInsert(second, first);
+    }
+    return false;
+  }
+
+  function oneEditReplace(s1: string, s2: string): boolean {
+    let foundDifference = false;
+    for (let i = 0; i < s1.length; i++) {
+      if (s1.charAt(i) !== s2.charAt(i)) {
+        if (foundDifference) {
+          return false;
+        }
+        foundDifference = true;
+      }
+    }
+    return true;
+  }
+
+  function oneEditInsert(short: string, long: string): boolean {
+    let shortIdx = 0;
+    let longIdx = 0;
+    while (longIdx < long.length && shortIdx < short.length) {
+      if (short.charAt(shortIdx) !== long.charAt(longIdx)) { // 두 철자가 다른 경우
+        if (shortIdx !== longIdx) { // 철자가 다른 경우가 두 번째 이상인 경우
+          return false;
+        }
+        longIdx++; // 철자가 다른 경우가 처음인 경우
+      } else { // 두 철자가 같은 경우
+        shortIdx++;
+        longIdx++;
+      }
+    } 
+    return true;
+  }
+  ```
+
+- 도서의 풀이(간략화)
+
+  ```ts
+  function oneEditAway(first: string, second: string): boolean {
+    if (Math.abs(first.length - second.length) > 1) {
+      return false;
+    }
+
+    const longer = first.length > second.length ? first : second;
+    const shorter = first.length > second.length ? second : first;
+
+    let longerIndex = 0;
+    let shorterIndex = 0;
+
+    let foundDifference = false;
+    while (shorterIndex < shorter.length && longerIndex < longer.length) {
+      if (shorter[shorterIndex] !== longer[longerIndex]) { // 두 문자가 다를 때
+        if (foundDifference) return false; // 이미 다른 문자가 있었다면 false
+        foundDifference = true; // 첫번째 다른 문자를 찾았다고 표시
+        if (shorter.length === longer.length) { // 문자열 길이가 같을 때
+          shorterIndex++; // 다음 문자로 넘어감
+        }
+      } else { // 두 문자가 같을 때
+        shorterIndex++; // 다음 문자로 넘어감
+      }
+      longerIndex++; // 다음 문자로 넘어감
+    }
+    return true;
+  }
+  ```
+
+  - 위의 코드에서 oneEditReplace와 oneEditInsert를 합쳐서 작성한 코드이다.
+  - 내 생각에는, 합쳐진 코드보다는 일부 코드가 중복되더라도 분리된 코드가 더 가독성이 좋다고 생각함.
+
+1.6 문자열 압축
+
+- 내 풀이
+
+  ```ts
+  function compress(str: string): string {
+    let result = '';
+    let count = 0;
+    for (let i = 0; i < str.length; i++) {
+      count++;
+      if (str[i] !== str[i + 1]) {
+        result += str[i] + count;
+        count = 0;
+      }
+    }
+    return result.length < str.length ? result : str;
+  }
+  ```
+
+- 도서의 풀이 1
+
+  ```ts
+  function compressBad(str: string): string {
+    let compressedString = '';
+    let countConsecutive = 0;
+    for (let i = 0; i < str.length; i++) {
+      countConsecutive++;
+      if (i + 1 >= str.length || str.charAt(i) !== str.charAt(i + 1)) {
+        compressedString += str.charAt(i) + countConsecutive;
+        countConsecutive = 0;
+      }
+    }
+    return compressedString.length < str.length ? compressedString : str;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function compress(str: string): string {
+    const finalLength = countCompression(str);
+    if (finalLength >= str.length) return str;
+
+    let compressed = '';
+    let countConsecutive = 0;
+    for (let i = 0; i < str.length; i++) {
+      countConsecutive++;
+      if (i + 1 >= str.length || str.charAt(i) !== str.charAt(i + 1)) {
+        compressed += str.charAt(i) + countConsecutive;
+        countConsecutive = 0;
+      }
+    }
+    return compressed;
+  }
+
+  function countCompression(str: string): number {
+    let compressedLength = 0;
+    let countConsecutive = 0;
+    for (let i = 0; i < str.length; i++) {
+      countConsecutive++;
+      if (i + 1 >= str.length || str.charAt(i) !== str.charAt(i + 1)) {
+        compressedLength += 1 + countConsecutive.toString().length;
+        countConsecutive = 0;
+      }
+    }
+    return compressedLength;
+  }
+  ```
+
+1.7 행렬 회전
+
+- 내 풀이
+
+  ```ts
+  function rotate90(matrix: number[][]): number[][] {
+    const n = matrix.length;
+    const result = new Array(n).fill(0).map(() => new Array(n).fill(0));
+
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        result[j][n - 1 - i] = matrix[i][j];
+      }
+    }
+
+    return result;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+  function rotate(matrix: number[][]): number[][] {
+    if (matrix.length === 0 || matrix.length !== matrix[0].length) return matrix;
+    const n = matrix.length;
+    for (let layer = 0; layer < n / 2; layer++) {
+      const first = layer;
+      const last = n - 1 - layer;
+      for (let i = first; i < last; i++) {
+        const offset = i - first;
+        const top = matrix[first][i];
+        // left -> top
+        matrix[first][i] = matrix[last - offset][first];
+        // bottom -> left
+        matrix[last - offset][first] = matrix[last][last - offset];
+        // right -> bottom
+        matrix[last][last - offset] = matrix[i][last];
+        // top -> right
+        matrix[i][last] = top;
+      }
+    }
+    return matrix;
+  }
+  ```
+
+  - 도서의 풀이는, 행렬을 4개의 부분 행렬로 나누어서, 각 부분 행렬의 원소들을 서로 바꾸는 방식으로 행렬을 회전시킨다.
+  - 시간 복잡도는 두 풀이 모두 O(n^2)이다. 그러나 n^2개의 원소를 모두 변경해야 하므로 최선의 결과이다.
+  - 공간 복잡도는 내 풀이의 경우 O(n^2)이고, 도서의 풀이의 경우 O(1)이다.
+
+1.8 0 행렬
+
+- 내 풀이
+
+  ```ts
+  function makeZeroColRow(matrix: number[][]): number[][] {
+    const m = matrix.length;
+    const n = matrix[0].length;
+
+    const zeroLocs: number[][] = [];
+    for (let i = 0; i < matrix.length; i++) {
+      const row = matrix[i];
+      for (let j = 0; j < row.length; j++) {
+        const col = row[j];
+        if (col === 0) {
+          zeroLocs.push([i, j]);
+        }
+      }
+    }
+    for (let i = 0; i < zeroLocs.length; i++) {
+      const [row, col] = zeroLocs[i];
+      for (let j = 0; j < m; j++) {
+        matrix[j][col] = 0;
+      }
+      for (let j = 0; j < n; j++) {
+        matrix[row][j] = 0;
+      }
+    }
+    return matrix;
+  }
+  ```
+
+- 도서의 풀이 1
+
+  ```ts
+  function setZeros(matrix: number[][]): number[][] {
+    let row: boolean[] = new Array(matrix.length).fill(false);
+    let col: boolean[] = new Array(matrix[0].length).fill(false);
+
+    for (let i = 0; i < matrix.length; i++) {
+      for (let j = 0; j < matrix[0].length; j++){
+        if (matrix[i][j] === 0) {
+          row[i] = true;
+          col[j] = true;
+        }
+      }
+    }
+
+    for (let i = 0; i < row.length; i++) {
+      if (row[i]) {
+        nullifyRow(matrix, i);
+      }
+    }
+
+    for (let j = 0; j < col.length; j++) {
+      if (col[j]) {
+        nullifyCol(matrix, j);
+      }
+    }
+
+    return matrix;
+  }
+
+  function nullifyRow(matrix: number[][], row: number) {
+    for (let j = 0; j < matrix[0].length; j++) {
+      matrix[row][j] = 0;
+    }
+  }
+
+  function nullifyCol(matrix: number[][], col: number) {
+    for (let i = 0; i < matrix.length; i++) {
+      matrix[i][col] = 0;
+    }
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function setZeros(matrix: number[][]): number[][] {
+    let rowHasZero = false;
+    let colHasZero = false;
+
+    // 첫번째 행에 0이 있는지 확인
+    for (let j = 0; j < matrix[0].length; j++) {
+      if (matrix[0][j] === 0) {
+        rowHasZero = true;
+        break;
+      }
+    }
+
+    // 첫번째 열에 0이 있는지 확인
+    for (let i = 0; i < matrix.length; i++) {
+      if (matrix[i][0] === 0) {
+        colHasZero = true;
+        break;
+      }
+    }
+
+    // 나머지 행렬에 0이 있는지 확인
+    for (let i = 1; i < matrix.length; i++) {
+      for (let j = 1; j < matrix[0].length; j++) {
+        if (matrix[i][j] === 0) {
+          matrix[i][0] = 0; // 첫번째 열에 0을 표시
+          matrix[0][j] = 0; // 첫번째 행에 0을 표시
+        }
+      }
+    }
+
+    // 첫번째 행을 기준으로 행을 0으로 바꿈
+    for (let i = 1; i < matrix.length; i++) {
+      if (matrix[i][0] === 0) {
+        nullifyRow(matrix, i);
+      }
+    }
+
+    // 첫번째 열을 기준으로 열을 0으로 바꿈
+    for (let j = 1; j < matrix[0].length; j++) {
+      if (matrix[0][j] === 0) {
+        nullifyCol(matrix, j);
+      }
+    }
+
+    // 첫번째 행을 0으로 바꿈
+    if (rowHasZero) {
+      nullifyRow(matrix, 0);
+    }
+
+    // 첫번째 열을 0으로 바꿈
+    if (colHasZero) {
+      nullifyCol(matrix, 0);
+    }
+
+    return matrix;
+  }
+
+  function nullifyRow(matrix: number[][], row: number) {
+    for (let j = 0; j < matrix[0].length; j++) {
+      matrix[row][j] = 0;
+    }
+  }
+
+  function nullifyCol(matrix: number[][], col: number) {
+    for (let i = 0; i < matrix.length; i++) {
+      matrix[i][col] = 0;
+    }
+  }
+  ```
+
+1.9 문자열 회전
+
+- 내 풀이
+
+  ```ts
+  function isSubstring(str: string, subStr: string): boolean {
+    return str.includes(subStr);
+  }
+
+  function isRotated(str1: string, str2: string): boolean {
+    return isSubstring(str1 + str1, str2);
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+  function isRotation(s1: string, s2: string): boolean {
+    const len = s1.length;
+    if (len === s2.length && len > 0) {
+      const s1s1 = s1 + s1;
+      return isSubstring(s1s1, s2);
+    }
+    return false;
+  }
+
+  function isSubstring(s1: string, s2: string): boolean {
+    return s1.includes(s2);
+  }
+  ```
