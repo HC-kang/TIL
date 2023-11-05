@@ -2171,3 +2171,179 @@ class Node {
     return p2!.data;
   }
   ```
+
+2.3 중간 노드 삭제
+
+- 내 풀이
+
+  ```ts
+  function deleteNode(node: MyNode | null) {
+    if (node === null || node.next === null) return false;
+    node.data = node.next.data;
+    node.next = node.next.next;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+  
+  ```
+
+2.4 분할
+
+- 내 풀이
+
+  ```ts
+  function split(head: MyNode | null, x: number) {
+    let beforeHead = new MyNode(0);
+    let before = beforeHead;
+    let afterHead = new MyNode(0);
+    let after = afterHead;
+    while (head) {
+      if (head.data < x) {
+        before.next = head;
+        before = before.next;
+      } else {
+        after.next = head;
+        after = after.next;
+      }
+      head = head.next;
+    }
+    after.next = null;
+    before.next = afterHead.next;
+    return beforeHead.next;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+  
+  ```
+
+2.5 리스트의 합
+
+- 내 풀이
+
+  ```ts
+  function sumReverse(head1: MyNode, head2: MyNode): MyNode {
+    let first = parseLinkedList(head1);
+    let second = parseLinkedList(head2);
+    let sum = first + second;
+    return numToLinkedList(sum);
+  }
+
+  function parseLinkedList(head: MyNode): number {
+    let sum = 0;
+    let multiplier = 1;
+    let current: MyNode | null = head;
+    while (current) {
+      sum += current.data * multiplier;
+      multiplier *= 10;
+      current = current.next;
+    }
+    return sum;
+  }
+
+  function numToLinkedList(num: number): MyNode {
+    let head: MyNode | null = null;
+    let current: MyNode | null = null;
+    while (num > 0) {
+      let digit = num % 10;
+      num = Math.floor(num / 10);
+      if (!head) {
+        head = new MyNode(digit);
+        current = head;
+      } else {
+        current!.next = new MyNode(digit);
+        current = current!.next;
+      }
+    }
+    return head!;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+  
+  ```
+
+2.6 회문
+
+- 내 풀이
+
+  ```ts
+  function isPalindrome(head: MyNode): boolean {
+    const stack: number[] = [];
+    let slow = head;
+    let fast = head;
+    while (fast && fast.next) {
+      stack.push(slow.data);
+      slow = slow.next!;
+      fast = fast.next.next!;
+    }
+    if (fast) slow = slow.next!;
+    while (slow) {
+      if (slow.data !== stack.pop()) return false;
+      slow = slow.next!;
+    }
+    return true;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+  
+  ```
+
+2.7 교집합
+
+- 내 풀이
+
+  ```ts
+  function findIntersection(head1: MyNode, head2: MyNode) {
+    const set = new Set();
+    let current1: MyNode | null = head1;
+    let current2: MyNode | null = head2;
+    while (current1 !== null && current2 !== null) {
+      if (current1.data === current2.data) {
+        set.add(current1.data);
+      }
+      current1 = current1.next;
+      current2 = current2.next;
+    }
+    return set;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+  
+  ```
+
+2.8 루프 발견
+
+- 내 풀이
+
+  ```ts
+  function findLoop(head: MyNode): MyNode | undefined {
+    const set = new Set();
+    let node: MyNode | null = head;
+    while (node) {
+      if (set.has(node)) return node;
+      set.add(node);
+      node = node.next;
+    }
+    return;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+  
+  ```
