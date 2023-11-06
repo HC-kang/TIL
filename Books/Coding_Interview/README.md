@@ -2662,3 +2662,254 @@ class Node {
     return fast;
   }
   ```
+
+### 3. 스택과 큐
+
+#### 스택 구현하기
+
+- 스택의 기본 연산
+  - pop(): 스택에서 가장 위에 있는 항목을 제거한다.
+  - push(item): item 하나를 스택의 가장 윗 부분에 추가한다.
+  - peek(): 스택의 가장 위에 있는 항목을 반환한다.
+  - isEmpty(): 스택이 비어 있을 때에 true를 반환한다.
+
+- 스택의 구현(연결 리스트 활용)
+
+  ```ts
+  class MyNode {
+    data: number;
+    next: MyNode | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  class MyStack {
+    top: MyNode | null = null;
+
+    pop(): number | null {
+      if (this.top === null) throw new Error('Empty stack');
+      const item = this.top.data;
+      this.top = this.top.next;
+      return item;
+    }
+
+    push(item: number): void {
+      const t = new MyNode(item);
+      t.next = this.top;
+      this.top = t;
+    }
+
+    peek(): number | null {
+      if (this.top === null) throw new Error('Empty stack');
+      return this.top.data;
+    }
+
+    isEmpty(): boolean {
+      return this.top === null;
+    }
+  }
+  ```
+
+#### 큐 구현하기
+
+- 큐의 기본 연산
+  - add(item): item을 큐의 끝 부분에 추가한다.
+  - remove(): 큐의 첫 번째 항목을 제거한다.
+  - peek(): 큐의 첫 번째 항목을 반환한다.
+  - isEmpty(): 큐가 비어 있을 때에 true를 반환한다.
+
+- 큐의 구현(연결 리스트 활용)
+
+  ```ts
+  class MyNode {
+    data: number;
+    next: MyNode | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  class MyQueue {
+    first: MyNode | null;
+    last: MyNode | null;
+
+    add(data: number): void {
+      const t = new MyNode(data);
+      if (this.last !== null) {
+        this.last.next = t;
+      }
+      this.last = t;
+      if (this.first === null) {
+        this.first = this.last;
+      }
+    }
+
+    remove(): number | null {
+      if (this.first === null) throw new Error('Empty queue');
+
+      const data = this.first.data;
+      this.first = this.first.next;
+      if (this.first === null) {
+        this.last = null;
+      }
+      return data;
+    }
+
+    peek(): number | null {
+      if (this.first === null) throw new Error('Empty queue');
+      return this.first.data;
+    }
+
+    isEmpty(): boolean {
+      return this.first === null;
+    }
+  }
+  ```
+
+#### 면접문제
+
+3.1 한 개로 세 개
+
+- 도서의 풀이(고정길이)
+
+  ```ts
+  class FixedMultiStack {
+    numberOfStacks = 3;
+    stackCapacity: number;
+    values: number[];
+    sizes: number[];
+
+    constructor(stackSize: number) {
+      this.stackCapacity = stackSize;
+      this.values = new Array(stackSize * this.numberOfStacks).fill(0);
+      this.sizes = new Array(this.numberOfStacks).fill(0);
+    }
+
+    push(stackNum: number, value: number) {
+      if (this.isFull(stackNum)) throw new Error('Stack is full');
+
+      this.sizes[stackNum]++;
+      this.values[this.indexOfTop(stackNum)] = value;
+    }
+
+    pop(stackNum: number): number {
+      if (this.isEmpty(stackNum)) throw new Error('Stack is empty');
+
+      const topIndex = this.indexOfTop(stackNum);
+      const value = this.values[topIndex];
+      this.values[topIndex] = 0;
+      this.sizes[stackNum]--;
+      return value;
+    }
+
+    peek(stackNum: number): number {
+      if (this.isEmpty(stackNum)) throw new Error('Stack is empty');
+
+      return this.values[this.indexOfTop(stackNum)];
+    }
+
+    isEmpty(stackNum: number): boolean {
+      return this.sizes[stackNum] === 0;
+    }
+
+    isFull(stackNum: number): boolean {
+      return this.sizes[stackNum] === this.stackCapacity;
+    }
+
+    indexOfTop(stackNum: number): number {
+      const offset = stackNum * this.stackCapacity;
+      const size = this.sizes[stackNum];
+      return offset + size - 1;
+    }
+  }
+  ```
+
+3.2 스택 Min
+
+- 도서의 풀이 1
+
+  ```ts
+  class NodeWithMin {
+    value: number;
+    min: number;
+
+    constructor(v: number, min: number) {
+      this.value = v;
+      this.min = min;
+    }
+  }
+
+  class StackWithMin {
+    stack: NodeWithMin[];
+
+    constructor() {
+      this.stack = [];
+    }
+
+    push(v: number): void {
+      const newMin = Math.min(v, this.min());
+      this.stack.push(new NodeWithMin(v, newMin));
+    }
+
+    pop(): number {
+      if (this.isEmpty()) throw new Error('Stack is empty');
+      return this.stack.pop()!.value;
+    }
+
+    min(): number {
+      if (this.isEmpty()) {
+        return Number.MAX_VALUE;
+      } else {
+        return this.peek().min;
+      }
+    }
+
+    peek(): NodeWithMin {
+      return this.stack[this.stack.length - 1];
+    }
+
+    isEmpty(): boolean {
+      return this.stack.length === 0;
+    }
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  class StackWithMin2 {
+    s2: number[] = [];
+    s1: number[] = [];
+    
+    push(value: number) {
+      if (value <= this.min()) {
+        this.s2.push(value);
+      }
+      this.s1.push(value);
+    }
+
+    pop() {
+      if (this.isEmpty()) throw new Error('Stack is empty');
+      if (this.s1.pop() === this.min()) {
+        this.s2.pop();
+      }
+    }
+
+    peek() {
+      if (this.isEmpty()) throw new Error('Stack is empty');
+      return this.s1[this.s1.length - 1];
+    }
+
+    isEmpty() {
+      return this.s1.length === 0;
+    }
+
+    min() {
+      if (this.isEmpty()) return Number.MAX_VALUE;
+      return this.s2[this.s2.length - 1];
+    }
+  }
+  ```
