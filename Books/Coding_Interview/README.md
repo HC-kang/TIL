@@ -2187,7 +2187,13 @@ class Node {
 - 도서의 풀이
 
   ```ts
-  
+  function deleteNode(n: MyNode | null): boolean {
+    if (n === null || n.next === null) return false;
+    const next = n.next;
+    n.data = next.data;
+    n.next = next.next;
+    return true;
+  }
   ```
 
 2.4 분할
@@ -2216,10 +2222,68 @@ class Node {
   }
   ```
 
-- 도서의 풀이
+- 도서의 풀이 1
 
   ```ts
-  
+  function partition(node: MyNode | null, x: number): MyNode | null {
+    let beforeStart: MyNode | null = null;
+    let beforeEnd: MyNode | null = null;
+    let afterStart: MyNode | null = null;
+    let afterEnd: MyNode | null = null;
+
+    while (node != null) {
+      let next = node.next;
+      node.next = null;
+      if (node.data < x) {
+        if (beforeStart === null) {
+          beforeStart = node;
+          beforeEnd = beforeStart;
+        } else {
+          beforeEnd!.next = node; // beforeEnd는 무조건 이전 조건에서 세팅됨
+          beforeEnd = node;
+        }
+      } else {
+        if (afterStart === null) {
+          afterStart = node;
+          afterEnd = afterStart;
+        } else {
+          afterEnd!.next = node; // afterEnd는 무조건 이전 조건에서 세팅됨
+          afterEnd = node;
+        }
+      }
+      node = next;
+    }
+
+    if (beforeStart === null) { // beforeStart가 null이면 head로 쓸 수 없으므로 afterStart를 리턴
+      return afterStart;
+    }
+    beforeEnd!.next = afterStart; // beforeEnd는 무조건 이전 조건에서 세팅되며, afterStart는 null이어도 상관 없음
+    return beforeStart;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function partition(node: MyNode | null, x: number): MyNode | null {
+    if (!node) return null;
+    let head: MyNode | null = node;
+    let tail: MyNode | null = node;
+
+    while (node !== null) {
+      let next: MyNode | null = node.next;
+      if (node.data < x) {
+        node.next = head;
+        head = node;
+      } else {
+        tail!.next = node;
+        tail = node;
+      }
+      node = next;
+    }
+    tail.next = null;
+    return head;
+  }
   ```
 
 2.5 리스트의 합
@@ -2267,8 +2331,98 @@ class Node {
 - 도서의 풀이
 
   ```ts
-  
+  function addLists(l1: MyNode | null, l2: MyNode | null, carry: number): MyNode | null {
+    if (l1 === null && l2 === null && carry === 0) return null;
+
+    let result: MyNode | null = new MyNode(0);
+    let value = carry;
+    if (l1 !== null) {
+      value += l1.data;
+    }
+    if (l2 !== null) {
+      value += l2.data;
+    }
+    result.data = value % 10;
+
+    if (l1 !== null || l2 !== null) {
+      let more = addLists(
+        l1 === null ? null : l1.next,
+        l2 === null ? null : l2.next,
+        value >= 10 ? 1 : 0);
+      result.next = more;
+    }
+    return result;
+  }
   ```
+
+- 도서의 풀이(연관문제)
+
+  ```ts
+  class PartialSum {
+    sum: MyNode | null = null;
+    carry = 0;
+  }
+
+  function addLists(l1: MyNode | null, l2: MyNode | null, carry: number): MyNode | null {
+    let len1 = getLength(l1);
+    let len2 = getLength(l2);
+
+    if (len1 < len2) {
+      l1 = padList(l1, len2 - len1);
+    } else {
+      l2 = padList(l2, len1 - len2);
+    }
+
+    const sum = addListsHelper(l1, l2);
+
+    if (sum.carry === 0) {
+      return sum.sum;
+    } else {
+      const result = insertBefore(sum.sum, sum.carry);
+      return result;
+    }
+  }
+
+  function getLength(l: MyNode | null): number {
+    if (!l) return 0;
+    return 1 + getLength(l.next);
+  }
+
+  function padList(l: MyNode | null, padding: number): MyNode | null {
+    let head = l;
+    for (let i = 0; i < padding; i++) {
+      head = insertBefore(head, 0);
+    }
+    return head;
+  }
+
+  function insertBefore(head: MyNode | null, data: number): MyNode {
+    const node = new MyNode(data);
+    if (head) {
+      node.next = head;
+    }
+    return node;
+  }
+
+  function addListsHelper(l1: MyNode | null, l2: MyNode | null): PartialSum {
+    if (!l1 && !l2) {
+      return new PartialSum();
+    }
+
+    // main 함수임 addLists에서 addListsHelper를 호출하기 전에 l1과 l2를 padding 해주었으니 null assertion 처리
+    const sum = addListsHelper(l1!.next, l2!.next);
+    const val = sum.carry + l1!.data + l2!.data;
+    const fullResult = insertBefore(sum.sum, val % 10);
+
+    sum.sum = fullResult;
+    sum.carry = Math.floor(val / 10);
+    return sum;
+  }
+  ```
+
+  - PartialSum 클래스를 만들어서, sum과 carry를 저장하도록 함.
+  - addLists 함수에서는 두 리스트의 길이를 비교하여 짧은 리스트를 padding 해주고, addListsHelper를 호출함.
+  - 이를 바탕으로 addListsHelper 함수는 l1과 l2의 길이가 같다고 가정하고, 두 리스트의 합을 구함.
 
 2.6 회문
 
@@ -2293,10 +2447,111 @@ class Node {
   }
   ```
 
-- 도서의 풀이
+- 도서의 풀이 1
 
   ```ts
-  
+  function isPalindrome(head: MyNode | null): boolean {
+    const reversed = reverseAndClone(head);
+    return isEqual(head, reversed);
+  }
+
+  function reverseAndClone(node: MyNode | null): MyNode | null {
+    let head: MyNode | null = null;
+    while (node !== null) {
+      let n = new MyNode(node.data);
+      n.next = head;
+      head = n;
+      node = node.next;
+    }
+    return head;
+  }
+
+  function isEqual(one: MyNode | null, two: MyNode | null): boolean {
+    while (one !== null && two !== null) {
+      if (one.data !== two.data) return false;
+      one = one.next;
+      two = two.next;
+    }
+    return one === null && two === null;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function isPalindrome(head: MyNode | null): boolean {
+    let fast = head;
+    let slow = head;
+
+    const stack: number[] = [];
+
+    while (fast !== null && fast.next !== null) {
+      stack.push(slow!.data);
+      slow = slow!.next!;
+      fast = fast.next.next!;
+    }
+
+    // fast가 끝에 도달하지 않은 경우, 즉 전체 개수가 홀수인 경우
+    if (fast !== null) {
+      slow = slow!.next!;
+    }
+
+    while (slow !== null) {
+      const top = stack.pop();
+      if (top !== slow.data) return false;
+      slow = slow.next!;
+    }
+    return true;
+  }
+  ```
+
+- 도서의 풀이 3
+
+  ```ts
+  class Result {
+    node: MyNode | null;
+    result: boolean;
+
+    constructor(node: MyNode | null, result: boolean) {
+      this.node = node;
+      this.result = result;
+    }
+  }
+
+  function isPalindrome(head: MyNode | null): boolean {
+    const length = lengthOfList(head);
+    const result = isPalindromeRecurse(head, length);
+    return result.result;
+  }
+
+  function lengthOfList(n: MyNode | null): number {
+    let size = 0;
+    while (n !== null) {
+      size++;
+      n = n.next;
+    }
+    return size;
+  }
+
+  function isPalindromeRecurse(head: MyNode | null, length: number): Result {
+    if (head === null || length <= 0) {
+      return new Result(head, true);
+    } else if (length === 1) {
+      return new Result(head.next, true);
+    }
+
+    const res = isPalindromeRecurse(head.next, length - 2);
+
+    if (!res.result || res.node === null) {
+      return res;
+    }
+    
+    res.result = (head.data === res.node.data);
+
+    res.node = res.node.next;
+
+    return res;
+  }
   ```
 
 2.7 교집합
@@ -2319,10 +2574,52 @@ class Node {
   }
   ```
 
+  - 문제를 완전히 잘못 이해했다.
+  - 노드의 주소가 완전히 같은 경우를 찾아야 함.
+
 - 도서의 풀이
 
   ```ts
-  
+  function findIntersection(list1: MyNode | null, list2: MyNode | null) {
+    if (list1 === null || list2 === null) return null;
+
+    const result1 = getTailAndSize(list1);
+    const result2 = getTailAndSize(list2);
+
+    if (result1.tail !== result2.tail) return null;
+
+    let shorter: MyNode | null = result1.size < result2.size ? list1 : list2;
+    let longer: MyNode | null = result1.size < result2.size ? list2 : list1;
+
+    longer = getKthNode(longer, Math.abs(result1.size - result2.size));
+
+    while (shorter !== longer) {
+      shorter = shorter!.next;
+      longer = longer!.next;
+    }
+
+    return longer;
+  }
+
+  function getTailAndSize(list: MyNode): Result {
+    let size = 1;
+    let current = list;
+    while (current.next) {
+      size++;
+      current = current.next;
+    }
+
+    return new Result(current, size);
+  }
+
+  function getKthNode(head: MyNode, k: number): MyNode {
+    let current = head;
+    while (k > 0 && current !== null && current.next !== null) {
+      current = current.next;
+      k--;
+    }
+    return current;
+  }
   ```
 
 2.8 루프 발견
@@ -2345,5 +2642,23 @@ class Node {
 - 도서의 풀이
 
   ```ts
-  
+  function findBeginning(head: MyNode | null): MyNode | null {
+    let slow = head;
+    let fast = head;
+
+    while (fast !== null && fast.next !== null) {
+      slow = slow!.next;
+      fast = fast.next.next;
+      if (slow === fast) break;
+    }
+    if (fast === null || fast.next === null) return null;
+
+    slow = head;
+    while (slow != fast) {
+      slow = slow!.next;
+      fast = fast!.next;
+    }
+
+    return fast;
+  }
   ```
