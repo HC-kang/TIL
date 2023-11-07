@@ -2913,3 +2913,269 @@ class Node {
     }
   }
   ```
+
+3.3 접시 무더기
+
+- 도서의 풀이
+
+  ```ts
+  class SetOfStacks {
+    stacks: number[][] = [[]];
+    capacity = 3;
+
+    getLastStack() {
+      return this.stacks[this.stacks.length - 1];
+    }
+
+    push(value: number) {
+      if (this.getLastStack().length === this.capacity) {
+        this.stacks.push([]);
+        this.getLastStack().push(value);
+      } else {
+        this.getLastStack().push(value);
+      }
+    }
+
+    pop() {
+      if (this.isEmpty()) throw new Error("Stack is empty");
+      if (this.getLastStack().length === 0) {
+        this.stacks.pop();
+      }
+      this.getLastStack().pop();
+    }
+
+    peek() {
+      return this.getLastStack()[this.getLastStack().length - 1];
+    }
+
+    isEmpty() {
+      return this.stacks.length === 1 && this.getLastStack().length === 0;
+    }
+  }
+  ```
+
+3.4 스택으로 큐
+
+- 도서의 풀이
+
+  ```ts
+  class MyStack {
+    stack: number[] = [];
+
+    size(): number {
+      return this.stack.length;
+    }
+
+    isEmpty(): boolean {
+      return this.stack.length === 0;
+    }
+
+    push(value: number) {
+      this.stack.push(value);
+    }
+
+    pop(): number {
+      if (this.isEmpty()) throw new Error('Stack is empty');
+      return this.stack.pop()!;
+    }
+
+    peek(): number {
+      return this.stack[this.stack.length - 1];
+    }
+  }
+
+  class MyQueue {
+    stackNewest: MyStack = new MyStack();
+    stackOldest: MyStack = new MyStack();
+
+    size(): number {
+      return this.stackNewest.size() + this.stackOldest.size();
+    }
+
+    add(value: number) {
+      this.stackNewest.push(value);
+    }
+
+    private shiftStacks() {
+      if (this.stackOldest.isEmpty()) {
+        while (!this.stackNewest.isEmpty()) {
+          this.stackOldest.push(this.stackNewest.pop());
+        }
+      }
+    }
+
+    peek(): number {
+      this.shiftStacks();
+      return this.stackOldest.peek();
+    }
+
+    remove(): number {
+      this.shiftStacks();
+      return this.stackOldest.pop();
+    }
+  }
+  ```
+
+3.5 스택 정렬
+
+- 도서의 풀이
+
+  ```ts
+  function sort(s: MyStack) {
+    const r = new MyStack()
+
+    while (!s.isEmpty()) {
+      const tmp = s.pop();
+      while (!r.isEmpty() && r.peek() > tmp) {
+        s.push(r.pop());
+      }
+      r.push(tmp);
+    }
+
+    while (!r.isEmpty()) {
+      s.push(r.pop())
+    }
+  }
+  ```
+
+3.6 동물 보호소
+
+- 도서의 풀이
+
+  ```ts
+  class LinkedListNode<T> {
+    data: T;
+    next: LinkedListNode<T> | null = null;
+
+    constructor(data: T) {
+      this.data = data;
+    }
+  }
+
+  class LinkedList<T> {
+    head: LinkedListNode<T> | null;
+
+    constructor() {
+      this.head = null;
+    }
+
+    addLast(data: T) {
+      if (this.head === null) {
+        this.head = new LinkedListNode(data);
+      } else {
+        let node = this.head;
+        while (node.next !== null) {
+          node = node.next;
+        }
+        node.next = new LinkedListNode(data);
+      }
+    }
+
+    poll() {
+      if (this.head === null) {
+        return null;
+      }
+      let node = this.head;
+      this.head = this.head.next;
+      return node.data;
+    }
+
+    peek() {
+      if (this.head === null) {
+        return null;
+      }
+      return this.head.data;
+    }
+
+    isEmpty() {
+      return this.head === null;
+    }
+
+    size() {
+      let node = this.head;
+      let count = 0;
+      while (node !== null) {
+        count++;
+        node = node.next;
+      }
+      return count;
+    }
+  }
+
+  abstract class Animal {
+    private order: number | null = null;
+    protected name: string;
+    
+    constructor(name: string) {
+      this.name = name;
+    }
+
+    setOrder(ord: number) {
+      this.order = ord;
+    }
+
+    getOrder() {
+      if (this.order === null) throw new Error('order is null');
+      return this.order;
+    }
+
+    isOlderThan(a: Animal) {
+      if (this.order === null) throw new Error('order is null');
+      return this.order < a.getOrder();
+    }
+  }
+
+  class Dog extends Animal {
+    constructor(name: string) {
+      super(name);
+    }
+  }
+
+  class Cat extends Animal {
+    constructor(name: string) {
+      super(name);
+    }
+  }
+
+  class AnimalQueue {
+    dogs = new LinkedList<Animal>();
+    cats = new LinkedList<Animal>();
+
+    private order = 0;
+
+    enqueue(a: Animal) {
+      a.setOrder(this.order);
+      this.order++;
+
+      if (a instanceof Dog) {
+        this.dogs.addLast(a);
+      } else {
+        this.cats.addLast(a);
+      }
+    }
+
+    dequeueAny() {
+      if (this.dogs.size() === 0) {
+        return this.dequeueCats();
+      } else if (this.cats.size() === 0) {
+        return this.dequeueDogs();
+      } else {
+        const dog = this.dogs.peek()!;
+        const cat = this.cats.peek()!;
+        if (dog.isOlderThan(cat)) {
+          return this.dequeueDogs();
+        } else {
+          return this.dequeueCats();
+        }
+      }
+    }
+
+    dequeueDogs() {
+      return this.dogs.poll();
+    }
+
+    dequeueCats() {
+      return this.cats.poll();
+    }
+  }
+  ```
