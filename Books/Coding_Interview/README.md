@@ -3285,3 +3285,93 @@ class Node {
   - 비순환 그래프: 사이클이 없는 그래프
   - 완전 그래프: 그래프의 모든 노드가 서로 연결되어 있는 그래프
   - 트리: 사이클이 없는 연결 그래프
+
+- 인접 리스트(Adjacency List)
+  - 그래프의 각 노드에 연결된 노드들을 리스트로 연결하여 저장하는 방식
+  - 무방향 그래프의 경우, 각 노드에 연결된 노드들을 저장하는 리스트를 두 개 저장한다.
+  - 방향 그래프의 경우, 각 노드에 연결된 노드들을 저장하는 리스트를 하나 저장한다.
+  - 가중치 그래프의 경우, 각 노드에 연결된 노드들을 저장하는 리스트에 가중치를 저장한다.
+  - 인접 리스트의 경우, 노드의 개수가 N일 때, O(N)의 메모리를 사용한다.
+
+  ```ts
+  class Graph {
+    nodes: Node[];
+
+    constructor(nodes: Node[]) {
+      this.nodes = nodes;
+    }
+  }
+
+  class Node {
+    name: string;
+    children: Node[];
+
+    constructor(name: string, children: Node[]) {
+      this.name = name;
+      this.children = children;
+    }
+  }
+  ```
+
+- 인접 행렬(Ajacency Matrix)
+  - 그래프의 각 노드에 연결된 노드들을 행렬로 연결하여 저장하는 방식
+  - 무방향 그래프의 경우, 각 노드에 연결된 노드들을 저장하는 행렬을 대칭 행렬로 저장한다.
+  - 방향 그래프의 경우, 각 노드에 연결된 노드들을 저장하는 행렬을 비대칭 행렬로 저장한다.
+  - 인접 행렬은 인접 리스트에 비해 효율성이 떨어진다.
+    - 인접 리스트에서는 특정 노드의 연결된 노드들을 쉽게 찾을 수 있지만, 인접 행렬에서는 모든 노드를 순회해야 한다.
+
+- 그래프 탐색
+  - DFS(Depth First Search)
+    - 주로 모든 노드를 방문해야 하는 경우에 사용
+    - 구현이 조금 더 간단한 편임.
+      - 재귀를 통해 구현 가능
+      - 그래프를 순회할 때, 방문여부를 반드시 확인해야 함.
+        - 무한루프에 빠질 수 있음.
+
+    ```ts
+    function search(node: Node) {
+      if (node === null) return;
+      visit(node);
+      node.visited = true;
+      for (let child of node.children) {
+        if (!child.visited) {
+          search(child);
+        }
+      }
+    }
+    ```
+
+  - BFS(Breadth First Search)
+    - 최단경로 및 임의의 경로를 찾기위해 활용
+    - 구현이 조금 더 복잡한 편임.
+      - 재귀가 아닌 큐를 통해 구현 가능.
+
+    ```ts
+    function search(node: Node) {
+      const queue: Node[] = [];
+      node.marked = true;
+      queue.push(node);
+
+      while (queue.length > 0) {
+        const r = queue.shift()!;
+        visit(r);
+        for (let child of r.children) {
+          if (!child.marked) {
+            child.marked = true;
+            queue.push(child);
+          }
+        }
+      }
+    }
+    ```
+
+- 양방향 탐색
+
+  ![Alt text](images/image06.png)
+
+  - 양방향 탐색은 시작 노드와 목표 노드가 주어졌을 때, 두 노드에서 동시에 탐색을 시작하여 만나는 노드를 찾는 방법이다.
+  - 일반적인 BFS보다 효율적임
+    - BFS(K^d) vs 양방향 탐색(K^(d/2))
+    - K: 노드의 자식 노드의 개수
+    - d: 노드의 깊이(거리)
+  
