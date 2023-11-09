@@ -3374,4 +3374,269 @@ class Node {
     - BFS(K^d) vs 양방향 탐색(K^(d/2))
     - K: 노드의 자식 노드의 개수
     - d: 노드의 깊이(거리)
-  
+
+#### 면접문제
+
+4.1 노드 사이의 경로
+
+- 내 풀이
+
+  ```ts
+  class Vertex {
+    value: string;
+    constructor(value: string) {
+      this.value = value;
+    }
+  }
+
+  class DirectedGraph {
+    vertices: Vertex[];
+    edges: any;
+    constructor() {
+      this.vertices = [];
+      this.edges = {};
+    }
+
+    addVertex(value: string) {
+      const vertex = new Vertex(value);
+      this.vertices.push(vertex);
+      this.edges[vertex.value] = [];
+    }
+
+    addEdge(value1: string, value2: string) {
+      this.edges[value1].push(value2);
+    }
+
+    removeEdge(value1: string, value2: any) {
+      this.edges[value1] = this.edges[value1].filter(
+        (vertex: any) => vertex !== value2
+      );
+    }
+
+    removeVertex(value: string) {
+      this.vertices = this.vertices.filter((vertex) => vertex.value !== value);
+      delete this.edges[value];
+      Object.keys(this.edges).forEach((key) => {
+        this.edges[key] = this.edges[key].filter(
+          (vertex: string) => vertex !== value
+        );
+      });
+    }
+  }
+
+  function isPath(
+    graph: any,
+    source: string,
+    destination: string,
+    visited: any = {}
+  ) {
+    if (source === destination) return true;
+    if (visited[source]) return false;
+    visited[source] = true;
+    return graph.edges[source].some((vertex: string) =>
+      isPath(graph, vertex, destination, visited)
+    );
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+
+  ```
+
+4.2 최소 트리
+
+- 내 풀이
+
+  ```ts
+  class BinaryNode {
+    value: number;
+    left: BinaryNode | null = null;
+    right: BinaryNode | null = null;
+
+    constructor(value: number) {
+      this.value = value;
+    }
+  }
+
+    depth(): number {
+      const leftDepth = this.left ? this.left.depth() : 0;
+      const rightDepth = this.right ? this.right.depth() : 0;
+      return Math.max(leftDepth, rightDepth) + 1;
+    }
+  }
+
+  function arrayToBinaryTree(arr: number[]) {
+    const mid = Math.floor(arr.length / 2);
+    const root = new BinaryNode(arr[mid]);
+    const left = arr.slice(0, mid);
+    const right = arr.slice(mid + 1);
+    if (left.length) root.left = arrayToBinaryTree(left);
+    if (right.length) root.right = arrayToBinaryTree(right);
+    return root;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+
+  ```
+
+4.3 깊이의 리스트
+
+- 내 풀이
+
+  ```ts
+  class BinaryNode {
+    value: number;
+    left: BinaryNode | null = null;
+    right: BinaryNode | null = null;
+
+    constructor(value: number) {
+      this.value = value;
+    }
+  }
+
+  function getDepthList(root: BinaryNode): Array<string | number>[] {
+    const depthList: Array<string | number>[] = [];
+
+    function traverse(node: BinaryNode | null, depth: number) {
+      if (node === null) return;
+
+      if (depthList[depth] === undefined) depthList[depth] = [];
+
+      depthList[depth].push(node.value);
+
+      traverse(node.left, depth + 1);
+      traverse(node.right, depth + 1); 
+    }
+
+    traverse(root, 0);
+    return depthList;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+
+  ```
+
+4.4 균형 확인
+
+- 내 풀이
+
+  ```ts
+  class BinaryNode {
+    value: number;
+    left: BinaryNode | null = null;
+    right: BinaryNode | null = null;
+
+    constructor(value: number) {
+      this.value = value;
+    }
+  }
+
+  function isBalancedTree(root: BinaryNode | null): boolean {
+    if (!root) return true;
+
+    const leftHeight = getHeight(root.left);
+    const rightHeight = getHeight(root.right);
+
+    if (Math.abs(leftHeight - rightHeight) > 1) {
+      return false;
+    }
+
+    return isBalancedTree(root.left) && isBalancedTree(root.right);
+  }
+
+  function getHeight(root: BinaryNode | null): number {
+    if (!root) return 0;
+
+    return Math.max(getHeight(root.left), getHeight(root.right)) + 1;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+
+  ```
+
+4.5 BST 검증
+
+- 내 풀이
+
+  ```ts
+  class BinaryNode {
+    value: number;
+    left: BinaryNode | null = null;
+    right: BinaryNode | null = null;
+
+    constructor(value: number) {
+      this.value = value;
+    }
+  }
+
+  function isBst(
+    root: BinaryNode | null,
+    left = -Infinity,
+    right = Infinity
+  ): boolean {
+    if (!root) return true;
+
+    if (root.value < left || root.value >= right) return false;
+
+    return (
+      isBst(root.left, left, root.value) && isBst(root.right, root.value, right)
+    );
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+
+  ```
+
+4.6 후속자
+
+- 내 풀이
+
+  ```ts
+  class BinaryNode {
+    value: number;
+    left: BinaryNode | null = null;
+    right: BinaryNode | null = null;
+    root: BinaryNode | null = null;
+
+    constructor(value: number) {
+      this.value = value;
+    }
+  }
+
+  function findInOrderSuccessor(root: BinaryNode | null, target: number): number {
+    if (!root) return -1;
+
+    let successor = -1;
+    let current: BinaryNode | null = root;
+
+    while (current) {
+      if (current.value > target) {
+        successor = current.value;
+        current = current.left;
+      } else {
+        current = current.right;
+      }
+    }
+    return successor;
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+
+  ```
