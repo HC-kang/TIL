@@ -3442,7 +3442,111 @@ class Node {
 - 도서의 풀이
 
   ```ts
+  class MyNode {
+    data: number;
+    state: State = State.Unvisited;
+    adjacentNodes: MyNode[] = [];
 
+    constructor(data: number) {
+      this.data = data;
+    }
+
+    getAdjacentNodes() {
+      return this.adjacentNodes;
+    }
+  }
+
+  class DirectedGraph {
+    nodes: MyNode[] = [];
+
+    getNodes() {
+      return this.nodes;
+    }
+
+    addNode(node: MyNode) {
+      this.nodes.push(node);
+    }
+  }
+
+  class LinkedListNode {
+    data: MyNode | null;
+    next: LinkedListNode | null = null;
+
+    constructor(data: MyNode | null) {
+      this.data = data;
+    }
+  }
+
+  class LinkedList {
+    head: LinkedListNode | null = null;
+    tail: LinkedListNode | null = null;
+
+    isEmpty() {
+      return this.head === null;
+    }
+
+    add(data: MyNode) {
+      const node = new LinkedListNode(data);
+
+      if (this.isEmpty()) {
+        this.head = node;
+        this.tail = node;
+        return;
+      }
+
+      this.tail!.next = node;
+      this.tail = node;
+    }
+
+    removeFirst() {
+      if (this.isEmpty()) return null;
+
+      const node = this.head;
+      this.head = this.head!.next;
+      return node;
+    }
+  }
+
+  const State = {
+    Unvisited: 'Unvisited',
+    Visited: 'Visited',
+    Visiting: 'Visiting',
+  };
+
+  type State = (typeof State)[keyof typeof State];
+
+  function search(graph: DirectedGraph, start: MyNode, end: MyNode): boolean {
+    if (start === end) return true;
+
+    const q = new LinkedList();
+
+    graph.getNodes().forEach((u) => {
+      u.state = State.Unvisited;
+    });
+
+    start.state = State.Visiting;
+    q.add(start);
+
+    while (!q.isEmpty()) {
+      const u = q.removeFirst()!.data; // 그래프의 MyNode를 가져옴. while 에서 q가 비어있는지 확인했기 때문에 null이 아님.
+      if (u !== null) {
+        // u의 인접 노드를 모두 확인.
+        for (let v of u.getAdjacentNodes()) {
+          if (v.state === State.Unvisited) {
+            if (v === end) {
+              return true;
+            } else { // 찾는 노드가 아닌 경우 Visiting으로 변경하고 큐에 넣음.
+              v.state = State.Visiting;
+              q.add(v);
+            }
+          }
+        }
+        // u의 인접 노드를 모두 확인했으므로 Visited로 변경.
+        u.state = State.Visited;
+      }
+    }
+    return false;
+  }
   ```
 
 4.2 최소 트리
@@ -3460,13 +3564,6 @@ class Node {
     }
   }
 
-    depth(): number {
-      const leftDepth = this.left ? this.left.depth() : 0;
-      const rightDepth = this.right ? this.right.depth() : 0;
-      return Math.max(leftDepth, rightDepth) + 1;
-    }
-  }
-
   function arrayToBinaryTree(arr: number[]) {
     const mid = Math.floor(arr.length / 2);
     const root = new BinaryNode(arr[mid]);
@@ -3481,7 +3578,31 @@ class Node {
 - 도서의 풀이
 
   ```ts
+  class TreeNode {
+    val: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
 
+    constructor(val: number) {
+      this.val = val;
+    }
+  }
+
+  function createMinimalBST(arr: number[]) {
+    return createMinimalBSTHelper(arr, 0, arr.length - 1);
+  }
+
+  function createMinimalBSTHelper(arr: number[], start: number, end: number) {
+    if (end < start) {
+      return null;
+    }
+
+    const mid = Math.floor((start + end) / 2);
+    const node = new TreeNode(arr[mid]);
+    node.left = createMinimalBSTHelper(arr, start, mid - 1);
+    node.right = createMinimalBSTHelper(arr, mid + 1, end);
+    return node;
+  }
   ```
 
 4.3 깊이의 리스트
@@ -3518,10 +3639,98 @@ class Node {
   }
   ```
 
-- 도서의 풀이
+- 도서의 풀이 1(DFS)
 
   ```ts
+  class LinkedListNode {
+    data: number;
+    next: LinkedListNode | null = null;
 
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  class LinkedList {
+    head: LinkedListNode | null = null;
+    tail: LinkedListNode | null = null;
+
+    isEmpty(): boolean {
+      return this.head === null;
+    }
+
+    add(data: number) {
+      const node = new LinkedListNode(data);
+
+      if (this.head === null) {
+        this.head = node;
+        this.tail = node;
+        return;
+      }
+
+      this.tail!.next = node;
+      this.tail = node;
+    }
+  }
+
+  class TreeNode {
+    data: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  function createLevelLinkedList(
+    root: TreeNode,
+    lists: Array<LinkedList>,
+    level: number
+  ) {
+    if (root === null) return;
+
+    let list: LinkedList | null = null;
+    if (lists.length === level) { // 해당 레벨의 연결 리스트가 없는 경우
+      list = new LinkedList();
+      lists.push(list);
+    } else {
+      list = lists[level];
+    }
+    list.add(root);
+    createLevelLinkedList(root.left!, lists, level + 1);
+    createLevelLinkedList(root.right!, lists, level + 1);
+  }
+  ```
+
+- 도서의 풀이 2(BFS)
+
+  ```ts
+  function createLevelLinkedList(root: TreeNode): Array<LinkedList> {
+    const result: Array<LinkedList> = [];
+
+    let current: LinkedList = new LinkedList();
+    if (root !== null) {
+      current.add(root);
+    }
+
+    while (!current.isEmpty()) {
+      result.push(current);
+      const parents = current;
+      current = new LinkedList();
+      let parent = parents.head;
+      while (parent !== null) {
+        if (parent.data.left !== null) {
+          current.add(parent.data.left);
+        }
+        if (parent.data.right !== null) {
+          current.add(parent.data.right);
+        }
+        parent = parent.next;
+      }
+    }
+    return result;
+  }
   ```
 
 4.4 균형 확인
@@ -3559,11 +3768,61 @@ class Node {
   }
   ```
 
-- 도서의 풀이
+- 도서의 풀이 1
 
   ```ts
+  class TreeNode {
+    data: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
 
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  function getHeight(root: TreeNode | null): number {
+    if (root === null) return 0;
+    return Math.max(getHeight(root.left), getHeight(root.right)) + 1;
+  }
+
+  function isBalanced(root: TreeNode | null): boolean {
+    if (root === null) return true;
+    const heightDiff = getHeight(root.left) - getHeight(root.right);
+    if (Math.abs(heightDiff) > 1) {
+      return false;
+    } else {
+      return isBalanced(root.left) && isBalanced(root.right);
+    }
+  }
   ```
+
+  - 매번 getHeight를 호출하게되어 O(N logN)의 시간 복잡도를 가지므로 효율성이 좋지 않다.
+
+- 도서의 풀이 2
+
+  ```ts
+  function checkHeight(root: TreeNode | null): number {
+    if (root === null) return -1; // 일반적으로 null Tree의 높이는 -1로 정의한다
+
+    const leftHeight = checkHeight(root.left);
+    if (leftHeight === Number.MIN_SAFE_INTEGER) return Number.MIN_SAFE_INTEGER; // 왼쪽 트리가 균형이 아니면 바로 종료
+
+    const rightHeight = checkHeight(root.right);
+    if (rightHeight === Number.MIN_SAFE_INTEGER) return Number.MIN_SAFE_INTEGER; // 오른쪽 트리가 균형이 아니면 바로 종료
+
+    const heightDiff = leftHeight - rightHeight;
+    if (Math.abs(heightDiff) > 1) return Number.MIN_SAFE_INTEGER; // 높이 차이가 1보다 크면 바로 종료))
+    return Math.max(leftHeight, rightHeight) + 1; // 높이를 반환
+  }
+
+  function isBalanced(root: TreeNode | null): boolean {
+    return checkHeight(root) !== Number.MIN_SAFE_INTEGER;
+  }
+  ```
+
+  - checkHeight를 통해 불균형이 확인되면 즉시 에러 값(Number.MIN_SAFE_INTEGER)를 반환하여 불필요한 getHeight의 호출을 없앤다.
+  - 시간 복잡도는 O(N)이고, 공간 복잡도는 O(H)이다. (H: 트리의 높이)
 
 4.5 BST 검증
 
@@ -3595,10 +3854,53 @@ class Node {
   }
   ```
 
-- 도서의 풀이
+- 도서의 풀이 1
 
   ```ts
+  class TreeNode {
+    data: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
 
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  let lastPrinted: number | null = null;
+  function checkBST(n: TreeNode | null): boolean {
+    if (n === null) return true;
+
+    if (!checkBST(n.left)) return false;
+
+    if (lastPrinted !== null && n.data <= lastPrinted) {
+      return false;
+    }
+    lastPrinted = n.data;
+
+    if (!checkBST(n.right)) return false;
+
+    return true;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function checkBST(n: TreeNode| null): boolean {
+    return checkBSTHelper(n, null, null);
+  }
+
+  function checkBSTHelper(n: TreeNode | null, min: number | null, max: number | null): boolean {
+    if (n === null) return true;
+    if ((min !== null && n.data <= min) || (max !== null && n.data > max)) {
+      return false;
+    }
+    if (!checkBSTHelper(n.left, min, n.data) || !checkBSTHelper(n.right, n.data, max)) {
+      return false;
+    }
+    return true;
+  }
   ```
 
 4.6 후속자
@@ -3638,5 +3940,39 @@ class Node {
 - 도서의 풀이
 
   ```ts
+  class TreeNode {
+    data: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
+    parent: TreeNode | null = null;
 
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  function inOrderSucc(node: TreeNode | null): TreeNode | null {
+    if (node == null) return null;
+
+    if (node.right !== null) { // 오른쪽 서브트리가 존재한다면
+      return leftMostChild(node.right);
+    } else {
+      let tmp = node;
+      let parentNode = tmp.parent;
+      while (parentNode !== null && parentNode.left !== tmp) { // 왼쪽 트리의 최상위 노드까지 탐색
+        tmp = parentNode;
+        parentNode = parentNode.parent;
+      }
+      return parentNode;
+    }
+  }
+
+  // 현재 트리의 가장 왼쪽 자식 노드를 찾는 함수
+  function leftMostChild(node: TreeNode | null): TreeNode | null {
+    if (node === null) return null;
+    while (node.left !== null) {
+      node = node.left;
+    }
+    return node;
+  }
   ```
