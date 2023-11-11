@@ -3976,3 +3976,440 @@ class Node {
     return node;
   }
   ```
+
+4.7 순서 정하기
+
+- 도서의 풀이1
+
+  ```ts
+  class Graph {
+    nodes: Project[] = [];
+    map: Map<string, Project> = new Map();
+
+    getNodes() {
+      return this.nodes;
+    }
+
+    getOrCreateNode(name: string): Project {
+      if (!this.map.has(name)) {
+        const node = new Project(name);
+        this.nodes.push(node);
+        this.map.set(name, node);
+      }
+      return this.map.get(name)!;
+    }
+
+    addEdge(startName: string, endName: string) {
+      const start = this.getOrCreateNode(startName);
+      const end = this.getOrCreateNode(endName);
+      start.addNeighbor(end);
+    }
+  }
+
+  class Project {
+    name: string;
+    children: Project[] = [];
+    dependencies = 0;
+    map: Map<string, Project> = new Map();
+
+    constructor(name: string) {
+      this.name = name;
+    }
+
+    getName() {
+      return this.name;
+    }
+
+    addNeighbor(node: Project) {
+      if (!this.map.has(node.getName())) {
+        this.children.push(node);
+        this.map.set(node.getName(), node);
+        node.incrementDependencies();
+      }
+    }
+
+    incrementDependencies() {
+      this.dependencies++;
+    }
+
+    decrementDependencies() {
+      this.dependencies--;
+    }
+
+    getChildren() {
+      return this.children;
+    }
+
+    getNumberDependencies() {
+      return this.dependencies;
+    }
+  }
+
+  function findBuildOrder(projects: string[], dependencies: string[][]): Project[] {
+    const graph = buildGraph(projects, dependencies);
+    return orderProjects(graph.getNodes());
+  }
+
+  function buildGraph(projects: string[], dependencies: string[][]): Graph {
+    const graph = new Graph();
+    projects.forEach(project => graph.getOrCreateNode(project));
+    dependencies.forEach(([first, second]) => graph.addEdge(first, second));
+    return graph;
+  }
+
+  function orderProjects(projects: Project[]): Project[] {
+    const order: Project[] = new Array(projects.length);
+    let endOfList = addNonDependent(order, projects, 0);
+
+    let toBeProcessed = 0;
+    while (toBeProcessed < order.length) {
+      const current = order[toBeProcessed];
+
+      if (!current) {
+        return [];
+      }
+
+      const children = current.getChildren();
+      for (const child of children) {
+        child.decrementDependencies();
+      }
+
+      endOfList = addNonDependent(order, children, endOfList);
+      toBeProcessed++;
+    }
+    return order;
+  }
+
+  function addNonDependent(order: Project[], projects: Project[], offset: number): number {
+    for (const project of projects) {
+      if (project.getNumberDependencies() === 0) {
+        order[offset] = project;
+        offset++;
+      }
+    }
+    return offset;
+  }
+  ```
+
+- 도서의 풀이2
+
+  ```ts
+  class Stack<T> {
+    private data: T[] = [];
+
+    push(item: T) {
+      this.data.push(item);
+    }
+
+    pop() {
+      return this.data.pop();
+    }
+
+    peek() {
+      return this.data[this.data.length - 1];
+    }
+
+    isEmpty() {
+      return this.data.length === 0;
+    }
+  }
+
+  class Graph {
+    nodes: Project[] = [];
+    map: Map<string, Project> = new Map();
+
+    getNodes() {
+      return this.nodes;
+    }
+
+    getOrCreateNode(name: string): Project {
+      if (!this.map.has(name)) {
+        const node = new Project(name);
+        this.nodes.push(node);
+        this.map.set(name, node);
+      }
+      return this.map.get(name)!;
+    }
+
+    addEdge(startName: string, endName: string) {
+      const start = this.getOrCreateNode(startName);
+      const end = this.getOrCreateNode(endName);
+      start.addNeighbor(end);
+    }
+  }
+
+  class Project {
+    name: string;
+    status: 'COMPLETE' | 'PARTIAL' | 'BLANK' = 'BLANK';
+    children: Project[] = [];
+    map: Map<string, Project> = new Map();
+
+    constructor(name: string) {
+      this.name = name;
+    }
+
+    getName() {
+      return this.name;
+    }
+
+    getStatus() {
+      return this.status;
+    }
+
+    setStatus(status: 'COMPLETE' | 'PARTIAL' | 'BLANK') {
+      this.status = status;
+    }
+
+    addNeighbor(node: Project) {
+      if (!this.map.has(node.getName())) {
+        this.children.push(node);
+        this.map.set(node.getName(), node);
+      }
+    }
+
+    getChildren() {
+      return this.children;
+    }
+  }
+
+  function findBuildOrder(projects: string[], dependencies: string[][]): Stack<Project> | null {
+    const graph = buildGraph(projects, dependencies);
+    return orderProjects(graph.getNodes());
+  }
+
+  function buildGraph(projects: string[], dependencies: string[][]): Graph {
+    const graph = new Graph();
+    projects.forEach(project => graph.getOrCreateNode(project));
+    dependencies.forEach(([first, second]) => graph.addEdge(first, second));
+    return graph;
+  }
+
+  function orderProjects(projects: Project[]): Stack<Project> | null {
+    const stack = new Stack<Project>();
+    projects.forEach(project => {
+      if (project.getStatus() === 'BLANK') {
+        if (!doDFS(project, stack)) {
+          return null;
+        }
+      }
+    })
+    return stack
+  }
+
+  function doDFS(project: Project, stack: Stack<Project>): boolean {
+    if (project.getStatus() === 'PARTIAL') { // 순환
+      return false;
+    }
+
+    if (project.getStatus() === 'BLANK') {
+      project.setStatus('PARTIAL');
+      const children = project.getChildren();
+      children.forEach(child => {
+        if (!doDFS(child, stack)) {
+          return false;
+        }
+      })
+      project.setStatus('COMPLETE');
+      stack.push(project);
+    }
+    return true;
+  }
+  ```
+
+4.8 첫 번째 공통 조상
+
+- 도서의 풀이 1(부모에 대한 링크가 있는 경우1)
+
+  ```ts
+  class TreeNode<T> {
+    left: TreeNode<T> | null = null;
+    right: TreeNode<T> | null = null;
+    parent: TreeNode<T> | null = null;
+    value: T | null;
+
+    constructor(value: T) {
+      this.value = value;
+    }
+  }
+
+  function commonAncestor(p: TreeNode<any>, q: TreeNode<any>) {
+    const delta = depth(p) - depth(q);
+    let first: TreeNode<any> | null = delta > 0 ? q : p;
+    let second: TreeNode<any> | null = delta > 0 ? p : q;
+    second = goUpBy(second, Math.abs(delta));
+
+    while (first !== null && second !== null && first !== second) {
+      first = first.parent;
+      second = second.parent;
+    }
+    return first === null || second === null ? null : first;
+  }
+
+  function depth(head: TreeNode<any> | null) {
+    let depth = 0;
+    while (head) {
+      head = head.parent;
+      depth++;
+    }
+    return depth;
+  }
+
+  function goUpBy(node: TreeNode<number> | null, delta: number) {
+    while (delta > 0 && node) {
+      node = node.parent;
+      delta--;
+    }
+    return node;
+  }
+  ```
+
+- 도서의 풀이 2(부모에 대한 링크가 있는 경우2)
+
+  ```ts
+  class TreeNode<T> {
+    left: TreeNode<T> | null = null;
+    right: TreeNode<T> | null = null;
+    parent: TreeNode<T> | null = null;
+    value: T | null;
+
+    constructor(value: T) {
+      this.value = value;
+    }
+  }
+
+  function commonAncestor(root: TreeNode<any> | null, p: TreeNode<any> | null, q: TreeNode<any> | null) {
+    if (!covers(root, p) || !covers(root, q)) {
+      return null;
+    } else if (covers(p, q)) {
+      return p;
+    } else if (covers(q, p)) {
+      return q;
+    }
+
+    let sibling = getSibling(p);
+    let parent = p!.parent;
+    while (!covers(sibling, q)) {
+      sibling = getSibling(parent);
+      parent = parent!.parent;
+    }
+    return parent;
+  }
+
+  function covers(root: TreeNode<any> | null, p: TreeNode<any> | null): boolean {
+    if (root === null) return false;
+    if (root === p) return true;
+    return covers(root.left, p) || covers(root.right, p)
+  }
+
+  function getSibling(node: TreeNode<any> | null): TreeNode<any> | null {
+    if (node === null || node.parent === null) return null;
+    const parent = node.parent;
+    return parent.left === node ? parent.right : parent.left;
+  }
+  ```
+
+- 도서의 풀이 3(부모에 대한 링크가 없는 경우)
+
+  ```ts
+  class TreeNode<T> {
+    left: TreeNode<T> | null = null;
+    right: TreeNode<T> | null = null;
+    parent: TreeNode<T> | null = null;
+    value: T | null;
+
+    constructor(value: T) {
+      this.value = value;
+    }
+  }
+
+  function commonAncestor(root: TreeNode<any> | null, p: TreeNode<any> | null, q: TreeNode<any> | null) {
+    if (!covers(root, p) || !covers(root, q)) {
+      return null;
+    }
+    return ancestorHelper(root, p, q);
+  }
+
+  function ancestorHelper(root: TreeNode<any> | null, p: TreeNode<any> | null, q: TreeNode<any> | null): TreeNode<any> | null {
+    if (root === null || root === p || root === q) {
+      return root;
+    }
+
+    const pIsOnLeft = covers(root.left, p);
+    const qIsOnLeft = covers(root.left, q);
+
+    if (pIsOnLeft !== qIsOnLeft) {
+      return root;
+    }
+
+    const childSide = pIsOnLeft ? root.left : root.right;
+    return ancestorHelper(childSide, p, q);
+  }
+
+  function covers(root: TreeNode<any> | null, p: TreeNode<any> | null): boolean {
+    if (root === null) return false;
+    if (root === p) return true;
+    return covers(root.left, p) || covers(root.right, p)
+  }
+  ```
+
+- 도서의 풀이 4
+
+  ```ts
+  class TreeNode<T> {
+    left: TreeNode<T> | null = null;
+    right: TreeNode<T> | null = null;
+    parent: TreeNode<T> | null = null;
+    value: T | null;
+
+    constructor(value: T) {
+      this.value = value;
+    }
+  }
+
+  class Result {
+    node: TreeNode<any> | null;
+    isAncestor: boolean;
+
+    constructor(node: TreeNode<any> | null, isAncestor = false) {
+      this.node = node;
+      this.isAncestor = isAncestor;
+    }
+  }
+
+  function commonAncestor(root: TreeNode<any> | null, p: TreeNode<any> | null, q: TreeNode<any> | null) {
+    const r = commonAncestorHelper(root, p, q);
+    if (r.isAncestor) {
+      return r.node;
+    }
+    return null;
+  }
+
+  function commonAncestorHelper(root: TreeNode<any> | null, p: TreeNode<any> | null, q: TreeNode<any> | null): Result {
+    if (root === null) return new Result(null, false);
+
+    if (root === p && root === q) return new Result(root, true);
+
+    const rx = commonAncestorHelper(root.left, p, q);
+    if (rx.isAncestor) return rx;
+
+    const ry = commonAncestorHelper(root.right, p, q);
+    if (ry.isAncestor) return ry;
+
+    if (rx.node !== null && ry.node !== null) {
+      return new Result(root, true);
+    } else if (root === p || root === q) {
+      const isAncestor = rx.node !== null || ry.node !== null;
+      return new Result(root, isAncestor);
+    } else {
+      return new Result(rx.node !== null ? rx.node : ry.node, false)
+    }
+  }
+  ```
+
+4.9 BST 수열
+
+4.10 하위 트리 확인
+
+4.11 임의의 노드
+
+4.12 합의 경로
