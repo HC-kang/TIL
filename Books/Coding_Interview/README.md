@@ -4408,8 +4408,454 @@ class Node {
 
 4.9 BST 수열
 
+- 도서의 풀이
+
+  ```ts
+  class TreeNode {
+    data: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  class LinkedListNode {
+    data: number;
+    next: LinkedListNode | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  class LinkedList {
+    head: LinkedListNode | null = null;
+    tail: LinkedListNode | null = null;
+
+    isEmpty() {
+      return this.head === null;
+    }
+
+    size() {
+      if (this.head === null) return 0;
+      let count = 0;
+      let node: LinkedListNode | null = this.head;
+      while (node) {
+        count++;
+        node = node.next;
+      }
+      return count;
+    }
+
+    append(data: number) {
+      const node = new LinkedListNode(data);
+
+      if (this.tail) {
+        this.tail.next = node;
+      }
+
+      if (!this.head) {
+        this.head = node;
+      }
+
+      this.tail = node;
+    }
+
+    appendAll(nodes: number[]) {
+      if (nodes.length === 0) return;
+      for (const node of nodes) {
+        this.append(node);
+      }
+    }
+
+    removeFirst(): number | null {
+      if (!this.head) return null;
+      const node = this.head;
+      this.head = this.head.next;
+      return node.data;
+    }
+
+    removeLast(): number | null {
+      if (!this.head) return null;
+      let node = this.head;
+      let prev: LinkedListNode | null = null;
+      while (node.next) {
+        prev = node;
+        node = node.next;
+      }
+      if (prev) {
+        prev.next = null;
+      }
+      return node.data;
+    }
+
+    clone() {
+      const clone = new LinkedList();
+      let node = this.head;
+      while (node) {
+        clone.append(node.data);
+        node = node.next;
+      }
+      return clone;
+    }
+
+    toArray(): number[] {
+      const result = new Array<number>();
+      let node = this.head;
+      while (node) {
+        result.push(node.data);
+        node = node.next;
+      }
+      return result;
+    }
+  }
+
+  function allSequences(node: TreeNode | null): Array<LinkedList> {
+    const result = new Array<LinkedList>();
+
+    if (node === null) {
+      result.push(new LinkedList());
+      return result;
+    }
+
+    const prefix = new LinkedList();
+    prefix.append(node.data);
+
+    const leftSeq = allSequences(node.left);
+    const rightSeq = allSequences(node.right);
+
+    for (const left of leftSeq) {
+      for (const right of rightSeq) {
+        const weaved = new Array<LinkedList>();
+        weaveLists(left, right, weaved, prefix);
+        result.push(...weaved);
+      }
+    }
+    return result;
+  }
+
+  function weaveLists(first: LinkedList, second: LinkedList, results: Array<LinkedList>, prefix: LinkedList) {
+    if (first.size() === 0 || second.size() === 0) {
+      const result = prefix.clone();
+      result.appendAll(first.toArray());
+      result.appendAll(second.toArray());
+      results.push(result);
+      return;
+    }
+
+    const headFirst = first.removeFirst();
+    prefix.append(headFirst!);
+    weaveLists(first, second, results, prefix);
+    prefix.removeLast();
+    first.append(headFirst!);
+
+    const headSecond = second.removeFirst();
+    prefix.append(headSecond!);
+    weaveLists(first, second, results, prefix);
+    prefix.removeLast();
+    second.append(headSecond!);
+  }
+  ```
+
 4.10 하위 트리 확인
+
+- 도서의 풀이 1
+
+  ```ts
+  class TreeNode {
+    data: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  function containsTree(t1: TreeNode | null, t2: TreeNode | null): boolean {
+    const string1: string[] = [];
+    const string2: string[] = [];
+
+    getOrderString(t1, string1);
+    getOrderString(t2, string2);
+
+    return string1.join('').includes(string2.join(''));
+  }
+
+  function getOrderString(node: TreeNode | null, sb: string[]): void {
+    if (node === null) {
+      sb.push('X');
+      return;
+    }
+    sb.push(node.data.toString());
+    getOrderString(node.left, sb);
+    getOrderString(node.right, sb);
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  class TreeNode {
+    data: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  function containsTree(t1: TreeNode | null, t2: TreeNode | null): boolean {
+    if (t2 === null) return true;
+    return subTree(t1, t2);
+  }
+
+  function subTree(r1: TreeNode | null, r2: TreeNode): boolean { // r2는 null이 될 수 없다.
+    if (r1 === null) return false;
+    else if (r1.data === r2.data && matchTree(r1, r2)) return true;
+    else return subTree(r1.left, r2) || subTree(r1.right, r2);
+  }
+
+  function matchTree(r1: TreeNode | null, r2: TreeNode | null): boolean {
+    if (r1 === null && r2 === null) return true; // 둘 다 null로 같으면 true
+    else if (r1 === null || r2 === null) return false; // 둘 중 하나만 null이면 달라지므로 false
+    else if (r1.data !== r2.data) return false; // 둘의 값이 다르면 false
+    else return matchTree(r1.left, r2.left) && matchTree(r1.right, r2.right); // 재귀적으로 판단
+  }
+  ```
 
 4.11 임의의 노드
 
+- 도서의 풀이 1(매번 randomIndex 생성)
+
+  ```ts
+  class TreeNode {
+    data: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
+    size = 0;
+
+    constructor(data: number) {
+      this.data = data;
+      this.size = 1;
+    }
+
+    getRandomNode(): TreeNode | null {
+      const leftSize = this.left === null ? 0 : this.left.size;
+      const randomIndex = Math.floor(Math.random() * this.size); // 0 ~ size - 1로 랜덤 인덱스 생성
+      if (randomIndex < leftSize) {
+        return this.left?.getRandomNode() || null;
+      } else if (randomIndex === leftSize) {
+        return this;
+      } else {
+        return this.right?.getRandomNode() || null;
+      }
+    }
+
+    insertInOrder(d: number) {
+      if (d <= this.data) {
+        if (this.left === null) {
+          this.left = new TreeNode(d);
+        } else {
+          this.left.insertInOrder(d);
+        }
+      } else {
+        if (this.right === null) {
+          this.right = new TreeNode(d);
+        } else {
+          this.right.insertInOrder(d);
+        }
+      }
+      this.size++;
+    }
+
+    getSize(): number {
+      return this.size;
+    }
+
+    getData(): number {
+      return this.data;
+    }
+
+    find(d: number): TreeNode | null {
+      if (d === this.data) {
+        return this;
+      } else if (d <= this.data) {
+        return this.left?.find(d) || null;
+      } else
+        return this.right?.find(d) || null;
+    }
+  }
+  ```
+
+- 도서의 풀이(생성된 randomIndex를 재사용)
+
+  ```ts
+  class Tree {
+    root: TreeNode | null = null;
+
+    getRandomNode(): TreeNode | null {
+      if (this.root === null) return null;
+      const randomIndex = Math.floor(Math.random() * this.root.getSize());
+      return this.root.getIthNode(randomIndex);
+    }
+
+    insertInOrder(value: number) {
+      if (this.root === null) {
+        this.root = new TreeNode(value);
+      } else {
+        this.root.insertInOrder(value);
+      }
+    }
+  }
+
+  class TreeNode {
+    data: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
+    size = 0;
+
+    constructor(data: number) {
+      this.data = data;
+      this.size = 1;
+    }
+
+    getIthNode(i: number): TreeNode | null {
+      const leftSize = this.left === null ? 0 : this.left.getSize();
+      if (i < leftSize) {
+        return this.left?.getIthNode(i) || null;
+      } else if (i === leftSize) {
+        return this;
+      } else {
+        // leftSize + 1만큼의 노드를 건너뛰고 i - (leftSize + 1)번째 노드를 찾는다.
+        return this.right?.getIthNode(i - (leftSize + 1)) || null;
+      }
+    }
+
+    insertInOrder(d: number) {
+      if (d <= this.data) {
+        if (this.left === null) {
+          this.left = new TreeNode(d);
+        } else {
+          this.left.insertInOrder(d);
+        }
+      } else {
+        if (this.right === null) {
+          this.right = new TreeNode(d);
+        } else {
+          this.right.insertInOrder(d);
+        }
+      }
+      this.size++;
+    }
+
+    getSize(): number {
+      return this.size;
+    }
+
+    getData(): number {
+      return this.data;
+    }
+
+    find(d: number): TreeNode | null {
+      if (d === this.data) {
+        return this;
+      } else if (d <= this.data) {
+        return this.left?.find(d) || null;
+      } else
+        return this.right?.find(d) || null;
+    }
+  }
+  ```
+
 4.12 합의 경로
+
+- 도서의 풀이 1(Brute force)
+
+  ```ts
+  class TreeNode {
+    data: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  function countPathsWithSum(root: TreeNode | null, targetSum: number): number {
+    if (root === null) return 0;
+
+    const pathsFromRoot = countPathsWithSumFromNode(root, targetSum, 0);
+
+    const pathsOnLeft = countPathsWithSum(root.left, targetSum);
+    const pathsOnRight = countPathsWithSum(root.right, targetSum);
+
+    return pathsFromRoot + pathsOnLeft + pathsOnRight;
+  }
+
+  function countPathsWithSumFromNode(node: TreeNode | null, targetSum: number, currentSum: number): number {
+    if (node === null) return 0;
+
+    currentSum += node.data;
+
+    let totalPaths = 0;
+    if (currentSum === targetSum) {
+      totalPaths++;
+    }
+
+    totalPaths += countPathsWithSumFromNode(node.left, targetSum, currentSum);
+    totalPaths += countPathsWithSumFromNode(node.right, targetSum, currentSum);
+
+    return totalPaths;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  class TreeNode {
+    data: number;
+    left: TreeNode | null = null;
+    right: TreeNode | null = null;
+
+    constructor(data: number) {
+      this.data = data;
+    }
+  }
+
+  function countPathsWithSum(root: TreeNode | null, targetSum: number): number {
+    return countPathsWithSumHelper(root, targetSum, 0, new Map());
+  }
+
+  function countPathsWithSumHelper(node: TreeNode | null, targetSum: number, runningSum: number, pathCount: Map<number, number>): number {
+    if (node === null) return 0;
+
+    runningSum += node.data;
+    const sum = runningSum - targetSum;
+    let totalPaths = pathCount.get(sum) || 0;
+
+    if (runningSum === targetSum) {
+      totalPaths++;
+    }
+
+    incrementHashTable(pathCount, runningSum, 1);
+    totalPaths += countPathsWithSumHelper(node.left, targetSum, runningSum, pathCount);
+    totalPaths += countPathsWithSumHelper(node.right, targetSum, runningSum, pathCount);
+    incrementHashTable(pathCount, runningSum, -1);
+
+    return totalPaths;
+  }
+
+  function incrementHashTable(hashTable: Map<number, number>, key: number, delta: number) {
+    const newCount = (hashTable.get(key) || 0) + delta;
+    if (newCount === 0) {
+      hashTable.delete(key);
+    } else {
+      hashTable.set(key, newCount);
+    }
+  }
+  ```
