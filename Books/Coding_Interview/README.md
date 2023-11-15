@@ -4860,7 +4860,7 @@ class Node {
   }
   ```
 
-### 4. 비트 조작
+### 5. 비트 조작
 
 - 비트 조작은 실수하기가 쉬우니 꼭 주의할 것
 
@@ -5261,3 +5261,144 @@ class Node {
     }
   }
   ```
+
+### 6. 수학 및 논리 퍼즐
+
+#### 소수
+
+- 모든 자연수는 소수의 곱으로 나타낼 수 있다
+  - 84 = 2^2 * 3^1 * 7^1
+
+- 가분성(divisibility)
+  - 어떤 수 x로 y를 나눌 수 있으면, x를 소수의 곱으로 분할했을 때 나타난 수의 집합은 y를 소수의 곱으로 분할했을때 나타난 집합의 부분집합이다.
+  - 일반화
+    - x = 2^i1 * 3^i2 * 5^i3 * 7^i4 * 11^i5 * ...
+    - y = 2^j1 * 3^j2 * 5^j3 * 7^j4 * 11^j5 * ...
+    - x % y === 0이면, i1 >= j1, i2 >= j2, i3 >= j3, i4 >= j4, i5 >= j5, ... 이다.
+  - 즉 gcd(최대공약수; greatest common divisor)는 아래와 같다.
+    - gcd(x, y) = 2^min(i1, j1) * 3^min(i2, j2) * 5^min(i3, j3) * 7^min(i4, j4) * 11^min(i5, j5) * ...
+  - lcm(최소공배수; least common multiple)는 아래와 같다.
+    - lcm(x, y) = 2^max(i1, j1) * 3^max(i2, j2) * 5^max(i3, j3) * 7^max(i4, j4) * 11^max(i5, j5) * ...
+  - gcm * lcm = 2^(i1 + j1) * 3^(i2 + j2) * 5^(i3 + j3) * 7^(i4 + j4) * 11^(i5 + j5) * ...
+    - 즉, **gcm * lcm = x * y**가 된다.
+
+- 소수판별
+  - n이 소수인지 판단하는 가장 간단한 방법은, 2부터 n-1까지 순회하며 나누어 떨어지는지 확인하는 것이다.
+
+    ```ts
+    function primeNaive(n: number): boolean {
+      if (n < 2) return false;
+      for (let i = 2; i < n; i++) {
+        if (n % i === 0) return false;
+      }
+      return true;
+    }
+    ```
+
+  - 위 코드를 조금 개선하면, n이 아닌, n의 제곱근까지만 확인하면 된다. 이는 나누어 떨어지는 경우에는 항상 보수가 존재하기 때문이다.
+
+    ```ts
+    function primeSlightlyBetter(n: number): boolean {
+      if (n < 2) return false;
+      const sqrt = Math.sqrt(n);
+      for (let i = 2; i <= sqrt; i++) {
+        if (n % i === 0) return false;
+      }
+      return true;
+    }
+    ```
+
+- 소수 목록 만들기: 에라토스테네스의 체
+
+  ```ts
+  function sieveOfEratosthenes(max: number): boolean[] {
+    const flags: boolean[] = new Array(max + 1).fill(true);
+    flags[0] = false;
+    flags[1] = false;
+    let prime = 2;
+
+    while (prime <= Math.sqrt(max)) {
+      // prime의 배수를 지운다.
+      crossOff(flags, prime);
+
+      // 다음 소수를 찾는다.
+      prime = getNextPrime(flags, prime);
+    }
+    return flags;
+  }
+
+  function crossOff(flags: boolean[], prime: number): void {
+    // k < prime인 k에 대한 k * prime은 이미 지워졌으므로 prime * prime부터 시작한다.
+    for (let i = prime * prime; i < flags.length; i += prime) {
+      flags[i] = false;
+    }
+  }
+
+  function getNextPrime(flags: boolean[], prime: number): number {
+    let next = prime + 1;
+    // next가 max를 넘어가지 않고, false인 경우를 찾는다.
+    while (next < flags.length && !flags[next]) {
+      next++;
+    }
+    return next;
+  }
+  ```
+
+#### 확률
+
+- A ∩ B의 확률
+  - P(A ∩ B) = P(B|A) * P(A)
+  - 예를 들어, 1~10까지 수 중 하나를 뽑을 때, 5보다 작은 짝수를 뽑을 확률은 아래와 같다.
+    - P(x=짝수 ∩ x<=5) = P(x=짝수|x<=5) * P(x<=5)
+  - 베이즈 정리
+    - P(A ∩ B) = P(B|A) * P(A) = P(A|B) * P(B)
+    - 즉, P(A|B) = P(B|A) * P(A) / P(B)
+- A ∪ B의 확률
+  - P(A ∪ B) = P(A) + P(B) - P(A ∩ B)
+- 독립성
+  - A와 B가 독립사건이라면, P(B|A) = P(B)이고
+  - P(A ∩ B) = P(A) * P(B)이다.
+- 상호 배타성(mutual exclusivity)
+  - A와 B가 상호 배타적이라면, P(A ∩ B) = 0이다.
+  - 상호 배타적인 사건은 독립사건이 아니다.
+
+#### 입을 열라
+
+- 어려운 문제를 만나더라도 입을 닫고있지 말자. 어떤 생각을 하고있는지 말로 표현하자.
+
+#### 규칙과 패턴을 찾으라
+
+- 문제를 풀다가 발견하는 규칙이나 패턴을 반드시 한쪽에 적어두자.
+- 예시: 끈 태우기
+  - 태우는 데 한 시간이 걸리는 끈 두 개를 사용해 15분을 측정하려고 한다.
+  - 밀도가 균일하지 않아, 절반을 태우는 데에 꼭 30분이 걸리는것은 아니다.
+  - 발견한 규칙
+    1. 태우는 데 x 분이 걸리는 끈과 y 분이 걸리는 끈이 주어지면, x + y 분을 잴 수 있다.
+    2. 태우는 테 x 분이 걸리는 끈이 주어지면, x/2분을 잴 수 있다.(양쪽에 불 붙이기)
+    3. 1번 끈을 태우는 데에 x분이 걸리고, 2번 끈을 태우는 데에 y분이 걸리면, 2번 끈을 태우는 시간을 (y - x)분이나 (y - x/2) 분으로 바꿀 수 있다.
+  - 해답
+    - 1번 끈의 양쪽과, 2번 끈의 한쪽에 불을 붙인다.
+    - 30분 뒤 1번 끈이 다 타면, 2번 끈의 반대쪽에 불을 붙인다.
+    - 2번 끈의 반대쪽에 불을 붙인 시점부터 15분 뒤에 2번 끈이 다 탄다.
+
+#### 최악의 경우는?
+
+- 나인볼 예제
+  - 9개의 공이 있는데, 이 중 하나만 무게가 다르다. 저울을 두 번만 사용해서 무게가 다른 공을 찾아라.
+  - 방법 1
+    - 저울에 각각 4개씩 공을 올려두고, 무게가 같다면 남은 공 1개가 무게가 다르다.
+    - 무게가 다르다면, 4개의 공을 2개씩 나누어서 측정하고 이를 반복한다.
+    - 이 과정에서는 최선의 경우 1번, 최악의 경우 3번 저울을 사용하게 된다.
+  - 방법 2
+    - 저울에 각각 3개씩 공을 올려두고, 무게가 같다면 남은 공 3개가 무게가 다르다.
+    - 무게가 다르다면, 3개의 공 중 1개를 제외하고 2개를 각각 저울에 올려 무게를 측정한다.
+    - 이 과정에서는 최선의 경우와 최악의 경우 모두 2번 저울을 사용하게 된다.
+- 이처럼, 최악과 최선이 균형을 맞추는 방법을 생각해보자.
+
+#### 알고리즘적 접근법
+
+#### 면접 문제
+
+6.1 무거운 알약
+
+6.2 농구
