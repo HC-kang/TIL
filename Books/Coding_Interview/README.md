@@ -5027,6 +5027,237 @@ class Node {
 
 5.1 삽입
 
+- 도서의 풀이
+
+  ```ts
+
+  ```
+
 5.2 2진수를 문자열로
 
+- 도서의 풀이
+
+  ```ts
+
+  ```
+
 5.3 비트 뒤집기
+
+- 도서의 풀이
+
+  ```ts
+
+  ```
+
+5.4 다음 숫자
+
+- 도서의 풀이1(비트 조작)
+
+  ```ts
+  function getNext(n: number): number {
+    let temp = n;
+    let c0 = 0; // 맨 뒤에서부터 이어지는 0의 개수
+    let c1 = 0; // 맨 뒤에서부터 이어지는 1의 개수
+
+    // temp가 0이 아닐 때, 맨 뒤에서부터 0의 개수를 센다.
+    while ((temp & 1) === 0 && temp !== 0) {
+      c0++;
+      temp >>= 1;
+    }
+
+    // 맨 뒤에서부터 1의 개수를 센다.
+    while ((temp & 1) === 1) {
+      c1++;
+      temp >>= 1;
+    }
+
+    // c0 + c1 === 31이면 n은 11...1100...00이고, 이보다 더 큰 수를 만들 수 없다.
+    // c0 + c1 === 0이면 n은 0이고, 1이 하나도 없으므로 더 이상 큰 수를 만들 수 없다.
+    if (c0 + c1 === 31 || c0 + c1 === 0) {
+      return -1;
+    }
+    const p = c0 + c1; // 오른쪽에서부터 바꿔야 할 비트(0)의 위치
+
+    n |= 1 << p; // p 위치의 비트(0)를 1로 바꾼다.
+    n &= ~((1 << p) - 1); // p 위치의 비트보다 오른쪽에 있는 모든 비트를 0으로 바꾼다.
+    n |= (1 << (c1 - 1)) - 1; // p 위치의 비트보다 오른쪽에 있는 모든 비트를 1로 바꾼다.
+    return n;
+  }
+
+  function getPrev(n: number): number {
+    let temp = n;
+    let c0 = 0;
+    let c1 = 0;
+
+    // 맨 뒤에서부터 1의 개수를 센다.
+    while ((temp & 1) === 1) {
+      c1++;
+      temp >>= 1;
+    }
+    // temp가 0이 되었다면 n은 00...0011...11이므로 더 이상 작은 수를 만들 수 없다.
+    if (temp === 0) return -1;
+
+    // temp가 0이 아닐 때, 맨 뒤에서부터 0의 개수를 센다.
+    while ((temp & 1) === 0 && temp !== 0) {
+      c0++;
+      temp >>= 1;
+    }
+
+    let p = c0 + c1; // 오른쪽에서부터 바꿔야 할 비트(1)의 위치
+    n &= ~0 << (p + 1); // p번째 비트 오른쪽을 모두 0으로 바꾼다.
+    let mask = (1 << (c1 + 1)) - 1; // c1 + 1개의 비트가 연속으로 1로 켜진 mask를 만든다.
+    n |= mask << (c0 - 1); // mask를 활용해 p의 바로 오른쪽(시작으로부터 c0 - 1번째)에 c1 + 1개의 비트를 켠다.
+    return n;
+  }
+  ```
+
+- 도서의 풀이2(수학적 풀이)
+
+  ```ts
+  function getNextArith(n: number): number {
+    let temp = n;
+    let c0 = 0; // 맨 뒤에서부터 이어지는 0의 개수
+    let c1 = 0; // 맨 뒤에서부터 이어지는 1의 개수
+
+    // temp가 0이 아닐 때, 맨 뒤에서부터 0의 개수를 센다.
+    while ((temp & 1) === 0 && temp !== 0) {
+      c0++;
+      temp >>= 1;
+    }
+
+    // 맨 뒤에서부터 1의 개수를 센다.
+    while ((temp & 1) === 1) {
+      c1++;
+      temp >>= 1;
+    }
+
+    // c0 + c1 === 31이면 n은 11...1100...00이고, 이보다 더 큰 수를 만들 수 없다.
+    // c0 + c1 === 0이면 n은 0이고, 1이 하나도 없으므로 더 이상 큰 수를 만들 수 없다.
+    if (c0 + c1 === 31 || c0 + c1 === 0) {
+      return -1;
+    }
+    return n + (1 << c0) + (1 << (c1 - 1)) - 1;
+  }
+
+  function getPrevArith(n: number): number {
+    let temp = n;
+    let c0 = 0;
+    let c1 = 0;
+
+    // 맨 뒤에서부터 1의 개수를 센다.
+    while ((temp & 1) === 1) {
+      c1++;
+      temp >>= 1;
+    }
+    // temp가 0이 되었다면 n은 00...0011...11이므로 더 이상 작은 수를 만들 수 없다.
+    if (temp === 0) return -1;
+
+    // temp가 0이 아닐 때, 맨 뒤에서부터 0의 개수를 센다.
+    while ((temp & 1) === 0 && temp !== 0) {
+      c0++;
+      temp >>= 1;
+    }
+    return n - (1 << c1) - (1 << (c0 - 1)) + 1;
+  }
+  ```
+
+5.5 디버거
+
+- 도서의 풀이
+  - **A & B == 0의 의미**
+    - A와 B에서 1비트의 위치가 같은 곳이 하나도 없다.
+    - 공통된 위치에 1이 하나도 없다.
+  - **n과 비교할 때, n-1은 어떻게 생겼나?**
+    - 예시(593100)를 들어 확인해보자.
+      - 10진수
+        - 593100 - 1 = 593099
+      - 2진수
+        - 11 0101 1000 - 1 = 11 0101 0111
+    - 즉, n-1은 n과 비교할 때, 최하위 비트부터 그 값에 따라 0 -> 1, 1 -> 0으로 바뀐다.
+  - **결과적으로 n & (n-1) == 0은 무슨 뜻인가?**
+    - 위 조건이 만족하려면 n과 n-1은 공통된 비트가 하나도 없어야 한다.
+    - 즉, n은 0000 1000과 같은 꼴을 띄어야 하며, 이에따라 n-1은 0000 0111과 같은 형태를 띈다.
+  - 위 코드는 n이 2의 거듭제곱인지, 혹은 0인지 확인하는 코드이다.
+
+5.6 변환
+
+- 도서의 풀이1
+
+  ```ts
+  function bitSwapRequired(a: number, b: number): number {
+    let count = 0;
+    for (let c = a ^ b; c !== 0; c = c >> 1) {
+      count += c & 1;
+    }
+    return count;
+  }
+  ```
+
+- 도서의 풀이2
+
+  ```ts
+  function bitSwapRequired(a: number, b: number) {
+    let count = 0;
+    // c = c & (c-1)을 통해 c의 최하위 1비트를 0으로 만들 수 있다.
+    for (let c = a ^ b; c !== 0; c = c & (c-1)) {
+      count++;
+    }
+    return count;
+  }
+  ```
+
+5.7 쌍끼리 맞바꾸기
+
+- 도서의 풀이
+
+  ```ts
+  function swapOddEvenBits(x: number): number {
+    return ((x & 0xaaaaaaaa) >>> 1) | ((x & 0x55555555) << 1);
+  }
+
+  function to32BitBinaryString(num: number): string {
+    let binary = num.toString(2); // 이진수 문자열로 변환
+    return binary.padStart(32, '0'); // 32비트 길이가 되도록 앞에 '0'을 채움
+  }
+  ```
+
+5.8 선 그리기
+
+- 도서의 풀이
+
+  ```ts
+  function drawLine(screen: number[], width: number, x1: number, x2: number, y: number) {
+    const startOffset = x1 % 8;
+    let firstFullByte = Math.floor(x1 / 8);
+    if (startOffset !== 0) {
+      firstFullByte++;
+    }
+
+    const endOffset = x2 % 8;
+    let lastFullByte = Math.floor(x2 / 8);
+    if (endOffset !== 7) {
+      lastFullByte--;
+    }
+
+    for (let b = firstFullByte; b <= lastFullByte; b++) {
+      screen[(width / 8) * y + b] = 0xFF;
+    }
+
+    const startMask = 0xFF >> startOffset;
+    const endMask = ~(0xFF >> (endOffset + 1));
+
+    if ((x1 / 8) === (x2 / 8)) {
+      const mask = startMask & endMask;
+      screen[(width / 8) * y + (x1 / 8)] |= mask;
+    } else {
+      if (startOffset !== 0) {
+        const byteNumber = (width / 8) * y + firstFullByte - 1;
+        screen[byteNumber] |= startMask;
+      }
+      if (endOffset !== 7) {
+        const byteNumber = (width / 8) * y + lastFullByte + 1;
+        screen[byteNumber] |= endMask;
+      }
+    }
+  }
+  ```
