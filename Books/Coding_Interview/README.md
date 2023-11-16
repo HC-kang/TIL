@@ -5492,3 +5492,504 @@ class Node {
     return genders;
   }
   ```
+
+### 7. 객체 지향 설계
+
+- 이 장의 문제들은 디자인 패턴들을 쏟아붓는 것이 아니라, 우아하고 유지보수 가능한 설계를 하는지를 확인하는 것이다.
+
+#### 접근법
+
+- 객체지향에 관한 질문들은 대체로 비슷한 방식으로 공략이 가능하다.
+
+- 단계 1. 모호성의 해소
+  - 객체 지향 설계(OOD)관련 문제들은 대체로 고의적인 모호성을 띄고있다.
+  - 이는 개발자가 스스로 가정을 만들고, 명확히 해 나가는 과정을 알고싶어 하기 때문이다.
+  - 따라서, '누가', '어떻게' 이 기능을 사용 할 것인지를 질문해야한다.
+  - 필요에 따라 모든 육하원칙에 따라 모두 질문을 해야 할 수 있다.
+    - 누가 이 기능을 사용할 것인가?
+    - 무슨 기능을 사용할 것인가?
+    - 어디서 이 기능을 사용할 것인가?
+    - 언제 이 기능을 사용할 것인가?
+    - 어떻게 이 기능을 사용할 것인가?
+    - 왜 이 기능을 사용할 것인가?
+- 단계 2. 핵심 객체의 설계
+  - 식당을 예로 들자면
+    - Table, Guest, Party, Order, Meal, Employee, Server, Host 등이 있다.
+- 단계 3. 관계 분석
+  - 핵심 객체간의 관계를 분석해야 한다.
+    - 어떤 객체가 어떤 객체에 속해 있는가?(member)
+    - 다른 객체로부터 상속받아야 하는 객체가 있는가?(inherit)
+    - 관계는 다대다인가 일대다인가?(many to many or one to many)
+  - 다시 식당을 예로 들자면
+    - Party는 Guest의 배열을 가지고있다.
+    - Server와 Host는 Employee를 상속받는다.
+    - 각 Table은 하나의 Party를 가질 수 있으나, Party는 여러 개의 Table을 가질 수 있다.
+    - Restaurant에 Host는 한 명 뿐이다.
+  - 주의할 점은, 종종 틀린 가정을 세워서 사용하는 경우가 있다는 것이다.
+    - 예를 들어, 하나의 Table에 여러 Party가 앉는 경우가 있다.
+    - 이런 경우에 대비해 항상 면접관과 상의하여 조건을 결정할 필요가 있다.
+- 단계 4. 행동 분석
+  - 핵심 객체들이 행하는 상호작용인 핵심 행동을 서술해야 한다.
+    - 이 과정에서 놓친 객체가 있는지, 혹은 불필요한 객체가 있는지를 확인할 수 있다.
+  - 다시 식당을 예로 들어 설명하면,
+    - 한 Party가 Restaurant에 입장하고, Guest가 Host에게 Table을 부탁한다.
+    - Host는 Reservation을 살펴보고, 빈 Table을 찾아서 Party에게 Table을 배정한다.
+    - 만약 자리가 없다면 Party는 Reservation 리스트의 마지막에 추가 될 것이다.
+    - Party가 식사를 마치고 떠난다면 Table이 비게 되고, 해당 Table은 다시 빈 Table 리스트에 추가되거나, Reservation의 최상위 Party에게 배정된다.
+
+#### 디자인 패턴
+
+- 면접관은 여러분의 지식이 아니라 능력을 평가할 것이다.
+- 그렇지만 싱글톤(Singleton)이나 팩토리 메서드(Factory method)와 같은 디자인 패턴을 알아두는 것은 유용하므로, 이를 공부해두자.
+  - 그러나 어떤 문제를 해결하기 위해 항상 적합한 패턴을 찾으려는 함정에 빠지지 않도록 주의하자. 필요시에는 새로운 패턴을 만들어 사용해도 된다.
+
+- 싱글턴 클래스(Singleton class)
+  - 싱글턴 클래스는 오직 하나의 인스턴스만을 갖고, 프로그램 전반에 걸쳐서 그 객체 하나만을 사용하도록 보장하는 클래스이다.
+  - 정확히 하나의 인스턴스만 생성되어야 하는 전역 객체를 구현하는 경우에 유용하다.
+
+    ```ts
+    class Restaurant {
+      private static _instance: Restaurant | null = null;
+
+      // private 생성자로 외부에서 인스턴스를 생성하는 것을 방지
+      private constructor() {}
+
+      public static getInstance(): Restaurant {
+        if (this._instance === null) {
+          this._instance = new Restaurant();
+        }
+        return this._instance;
+      }
+    }
+
+    const restaurant = Restaurant.getInstance();
+    console.log(restaurant);
+
+    const anotherRestaurant = Restaurant.getInstance();
+    console.log(anotherRestaurant === restaurant); // true
+
+    // const test = new Restaurant(); // error
+    ```
+
+  - 그러나 싱글턴 패턴은 테스트하기 어렵다는 단점이 있다.
+  - 이로인해 일부 개발자들은 싱글턴을 안티패턴으로 보기도 한다.
+
+- 팩토리 메서드(Factory method)
+  - 어떤 클래스의 객체를 생성하기 위한 인터페이스를 제공하되, 어떤 클래스의 인스턴스를 생성할지에 대한 결정은 서브클래스가 내리도록 하는 패턴이다.
+
+    ```ts
+    class Poker {}
+    class BlackJack {}
+
+    const GameType = {
+      Poker: 'Poker',
+      BlackJack: 'BlackJack',
+    } as const;
+
+    type GameType = typeof GameType[keyof typeof GameType];
+
+    class CardGame {
+      createCardGame(type: GameType) {
+        if (type === GameType.Poker) {
+          return new Poker();
+        } else if (type === GameType.BlackJack) {
+          return new BlackJack();
+        }
+        return null;
+      }
+    }
+    ```
+
+#### 면접 문제
+
+7.1 카드 한 벌
+
+- 카드 게임에 쓰이는 카드 한 벌을 나타내는 자료구조를 설계하라. 또한 블랙잭 게임을 구현하려면 이 자료구조의 하위클래스를 어떻게 만들어야 하는지 설명하라.
+
+- 도서의 풀이
+
+  ```ts
+  const Suit = {
+    Clubs: 0,
+    Diamonds: 1,
+    Hearts: 2,
+    Spades: 3,
+  } as const;
+
+  type Suit = (typeof Suit)[keyof typeof Suit];
+
+  class Deck {
+    private cards: Card[] = [];
+    private dealtIndex = 0;
+
+    setDeckOfCards(deckOfCards: Card[]) {
+      this.cards = deckOfCards;
+    }
+
+    shuffle() {
+      let currentIndex = this.cards.length;
+      let randomIndex: number;
+      const newCards = Array.from(this.cards);
+
+      while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        [newCards[currentIndex], newCards[randomIndex]] = [newCards[randomIndex], newCards[currentIndex]];
+      }
+      this.cards = newCards;
+      this.dealtIndex = 0;
+    }
+
+    remainingCards(): number {
+      return this.cards.length - this.dealtIndex;
+    }
+
+    dealHand(number: number): Card[] {
+      const cards = this.cards.slice(this.dealtIndex, this.dealtIndex + number);
+      this.dealtIndex += number;
+      return cards;
+    }
+
+    dealCard(): Card {
+      return this.cards[this.dealtIndex++];
+    }
+  }
+
+  abstract class Card {
+    private available = true;
+    protected faceValue: number;
+    protected suit: Suit;
+
+    constructor(faceValue: number, suit: Suit) {
+      this.faceValue = faceValue;
+      this.suit = suit;
+    }
+
+    abstract value(): number;
+
+    getSuit() {
+      return this.suit;
+    }
+
+    isAvailable() {
+      return this.available;
+    }
+
+    markUnavailable() {
+      this.available = false;
+    }
+
+    markAvailable() {
+      this.available = true;
+    }
+  }
+
+  class Hand {
+    protected cards: Card[] = [];
+
+    score() {
+      let score = 0;
+      for (const card of this.cards) {
+        score += card.value();
+      }
+      return score;
+    }
+
+    addCard(card: Card) {
+      this.cards.push(card);
+    }
+  }
+
+  class BlackJackHand extends Hand {
+    protected cards: BlackJackCard[] = [];
+
+    score(): number {
+      const scores = this.possibleScores();
+      let maxUnder = -1;
+      let minOver = 22;
+      for (const score of scores) {
+        if (score > 21 && score < minOver) {
+          minOver = score;
+        } else if (score <= 21 && score > maxUnder) {
+          maxUnder = score;
+        }
+      }
+      return maxUnder === -1 ? minOver : maxUnder;
+    }
+
+    private possibleScores(): number[] {
+      const scores = [0];
+      for (const card of this.cards) {
+        this.addCardToScoreList(card, scores);
+      }
+      return scores;
+    }
+
+    private addCardToScoreList(card: BlackJackCard, scores: number[]) {
+      const length = scores.length;
+      for (let i = 0; i < length; i++) {
+        const score = scores[i];
+        scores[i] = score + card.value();
+        if (card.value() === 1) {
+          scores.push(score + 11);
+        }
+      }
+    }
+
+    busted(): boolean {
+      return this.score() > 21;
+    }
+
+    is21(): boolean {
+      return this.score() === 21;
+    }
+
+    isBlackJack(): boolean {
+      if (this.cards.length !== 2) {
+        return false;
+      }
+      const first = this.cards[0];
+      const second = this.cards[1];
+      return (first.isAce() && second.isFaceCard()) || (second.isAce() && first.isFaceCard());
+    }
+  }
+
+  class BlackJackCard extends Card {
+    constructor(faceValue: number, suit: Suit) {
+      super(faceValue, suit);
+    }
+
+    value(): number {
+      if (this.isAce()) return 1;
+      else if (this.faceValue >= 11 && this.faceValue <= 13) return 10;
+      else return this.faceValue;
+    }
+
+    minValue(): number {
+      if (this.isAce()) return 1;
+      else return this.value();
+    }
+
+    maxValue(): number {
+      if (this.isAce()) return 11;
+      else return this.value();
+    }
+
+    isAce(): boolean {
+      return this.faceValue === 1;
+    }
+
+    isFaceCard(): boolean {
+      return this.faceValue >= 11 && this.faceValue <= 13;
+    }
+  }
+  ```
+
+7.2 콜 센터
+
+- 도서의 풀이
+
+  ```ts
+  class CallHandler {
+    // 직급은 세 종류로 구성된다. 고객 응대 담당자, 관리자, 감독관
+    private readonly LEVELS = 3;
+
+    // 10명의 담당자와 4명의 관리자, 2명의 감독관으로 초기화한다.
+    private readonly NUM_RESPONDENTS = 10;
+    private readonly NUM_MANAGERS = 4;
+    private readonly NUM_DIRECTORS = 2;
+
+    /**
+    * 직급별 직원 리스트
+    * employeeLevels[0] = 고객 응대 담당자(respondents) 리스트
+    * employeeLevels[1] = 관리자(managers) 리스트
+    * employeeLevels[2] = 감독관(directors) 리스트
+    */
+    private employeeLevels: Employee[][];
+
+    // 직급별 수신 전화 대기 큐
+    private callQueues: Call[][];
+
+    constructor() {
+      this.employeeLevels = [];
+      this.callQueues = [];
+    }
+
+    getHandlerForCall(call: Call): Employee | null {
+      for (let level = call.getRank(); level < this.LEVELS - 1; level++) {
+        const employeeLevel = this.employeeLevels[level];
+        for (const employee of employeeLevel) {
+          if (employee.isFree()) {
+            return employee;
+          }
+        }
+      }
+      return null;
+    }
+
+    dispatchCallWrapper(caller: Caller) {
+      const call = new Call(caller);
+      this.dispatchCall(call);
+    }
+
+    dispatchCall(call: Call) {
+      const emp = this.getHandlerForCall(call);
+      if (emp !== null) {
+        emp.receiveCall(call);
+        call.setHandler(emp);
+      } else {
+        call.reply('Please wait for free employee to reply');
+        this.callQueues[call.getRank()].push(call);
+      }
+    }
+
+    assignCall(emp: Employee) {}
+  }
+
+  class Call {
+    // 이 전화를 처리 할 수 있는 최소 직급
+    private rank: Rank;
+
+    private caller: Caller;
+
+    private handler: Employee | null;
+
+    constructor(caller: Caller) {
+      this.rank = Rank.Responder;
+      this.caller = caller;
+    }
+
+    setHandler(emp: Employee) {
+      this.handler = emp;
+    }
+
+    getRank() {
+      return this.rank;
+    }
+
+    setRank(rank: Rank) {
+      this.rank = rank;
+    }
+
+    incrementRank() {
+      if (this.rank === Rank.Responder) {
+        this.rank = Rank.Manager;
+      } else if (this.rank === Rank.Manager) {
+        this.rank = Rank.Director;
+      }
+    }
+
+    reply(message: string) {
+      console.log(message);
+    }
+
+    disconnect() {
+      console.log('disconnect');
+    }
+  }
+
+  class Employee {
+    private currentCall: Call | null;
+    protected rank: Rank;
+
+    constructor(handler: CallHandler) {
+      this.currentCall = null;
+      this.rank = Rank.Responder;
+    }
+
+    receiveCall(call: Call) {
+      this.currentCall = call;
+    }
+
+    callCompleted() {
+      if (this.currentCall !== null) {
+        this.currentCall.disconnect();
+        this.currentCall = null;
+      }
+    }
+
+    escalateAndReassign() {
+      if (this.currentCall !== null) {
+        this.currentCall.incrementRank();
+        this.currentCall = null;
+      }
+    }
+
+    assignNewCall(): boolean {
+      if (!this.isFree()) {
+        return false;
+      }
+      return true;
+    }
+
+    isFree(): boolean {
+      return this.currentCall === null;
+    }
+
+    getRank(): Rank {
+      return this.rank;
+    }
+  }
+
+  class Director extends Employee {
+    constructor(handler: CallHandler) {
+      super(handler);
+      this.rank = Rank.Director;
+    }
+  }
+
+  class Manager extends Employee {
+    constructor(handler: CallHandler) {
+      super(handler);
+      this.rank = Rank.Manager;
+    }
+  }
+
+  class Respondent extends Employee {
+    constructor(handler: CallHandler) {
+      super(handler);
+      this.rank = Rank.Responder;
+    }
+  }
+
+  const Rank = {
+    Director: 0,
+    Manager: 1,
+    Responder: 2,
+  } as const;
+
+  type Rank = (typeof Rank)[keyof typeof Rank];
+
+  class Caller {
+    private name: string;
+
+    constructor(name: string) {
+      this.name = name;
+    }
+  }
+  ```
+
+7.3 주크박스
+
+- 도서의 풀이
+
+  ```ts
+
+  ```
+
+7.4 주차장
+
+- 도서의 풀이
+
+  ```ts
+
+  ```
+
+7.5 온라인 북 리더
+
+- 도서의 풀이
+
+  ```ts
+
+  ```
