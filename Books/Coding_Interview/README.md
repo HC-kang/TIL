@@ -5030,23 +5030,147 @@ class Node {
 - 도서의 풀이
 
   ```ts
+  function updateBits(n: number, m: number, i: number, j: number): number {
+    const allOnes = ~0; // 모든 비트가 1인 수
 
+    const left = allOnes << (j + 1);  // j 이상의 모든 비트가 1이고, 나머지는 0인 수, 11100000
+    const right = ((1 << i)) - 1;     // i 이하의 모든 비트가 0이고, 나머지는 1인 수, 00000011
+
+    const mask = left | right;  // i 이상 j 이하의 모든 비트가 0이고, 나머지는 1인 수, 11100011
+
+    const nCleared = n & mask;  // n의 i 이상 j 이하 비트를 0으로 지운다.
+    const mShifted = m << i;    // m을 i만큼 왼쪽으로 이동시킨다.
+
+    return nCleared | mShifted; // nCleared와 mShifted를 OR 연산한다.
+  }
   ```
 
 5.2 2진수를 문자열로
 
-- 도서의 풀이
+- 도서의 풀이 1
 
   ```ts
+  function printBinary(num: number): string {
+    if (num >= 1 || num <= 0) return 'ERROR';
 
+    let binary = '.';
+    while (num > 0) {
+      if (binary.length >= 32) return 'ERROR';
+
+      const r = num * 2; // 2를 곱하면 자릿수를 왼쪽으로 시프트한 효과가 있다.
+      if (r >= 1) {
+        binary += '1';
+        num = r - 1;
+      } else {
+        binary += '0';
+        num = r;
+      }
+    }
+    return binary;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function printBinary2(num: number): string {
+    if (num >= 1 || num <= 0) return 'ERROR';
+
+    let binary = '.';
+    let frac = 0.5;
+
+    while (num > 0) {
+      if (binary.length > 32) return 'ERROR';
+
+      // 1번 방법과 달리 frac을 사용해서 0.5, 0.25, 0.125 ... 값과 비교한다.
+      if (num >= frac) {
+        binary += '1';
+        num -= frac;
+      } else {
+        binary += '0';
+      }
+
+      frac /= 2;
+    }
+    return binary;
+  }
   ```
 
 5.3 비트 뒤집기
 
-- 도서의 풀이
+- 도서의 풀이 1(무식한 방법)
 
   ```ts
+  function longestSequence(n: number): number {
+    if (n === -1) return 32;
+    const sequences = getAlternatingSequences(n);
+    return findLongestSequence(sequences);
+  }
 
+  function getAlternatingSequences(n: number): number[] {
+    const sequences: number[] = [];
+    let searchingFor = 0;
+    let counter = 0;
+
+    for (let i = 0; i < 32; i++) {
+      if ((n & 1) !== searchingFor) {
+        sequences.push(counter);
+        searchingFor = n & 1; // 1을 0, 혹은 0을 1로 뒤집기
+        counter = 0;
+      }
+      counter++;
+      n >>>= 1;
+    }
+    sequences.push(counter);
+
+    return sequences;
+  }
+
+  function findLongestSequence(seq: number[]): number {
+    let maxSeq = 1;
+
+    for (let i = 0; i < seq.length; i += 2) {
+      const zerosSeq = seq[i];
+      const onesSeqRight = i - 1 >= 0 ? seq[i - 1] : 0;
+      const onesSeqLeft = i + 1 < seq.length ? seq[i + 1] : 0;
+
+      let thisSeq = 0;
+      if (zerosSeq === 1) {
+        thisSeq = onesSeqLeft + 1 + onesSeqRight;
+      } else if (zerosSeq > 1) {
+        thisSeq = 1 + Math.max(onesSeqRight, onesSeqLeft);
+      } else if (zerosSeq === 0) {
+        thisSeq = Math.max(onesSeqRight, onesSeqLeft);
+      }
+      maxSeq = Math.max(thisSeq, maxSeq);
+    }
+
+    return maxSeq;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function filpBit(a: number): number {
+    if (~a === 0) return 32;
+
+    let currentLength = 0;
+    let previousLength = 0;
+    let maxLength = 1;  // 최소한 1이 하나는 존재한다.
+
+    while (a !== 0) {
+      if ((a & 1) === 1) {  // 현재 비트가 1이면
+        currentLength++;
+      } else if ((a & 1) === 0) { // 현재 비트가 0이면
+        previousLength = (a & 2) === 0 ? 0 : currentLength; // 다음 비트가 0이면 0, 1이면 현재 길이를 저장
+        currentLength = 0;
+      }
+      maxLength = Math.max(previousLength + currentLength + 1, maxLength);
+      a >>>= 1;
+    }
+    return maxLength;
+  }
   ```
 
 5.4 다음 숫자
