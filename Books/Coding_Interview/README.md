@@ -6117,3 +6117,295 @@ class Node {
   ```ts
 
   ```
+
+7.6 직소
+
+- 작업중...
+
+7.7 채팅 서버
+
+- 도서의 풀이
+
+  ```ts
+  class UserManager {
+    private static instance: UserManager | null = new UserManager();
+
+    private usersById: Map<number, User> = new Map();
+    private usersByAccountName: Map<string, User> = new Map();
+
+    private onlineUsers: Set<User> = new Set();
+
+    private constructor() {}
+
+    public static getInstance(): UserManager {
+      if (this.instance === null) {
+        this.instance = new UserManager();
+      }
+      return this.instance;
+    }
+
+    public addUser(fromUser: User, toAccountName: string) {}
+    public approveAddRequest(req: AddRequest) {}
+    public rejectAddRequest(req: AddRequest) {}
+    userSignedOn(accountName: string) {}
+    userSignedOff(accountName: string) {}
+  }
+
+  class User {
+    constructor(
+      private id: number,
+      private accountName: string,
+      private fullName: string
+    ) {}
+    private status: UserStatus | null = null;
+
+    private privateChats: Map<number, PrivateChat> = new Map();
+    private groupChats: Map<number, GroupChat> = new Map();
+    // private groupChats: GroupChat[] = [];
+
+    private receivedAddRequests: Map<number, AddRequest> = new Map();
+    private sentAddRequests: Map<number, AddRequest> = new Map();
+
+    private contacts: Map<number, User> = new Map();
+
+    sendMessageToUser(to: User, content: String): boolean {}
+    sendMessageToGroupChat(id: number, content: String): boolean {}
+    setStatus(status: UserStatus) {}
+    getStatus(): UserStatus {}
+    addContact(user: User) {}
+    receiveAddRequest(req: AddRequest) {}
+    sentAddRequest(req: AddRequest) {}
+    removeAddRequest(req: AddRequest) {}
+    requestAddUser(accountName: string) {}
+    addPrivateChat(chat: PrivateChat) {}
+    addGroupChat(chat: GroupChat) {}
+    getId(): number {}
+    getAccountName(): string {}
+    getFullName(): string {}
+  }
+
+  abstract class Conversation {
+    protected participants: User[] = [];
+    protected id: number;
+    protected messages: Message[] = [];
+
+    public abstract getMessage(): Message[];
+    public abstract addMessage(m: Message): boolean;
+    public getId(): number {
+      return this.id;
+    }
+  }
+
+  class GroupChat extends Conversation {
+    removeParticipant(user: User) {}
+    addParticipant(user: User) {}
+  }
+
+  class PrivateChat extends Conversation {
+    constructor(private user1: User, private user2: User) {}
+    getOtherParticipant(primary: User): User {}
+  }
+
+  class Message {
+    constructor(private content: string, private date: Date) {}
+
+    getContent(): string {}
+
+    getDate(): Date {}
+  }
+
+  class AddRequest {
+    private status: RequestStatus;
+    constructor(
+      private fromUser: User,
+      private toUser: User,
+      private date: Date,
+    ) {}
+
+    getStatus(): RequestStatus {}
+    getFromUser(): User {}
+    getToUser(): User {}
+    getDate(): Date {}
+  }
+
+  class UserStatus {
+    constructor(
+      private type: UserStatusType,
+      private message: string,
+    ) {}
+
+    getStatusType(): UserStatusType {}
+    getMessage(): string {}
+  }
+
+  const RequestStatus = {
+    Unread: 0,
+    Read: 1,
+    Accepted: 2,
+    Rejected: 3
+  } as const;
+
+  type RequestStatus = typeof RequestStatus[keyof typeof RequestStatus];
+
+  const UserStatusType = {
+    Offline: 0,
+    Away: 1,
+    Idle: 2,
+    Available: 3,
+    Busy: 4
+  } as const;
+
+  type UserStatusType = typeof UserStatusType[keyof typeof UserStatusType];
+
+  ```
+
+7.8 오셀로
+
+- 도서의 풀이
+
+  ```ts
+  const Direction = {
+    Up: 1,
+    Down: 2,
+    Left: 3,
+    Right: 4,
+  } as const;
+
+  type Direction = (typeof Direction)[keyof typeof Direction];
+
+  const Color = {
+    White: 0,
+    Black: 1,
+  } as const;
+
+  type Color = (typeof Color)[keyof typeof Color];
+
+  class Game {
+    private players: Player[];
+    private static instance: Game = new Game();
+    private readonly ROWS = 10;
+    private readonly COLUMNS = 10;
+    private board: Board;
+
+    private constructor() {
+      this.board = new Board(this.ROWS, this.COLUMNS);
+      this.players = [new Player(Color.White), new Player(Color.Black)];
+    }
+
+    public static getInstance(): Game {
+      if (!this.instance) this.instance = new Game();
+      return this.instance;
+    }
+
+    getBoard(): Board {
+      return this.board;
+    }
+  }
+
+  class Board {
+    private blackCount = 0;
+    private whiteCount = 0;
+    private board: Piece[][];
+
+    constructor(rows: number, columns: number) {
+      this.board = new Array(rows)
+        .fill(null)
+        .map(() => new Array(columns).fill(null));
+    }
+
+    initialize(): void {}
+
+    placeColor(row: number, column: number, color: Color): boolean {
+      // ...
+    }
+
+    private flipSection(row: number, column: number, color: Color): number {
+      // ...
+    }
+
+    getScoreForColor(c: Color): number {
+      if (c === Color.Black) return this.blackCount;
+      else return this.whiteCount;
+    }
+
+    updateScore(newColor: Color, newPieces: number): void {
+      // ...
+    }
+  }
+
+  class Piece {
+    constructor(private color: Color) {}
+
+    flip(): void {
+      if (this.color === Color.Black) this.color = Color.White;
+      else this.color = Color.Black;
+    }
+
+    getColor(): Color {
+      return this.color;
+    }
+  }
+
+  class Player {
+    constructor(private color: Color) {}
+
+    getScore(): number {
+      // ...
+    }
+
+    playPiece(r: number, c: number): boolean {
+      return Game.getInstance().getBoard().placeColor(r, c, this.color);
+    }
+
+    getColor(): Color {
+      return this.color;
+    }
+  }
+  ```
+
+7.9 순환 배열
+
+- 도서의 풀이
+
+  ```ts
+  class CircularArray<T> {
+    private items: T[];
+    private head = 0;
+
+    constructor(capacity: number) {
+      this.items = new Array(capacity);
+    }
+
+    private convert(index: number): number {
+      if (index < 0) index += this.items.length;
+      return (this.head + index) % this.items.length;
+    }
+
+    public rotate(shiftRight: number): void {
+      this.head = this.convert(shiftRight);
+    }
+
+    public get(i: number): T {
+      if (i < 0 || i >= this.items.length) {
+        throw new Error('Index out of bounds');
+      }
+      return this.items[this.convert(i)];
+    }
+
+    public set(i: number, item: T): void {
+      this.items[this.convert(i)] = item;
+    }
+
+    *[Symbol.iterator](): Iterator<T> {
+      for (let i = 0; i < this.items.length; i++) {
+        yield this.get(i);
+      }
+    }
+  }
+  ```
+
+7.10 지뢰찾기
+
+7.11 파일 시스템
+
+7.12 해시테이블
