@@ -6409,3 +6409,275 @@ class Node {
 7.11 파일 시스템
 
 7.12 해시테이블
+
+### 8. 재귀와 동적 프로그래밍
+
+- 해당 문제가 재귀 문제인지 확인하는 좋은 방법은, 문제를 보다 더 작은 크기의 문제로 만들 수 있는지 확인해보는 것이다.
+  - 다음과 같은 문장으로 시작하는 문제는 재귀로 풀기에 적당할 가능성이 높다.
+    - "n번째 ...를 계산하는 알고리즘을 설계하라"
+    - "첫 n개를 나열하는 코드를 작성하라"
+    - "모든 ...를 계산하는 메서드를 구현하라"
+- 물론 당연하게도, 항상 그런것은 아니고, 재귀처럼 보이더라도 아닌 경우가 절반은 있다.
+
+#### 접근법
+
+- 재귀적 해법은 부분문제(Subproblem)에 대한 해법을 통해 완성된다.
+- 가장 흔하게 사용되는 방법은 상향식(bottom-up), 하향식(top-down), 그리고 반반(half-and-half)이 있다.
+
+##### 상향식 접근법
+
+- 대체로 가장 직관적임.
+- 가장 작은 부분부터 시작하여 확장해 나감.
+- 이전에 풀었던 사례를 확장하여 다음 풀이를 찾아내는 방법임.
+
+##### 하향식 접근법
+
+- 다소 복잡하고 덜 명확해 보이기도 함.
+- 어떻게 하면 큰 문제를 보다 작은 부분 문제로 분리 할 수 있는지 생각해야 함.
+- 이 때, 분리된 부분 문제들은 서로 중복되지 않아야 함.
+
+##### 반반 접근법
+
+- 위 두가지 방법 외에도, 데이터를 절반으로 나누는 방법도 종종 유용하게 쓰임.
+- 예시
+  - 이분 탐색(Binary Search)
+  - 병합 정렬(Merge Sort)
+
+#### 재귀적 해법 vs 순환적 해법
+
+- 재귀적 해법은 공간 효율성이 나빠질 수 있다.
+  - 재귀가 발생 할 때 마다 스택에 새로운 레이어가 추가되기 때문이다.
+  - 즉 재귀의 깊이가 n일 때, 공간 복잡도는 O(n)이 된다.
+- 이러한 문제로 인해. 재귀 문제는 종종 순환적으로 구현하는 것이 더 나을 수 있다.
+  - 모든 재귀 문제는 순환적으로 구현 할 수 있지만, 때로는 훨씬 더 복잡해 질 수 있다.
+
+#### 동적계획법 vs 메모이제이션
+
+- 동적 프로그래밍은 대부분이 재귀적 알고리즘과 반복적으로 호출되는 부분을 찾아내는 것이 관건이고, 이후 현재 결과를 캐시해 두면 된다.
+- 처음에는 일반적인 재귀로 구현하고, 이후 캐시부분을 추가하여 최적화하는 것이 좋다.
+  - 예시: 피보나치 수열
+    - 기본적인 재귀
+
+      ```ts
+      function fibonacci(i: number): number {
+        if (i === 0) return 0;
+        if (i === 1) return 1;
+        return fibonacci(i - 1) + fibonacci(i - 2);
+      }
+      ```
+
+    - 하향식 동적 프로그래밍(메모이제이션)
+
+      ```ts
+      function fibonacci(i: number): number {
+        const memo: number[] = new Array(i + 1).fill(0);
+        return fibonacciHelper(i, memo);
+      }
+
+      function fibonacciHelper(i: number, memo: number[]): number {
+        if (i === 0) return 0;
+        if (i === 1) return 1;
+        if (memo[i] === 0) {
+          memo[i] = fibonacciHelper(i - 1, memo) + fibonacciHelper(i - 2, memo);
+        }
+        return memo[i];
+      }
+      ```
+
+    - 상향식 동적 프로그래밍
+
+      ```ts
+      function fibonacci(n: number): number {
+        if (n === 0) return 0;
+        if (n === 1) return 1;
+        const memo = new Array(n + 1).fill(0);
+        memo[0] = 0;
+        memo[1] = 1;
+        for (let i = 2; i < n; i++) {
+          memo[i] = memo[i - 1] + memo[i - 2];
+        }
+        return memo[n - 1] + memo[n - 2];
+      }
+      ```
+
+    - 상향식 동적 프로그래밍(공간 최적화)
+
+      ```ts
+      function fibonacci(n: number): number {
+        if (n === 0) return 0;
+        let a = 0;
+        let b = 1;
+        for (let i = 2; i < n; i++) {
+          const c = a + b;
+          a = b;
+          b = c;
+        }
+        return a + b;
+      }
+      ```
+
+#### 면접 문제
+
+8.1 트리플 스텝
+
+- 도서의 풀이(단순 재귀)
+
+  ```ts
+  function countWays(n: number): number {
+    if (n < 0) {
+      return 0;
+    } else if (n === 0) {
+      return 1;
+    } else {
+      return countWays(n - 1) + countWays(n - 2) + countWays(n - 3);
+    }
+  }
+  ```
+
+- 도서의 풀이(메모이제이션)
+
+  ```ts
+  function countWays(n: number): number {
+    const memo = new Array(n + 1).fill(-1);
+    return countWaysHelper(n, memo);
+  }
+
+  function countWaysHelper(n: number, memo: number[]): number {
+    if (n < 0) {
+      return 0;
+    } else if (n === 0) {
+      return 1;
+    } else if (memo[n] > -1) {
+      return memo[n];
+    } else {
+      memo[n] =
+        countWaysHelper(n - 1, memo) +
+        countWaysHelper(n - 2, memo) +
+        countWaysHelper(n - 3, memo);
+      return memo[n];
+    }
+  }
+  ```
+
+8.2 격자판(grid)상의 로봇
+
+- 도서의 풀이(단순 재귀)
+
+  ```ts
+  function getPath(maze: boolean[][]): number[][] {
+    if (maze === null || maze.length === 0) return [];
+    const path: number[][] = [];
+    if (getPathHelper(maze, maze.length - 1, maze[0].length - 1, path)) {
+      return path;
+    }
+    return [];
+  }
+
+  function getPathHelper(
+    maze: boolean[][],
+    row: number,
+    col: number,
+    path: number[][]
+  ): boolean {
+    if (col < 0 || row < 0 || !maze[row][col]) return false;
+
+    const isAtOrigin = row === 0 && col === 0;
+
+    if (
+      isAtOrigin ||
+      getPathHelper(maze, row, col - 1, path) ||
+      getPathHelper(maze, row - 1, col, path)
+    ) {
+      path.push([row, col]);
+      return true;
+    }
+    return false;
+  }
+  ```
+
+- 도서의 풀이(메모이제이션)
+
+  ```ts
+  function getPath(maze: boolean[][]): number[][] {
+    if (maze === null || maze.length === 0) return [];
+    const path: number[][] = [];
+    const failedPoints: Set<string> = new Set();
+    if (getPathHelper(maze, maze.length - 1, maze[0].length - 1, path, failedPoints)) {
+      return path;
+    }
+    return [];
+  }
+
+  function getPathHelper(maze: boolean[][], row: number, col: number, path: number[][], failedPoints: Set<string>): boolean {
+    if (col < 0 || row < 0 || !maze[row][col]) return false;
+
+    const point = `${row},${col}`;
+    if (failedPoints.has(point)) return false;
+
+    const isAtOrigin = (row === 0) && (col === 0);
+    if (isAtOrigin || getPathHelper(maze, row, col - 1, path, failedPoints) || getPathHelper(maze, row - 1, col, path, failedPoints)) {
+      path.push([row, col]);
+      return true;
+    }
+
+    failedPoints.add(point);
+    return false;
+  }
+  ```
+
+8.3 마술 인덱스
+
+- 도서의 풀이(무식한 방법)
+
+  ```ts
+  function magicSlow(arr: number[]): number {
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i] === i) {
+        return i;
+      }
+    }
+    return -1;
+  }
+  ```
+
+- 도서의 풀이(이진 탐색)
+
+  ```ts
+  function magicFast(arr: number[]): number {
+    return magicFastHelper(arr, 0, arr.length - 1);
+  }
+
+  function magicFastHelper(arr: number[], start: number, end: number): number {
+    if (end < start) return -1;
+
+    const mid = Math.floor((start + end) / 2);
+    if (arr[mid] === mid) return mid;
+    else if (arr[mid] > mid) return magicFastHelper(arr, start, mid - 1);
+    else return magicFastHelper(arr, mid + 1, end);
+  }
+  ```
+
+- 도서의 풀이(중복값이 가능한 경우)
+
+  ```ts
+  function magicFastWithDuplicates(arr: number[]): number {
+    return magicFastWithDuplicatesHelper(arr, 0, arr.length - 1);
+  }
+
+  function magicFastWithDuplicatesHelper(arr: number[], start: number, end: number): number {
+    if (end < start) return -1;
+
+    const mid = Math.floor((start + end) / 2);
+    if (arr[mid] === mid) return mid;
+
+    // 왼쪽 탐색. 중복값이 가능하므로 왼쪽 탐색의 끝은 mid - 1과 arr[mid] 중 작은 값으로 한다.
+    const leftIndex = Math.min(mid - 1, arr[mid]);
+    const left = magicFastWithDuplicatesHelper(arr, start, leftIndex);
+    if (left >= 0) return left;
+
+    // 오른쪽 탐색. 중복값이 가능하므로 오른쪽 탐색의 시작은 mid + 1과 arr[mid] 중 큰 값으로 한다.
+    const rightIndex = Math.max(mid + 1, arr[mid]);
+    const right = magicFastWithDuplicatesHelper(arr, rightIndex, end);
+    return right;
+  }
+  ```
