@@ -6681,3 +6681,313 @@ class Node {
     return right;
   }
   ```
+
+8.4 부분 집합
+
+- 도서의 풀이 1(재귀)
+
+  ```ts
+  function getSubsets(set: number[], index: number): number[][] {
+    let allSubsets: number[][] = [];
+    if (set.length === index) {
+      allSubsets = [];
+      allSubsets.push([]);
+    } else {
+      allSubsets = getSubsets(set, index + 1);
+      const item = set[index];
+      const moreSubsets: number[][] = [];
+      for (const subset of allSubsets) {
+        const newSubset: number[] = [];
+        newSubset.push(...subset);
+        newSubset.push(item);
+        moreSubsets.push(newSubset);
+      }
+      allSubsets.push(...moreSubsets);
+    }
+    return allSubsets;
+  }
+  ```
+
+- 도서의 풀이 2(조합론)
+
+  ```ts
+  function getSubsets2(set: number[]): number[][] {
+    const allSubsets: number[][] = [];
+    let max = 1 << set.length; // 2^n 계산
+    for (let k = 0; k < max; k++) {
+      const subset = convertIntToSet(k, set);
+      allSubsets.push(subset);
+    }
+    return allSubsets;
+  }
+
+  function convertIntToSet(x: number, set: number[]): number[] {
+    const subset: number[] = [];
+    let index = 0;
+    for (let k = x; k > 0; k >>= 1) {
+      if ((k & 1) === 1) {
+        subset.push(set[index]);
+      }
+      index++;
+    }
+    return subset;
+  }
+  ```
+
+8.5 재귀 곱셈
+
+- 도서의 풀이 1
+
+  ```ts
+  function minProduct(a: number, b: number): number {
+    let bigger = a < b ? b : a;
+    let smaller = a < b ? a : b;
+    return minProductHelper(smaller, bigger);
+  }
+
+  function minProductHelper(smaller: number, bigger: number): number {
+    if (smaller === 0) return 0;
+    else if (smaller === 1) return bigger;
+    
+    let s = smaller >> 1; // 2로 나누기
+    let side1 = minProductHelper(s, bigger);
+    let side2 = side1;
+    if (smaller % 2 === 1) {
+      side2 = minProductHelper(smaller - s, bigger);
+    }
+    return side1 + side2;
+  }
+  ```
+
+- 도서의 풀이 2(메모)
+
+  ```ts
+  function minProduct(a: number, b: number): number {
+    let bigger = a < b ? b : a;
+    let smaller = a < b ? a : b;
+    const memo = new Array(smaller + 1).fill(-1);
+    return minProductHelper(smaller, bigger, memo);
+  }
+
+  function minProductHelper(smaller: number, bigger: number, memo: number[]): number {
+    if (smaller === 0) return 0;
+    else if (smaller === 1) return bigger;
+    else if (memo[smaller] > 0) return memo[smaller];
+    
+    let s = smaller >> 1; // 2로 나누기
+    let side1 = minProductHelper(s, bigger, memo);
+    let side2 = side1;
+    if (smaller % 2 === 1) {
+      side2 = minProductHelper(smaller - s, bigger, memo);
+    }
+    memo[smaller] = side1 + side2;
+    return side1 + side2;
+  }
+  ```
+
+- 도서의 풀이 3
+
+  ```ts
+  function minProduct(a: number, b: number): number {
+    let bigger = a < b ? b : a;
+    let smaller = a < b ? a : b;
+    return minProductHelper(smaller, bigger);
+  }
+
+  function minProductHelper(smaller: number, bigger: number): number {
+    if (smaller === 0) return 0;
+    else if (smaller === 1) return bigger;
+
+    let s = smaller >> 1; // 2로 나눔
+    let halfProd = minProductHelper(s, bigger);
+    if (smaller % 2 === 0) return halfProd + halfProd;
+    else return halfProd + halfProd + bigger;
+  }
+  ```
+
+8.6 하노이타워
+
+- 도서의 풀이
+
+  ```ts
+  class Stack {
+    private storage: number[] = [];
+
+    public isEmpty(): boolean {
+      return this.storage.length === 0;
+    }
+
+    public peek(): number {
+      if (this.isEmpty()) throw new Error('Stack is empty');
+      return this.storage[this.storage.length - 1];
+    }
+
+    public pop(): number {
+      if (this.isEmpty()) throw new Error('Stack is empty');
+      return this.storage.pop()!;
+    }
+
+    public push(value: number): void {
+      this.storage.push(value);
+    }
+  }
+
+  class Tower {
+    private disks: Stack;
+    constructor(private index: number = 0) {
+      this.disks = new Stack();
+    }
+
+    public getIndex(): number {
+      return this.index;
+    }
+
+    public add(d: number): void {
+      if (!this.disks.isEmpty() && this.disks.peek() <= d) {
+        console.log('Error placing disk ', d);
+      } else {
+        this.disks.push(d);
+      }
+    }
+
+    public moveTopTo(t: Tower): void {
+      const top = this.disks.pop();
+      t.add(top);
+    }
+
+    public moveDisks(n: number, destination: Tower, buffer: Tower): void {
+      if (n > 0) {
+        this.moveDisks(n - 1, buffer, destination);
+        this.moveTopTo(destination);
+        buffer.moveDisks(n - 1, destination, this);
+      }
+    }
+  }
+  ```
+
+8.7 중복 없는 순열
+
+- 도서의 풀이 1
+
+  ```ts
+  function getPerms(str: string): string[] {
+    if (str === null) return [];
+    const permutations: string[] = [];
+    if (str.length === 0) {
+      permutations.push('');
+      return permutations;
+    }
+    const first = str.charAt(0);
+    const remainder = str.slice(1);
+    const words = getPerms(remainder);
+    for (const word of words) {
+      for (let j = 0; j <= word.length; j++) {
+        const s = insertCharAt(word, first, j);
+        permutations.push(s);
+      }
+    }
+    return permutations;
+  }
+
+  function insertCharAt(word: string, c: string, i: number): string {
+    const start = word.slice(0, i);
+    const end = word.slice(i);
+    return start + c + end;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function getPerms(remainder: string): string[] {
+    const len = remainder.length;
+    const result: string[] = [];
+
+    if (len === 0) {
+      result.push('');
+      return result;
+    }
+
+    for (let i = 0; i < len; i++) {
+      const before = remainder.slice(0, i);
+      const after = remainder.slice(i + 1, len);
+      const partials = getPerms(before + after);
+
+      for (const s of partials) {
+        result.push(remainder[i] + s);
+      }
+    }
+
+    return result;
+  }
+  ```
+
+- 도서의 풀이 3
+
+  ```ts
+  function getPerms(str: string): string[] {
+    const result: string[] = [];
+    getPermsHelper('', str, result);
+    return result;
+  }
+
+  function getPermsHelper(
+    prefix: string,
+    remainder: string,
+    result: string[]
+  ): void {
+    if (remainder.length === 0) result.push(prefix);
+
+    const len = remainder.length;
+    for (let i = 0; i < len; i++) {
+      const before = remainder.substring(0, i);
+      const after = remainder.substring(i + 1, len);
+      const c = remainder.charAt(i);
+      getPermsHelper(prefix + c, before + after, result);
+    }
+  }
+  ```
+
+8.8 중복 있는 순열
+
+- 도서의 풀이
+
+  ```ts
+  function printPerms(s: string): string[] {
+    const result: string[] = [];
+    const map: Map<string, number> = buildFreqTable(s);
+    printPermsHelper(map, '', s.length, result);
+    return result;
+  }
+
+  function buildFreqTable(s: string): Map<string, number> {
+    const map: Map<string, number> = new Map();
+    for (const c of s) {
+      if (!map.has(c)) {
+        map.set(c, 0);
+      }
+      map.set(c, map.get(c)! + 1);
+    }
+    return map;
+  }
+
+  function printPermsHelper(
+    map: Map<string, number>,
+    prefix: string,
+    remaining: number,
+    result: string[]
+  ): void {
+    if (remaining === 0) {
+      result.push(prefix);
+      return;
+    }
+
+    for (const [key, value] of map) {
+      if (value > 0) {
+        map.set(key, value - 1);
+        printPermsHelper(map, prefix + key, remaining - 1, result);
+        map.set(key, value);
+      }
+    }
+  }
+  ```
