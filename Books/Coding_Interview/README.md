@@ -6991,3 +6991,426 @@ class Node {
     }
   }
   ```
+
+8.9 괄호
+
+- 도서의 풀이 1
+
+  ```ts
+  function generateParens(remaining: number): Set<string> {
+    const set: Set<string> = new Set();
+    if (remaining === 0) {
+      set.add('');
+    } else {
+      const prev = generateParens(remaining - 1);
+      for (const str of prev) {
+        for (let i = 0; i < str.length; i++) {
+          if (str.charAt(i) === '(') {
+            const s = insertInside(str, i);
+            set.add(s);
+          }
+        }
+        set.add('()' + str);
+      }
+    }
+    return set;
+  }
+
+  function insertInside(str: string, leftIndex: number): string {
+    const left = str.substring(0, leftIndex + 1);
+    const right = str.substring(leftIndex + 1, str.length);
+    return left + '()' + right;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function addParen(
+    list: string[],
+    leftRem: number,
+    rightRem: number,
+    str: string[],
+    index: number
+  ): void {
+    if (leftRem < 0 || rightRem < leftRem) return; // 잘못된 경우
+    if (leftRem === 0 && rightRem === 0) {
+      list.push(...str);
+    } else {
+      str[index] = '(';
+      addParen(list, leftRem - 1, rightRem, str, index + 1);
+
+      str[index] = ')';
+      addParen(list, leftRem, rightRem - 1, str, index + 1);
+    }
+  }
+
+  function generateParens(count: number): string[] {
+    const str = new Array(count * 2);
+    const list: string[] = [];
+    addParen(list, count, count, str, 0);
+    return list;
+  }
+  ```
+
+8.10 영역 칠하기
+
+- 도서의 풀이
+
+  ```ts
+  const Color = {
+    Black: 'Black',
+    White: 'White',
+    Red: 'Red',
+    Yellow: 'Yellow',
+    Green: 'Green',
+  } as const;
+
+  type Color = typeof Color[keyof typeof Color];
+
+  function paintFill(screen: Color[][], r: number, c: number, nColor: Color): boolean {
+    if (screen[r][c] === nColor) return false;
+    return paintFillHelper(screen, r, c, screen[r][c], nColor);
+  }
+
+  function paintFillHelper(screen: Color[][], r: number, c: number, oColor: Color, nColor: Color): boolean {
+    if (r < 0 || r >= screen.length || c < 0 || c >= screen[0].length) return false;
+    if (screen[r][c] === oColor) {
+      screen[r][c] = nColor;
+      paintFillHelper(screen, r - 1, c, oColor, nColor); // 위
+      paintFillHelper(screen, r + 1, c, oColor, nColor); // 아래
+      paintFillHelper(screen, r, c - 1, oColor, nColor); // 왼쪽
+      paintFillHelper(screen, r, c + 1, oColor, nColor); // 오른쪽
+    }
+    return true;
+  }
+  ```
+
+8.11 코인
+
+- 도서의 풀이 1
+
+  ```ts
+  function makeChangeHelper(amount: number, denoms: number[], index: number): number {
+    if (index >= denoms.length - 1) return 1; // 마지막 denom
+    let denomAmount = denoms[index];
+    let ways = 0;
+    for (let i = 0; i * denomAmount <= amount; i++) {
+      let amountRemaining = amount - i * denomAmount;
+      ways += makeChangeHelper(amountRemaining, denoms, index + 1);
+    }
+    return ways;
+  }
+
+  function makeChange(n: number): number {
+    const denoms = [25, 10, 5, 1];
+    return makeChangeHelper(n, denoms, 0);
+  }
+  ```
+
+- 도서의 풀이
+
+  ```ts
+  function makeChange(n: number): number {
+    const denoms = [25, 10, 5, 1];
+    const map = Array.from({ length: n + 1 }, () => new Array(denoms.length).fill(0));
+    // 아래와 같이 초기화하면, 레퍼런스를 공유해서 문제가 발생한다.
+    // const map = new Array(n + 1).fill(new Array(denoms.length).fill(0));
+    return makeChangeHelper(n, denoms, 0, map);
+  }
+
+  function makeChangeHelper(
+    amount: number,
+    denoms: number[],
+    index: number,
+    map: number[][]
+  ): number {
+    if (map[amount][index] > 0) return map[amount][index];
+    if (index >= denoms.length - 1) return 1;
+    const denomAmount = denoms[index];
+    let ways = 0;
+    for (let i = 0; i * denomAmount <= amount; i++) {
+      const amountRemaining = amount - i * denomAmount;
+      ways += makeChangeHelper(amountRemaining, denoms, index + 1, map);
+    }
+    map[amount][index] = ways;
+    return ways;
+  }
+  ```
+
+8.12 여덟 개의 퀸
+
+- 도서의 풀이
+
+  ```ts
+  const GRID_SIZE = 8;
+
+  function placeQueens(
+    row: number,
+    columns: number[],
+    results: number[][]
+  ): number[][] {
+    if (row === GRID_SIZE) {
+      results.push(columns.slice());
+    } else {
+      for (let col = 0; col < GRID_SIZE; col++) {
+        if (checkValid(columns, row, col)) {
+          columns[row] = col;
+          placeQueens(row + 1, columns, results);
+        }
+      }
+    }
+    return results;
+  }
+
+  function checkValid(columns: number[], row1: number, column1: number): boolean {
+    for (let row2 = 0; row2 < row1; row2++) {
+      const column2 = columns[row2];
+      if (column1 === column2) {
+        return false;
+      }
+      const columnDistance = Math.abs(column2 - column1);
+      const rowDistance = row1 - row2;
+      if (columnDistance === rowDistance) {
+        return false;
+      }
+    }
+    return true;
+  }
+  ```
+
+8.13 박스 쌓기
+
+- 도서의 풀이 1
+
+  ```ts
+  class Box {
+    public constructor(
+      public height: number,
+      public width: number,
+      public length: number
+    ) { }
+
+    canBeAbove(box: Box): boolean {
+      return (
+        this.height < box.height &&
+        this.width < box.width &&
+        this.length < box.length
+      );
+    }
+  }
+
+  function createStack(boxes: Box[]): number {
+    boxes.sort((a, b) => b.height - a.height);
+    let maxHeight = 0;
+    for (let i = 0; i < boxes.length; i++) {
+      const height = createStackHelper(boxes, i);
+      maxHeight = Math.max(maxHeight, height);
+    }
+    return maxHeight;
+  }
+
+  function createStackHelper(boxes: Box[], bottomIndex: number): number {
+    const bottom: Box = boxes[bottomIndex];
+    let maxHeight = 0;
+    for (let i = bottomIndex + 1; i < boxes.length; i++) {
+      if (boxes[i].canBeAbove(bottom)) {
+        const height = createStackHelper(boxes, i);
+        maxHeight = Math.max(maxHeight, height);
+      }
+    }
+    maxHeight += bottom.height;
+    return maxHeight;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  class Box {
+    public constructor(
+      public height: number,
+      public width: number,
+      public length: number
+    ) { }
+
+    canBeAbove(box: Box): boolean {
+      return (
+        this.height < box.height &&
+        this.width < box.width &&
+        this.length < box.length
+      );
+    }
+  }
+
+  function createStack(boxes: Box[]): number {
+    boxes.sort((a, b) => b.height - a.height);
+    let maxHeight = 0;
+    const stackMap: number[] = [];
+    for (let i = 0; i < boxes.length; i++) {
+      const height = createStackHelper(boxes, i, stackMap);
+      maxHeight = Math.max(maxHeight, height);
+    }
+    return maxHeight;
+  }
+
+  function createStackHelper(boxes: Box[], bottomIndex: number, stackMap: number[]): number {
+    if (bottomIndex < boxes.length && stackMap[bottomIndex] > 0) return stackMap[bottomIndex];
+    const bottom: Box = boxes[bottomIndex];
+    let maxHeight = 0;
+    for (let i = bottomIndex + 1; i < boxes.length; i++) {
+      if (boxes[i].canBeAbove(bottom)) {
+        const height = createStackHelper(boxes, i, stackMap);
+        maxHeight = Math.max(maxHeight, height);
+      }
+    }
+    maxHeight += bottom.height;
+    stackMap[bottomIndex] = maxHeight;
+    return maxHeight;
+  }
+  ```
+
+- 도서의 풀이 3
+
+  ```ts
+  class Box {
+    public constructor(
+      public height: number,
+      public width: number,
+      public length: number
+    ) {}
+
+    canBeAbove(box: Box): boolean {
+      return (
+        this.height < box.height &&
+        this.width < box.width &&
+        this.length < box.length
+      );
+    }
+  }
+
+  function createStack(boxes: Box[]): number {
+    boxes.sort((a, b) => b.height - a.height);
+    const stackMap: number[] = new Array(boxes.length).fill(-1);
+    return createStackHelper(boxes, null, 0, stackMap);
+  }
+
+  function createStackHelper(
+    boxes: Box[],
+    bottom: Box | null,
+    offset: number,
+    stackMap: number[]
+  ): number {
+    if (offset >= boxes.length) return 0;
+    const newBottom: Box = boxes[offset];
+    let heightWithBottom = 0;
+    if (bottom === null || newBottom.canBeAbove(bottom)) {
+      if (stackMap[offset] === -1) {
+        stackMap[offset] = createStackHelper(
+          boxes,
+          newBottom,
+          offset + 1,
+          stackMap
+        );
+        stackMap[offset] += newBottom.height;
+      }
+      heightWithBottom = stackMap[offset];
+    }
+    const heightWithoutBottom = createStackHelper(
+      boxes,
+      bottom,
+      offset + 1,
+      stackMap
+    );
+    return Math.max(heightWithBottom, heightWithoutBottom);
+  }
+  ```
+
+8.14 불린값 계산
+
+- 도서의 풀이
+
+  ```ts
+  function countEval(s: string, result: boolean): number {
+    if (s.length === 0) return 0;
+    if (s.length === 1) return stringToBool(s) === result ? 1 : 0;
+
+    let ways = 0;
+    for (let i = 1; i < s.length; i += 2) {
+      const c = s.charAt(i);
+      const left = s.substring(0, i);
+      const right = s.substring(i + 1, s.length);
+
+      const leftTrue = countEval(left, true);
+      const leftFalse = countEval(left, false);
+      const rightTrue = countEval(right, true);
+      const rightFalse = countEval(right, false);
+      const total = (leftTrue + leftFalse) * (rightTrue + rightFalse);
+
+      let totalTrue = 0;
+      if (c === '^') {
+        // 필요조건: 하나 true, 하나 false
+        totalTrue = leftTrue * rightFalse + leftFalse * rightTrue;
+      } else if (c === '&') {
+        totalTrue = leftTrue * rightTrue;
+      } else if (c === '|') {
+        totalTrue =
+          leftTrue * rightTrue + leftFalse * rightTrue + leftTrue * rightFalse;
+      }
+
+      const subWays = result ? totalTrue : total - totalTrue;
+      ways += subWays;
+    }
+    return ways;
+  }
+
+  function stringToBool(c: string): boolean {
+    return c === '1';
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function countEval(
+    s: string,
+    result: boolean,
+    memo: Map<string, number>
+  ): number {
+    if (s.length === 0) return 0;
+    if (s.length === 1) return stringToBool(s) === result ? 1 : 0;
+    if (memo.has(result + s)) return memo.get(result + s)!;
+
+    let ways = 0;
+
+    for (let i = 1; i < s.length; i += 2) {
+      const c = s.charAt(i);
+      const left = s.substring(0, i);
+      const right = s.substring(i + 1, s.length);
+      const leftTrue = countEval(left, true, memo);
+      const leftFalse = countEval(left, false, memo);
+      const rightTrue = countEval(right, true, memo);
+      const rightFalse = countEval(right, false, memo);
+      const total = (leftTrue + leftFalse) * (rightTrue + rightFalse);
+
+      let totalTrue = 0;
+      if (c === '^') {
+        totalTrue = leftTrue * rightFalse + leftFalse * rightTrue;
+      } else if (c === '&') {
+        totalTrue = leftTrue * rightTrue;
+      } else if (c === '|') {
+        totalTrue = leftTrue * rightTrue + leftFalse * rightTrue + leftTrue * rightFalse;
+      }
+
+      const subWays = result ? totalTrue : total - totalTrue;
+      ways += subWays;
+    }
+
+    memo.set(result + s, ways);
+    return ways;
+  }
+
+  function stringToBool(c: string): boolean {
+    return c === '1' ? true : false;
+  }
+  ```
