@@ -7607,3 +7607,318 @@ class Node {
 - 한 컴퓨터가 특정 범위의 단어들만 통제하게 한다.
 - 이렇게되면, 조회 테이블은 단순히 범위 지정만 하면 된다.
 - 이후 검색시에는 해당 범위의 컴퓨터들에게 검색을 요청하고 결과를 합치면 된다.
+
+### 10. 정렬과 탐색
+
+#### 널리 사용되는 정렬 알고리즘
+
+##### 버블 정렬(bubble sort) | 평균 및 최악 실행시간: O(n^2), 메모리: O(1)
+
+- 버블 정렬은 배열의 첫 원소부터 순차적으로, 현재 원소와 다음 원소를 비교하여 현재 원소가 더 큰 경우 둘을 바꾸는 식으로 진행한다.
+
+##### 선택 정렬(selection sort) | 평균 및 최악 실행시간: O(n^2), 메모리: O(1)
+
+- 배열을 선형 탐색하며 가장 작은 원소를 찾고 이를 맨 앞 원소와 바꾼다. 다음으로 작은 원소를 순차적으로 탐색하여 두번째 원소와 바꾼다. 이 동작을 전체 원소에 대해 반복한다.
+
+##### 병합 정렬(merge sort) | 평균 및 최악 실행시간: O(n log n), 메모리: 상황에 따라 다름
+
+- 재귀적으로 배열을 반으로 나누고, 이를 정렬한다. 이후 정렬된 두 배열을 병합한다.
+- 결과적으로 원소 하나짜리 배열이 만들어지고, 이를 순차적으로 병합하면서 정렬된 배열을 만들어간다.
+
+  ```ts
+  function mergeSort(array: number[]): void {
+    const helper = new Array(array.length);
+    mergeSortHelper(array, helper, 0, array.length - 1);
+  }
+
+  function mergeSortHelper(
+    array: number[],
+    helper: number[],
+    low: number,
+    high: number
+  ): void {
+    if (low < high) {
+      const middle = Math.floor((low + high) / 2);
+      mergeSortHelper(array, helper, low, middle);
+      mergeSortHelper(array, helper, middle + 1, high);
+      merge(array, helper, low, middle, high);
+    }
+  }
+
+  function merge(
+    array: number[],
+    helper: number[],
+    low: number,
+    middle: number,
+    high: number
+  ): void {
+    // helper 배열의 low부터 high까지 array에 복사한다.
+    for (let i = low; i <= high; i++) {
+      helper[i] = array[i];
+    }
+
+    let helperLeft = low;
+    let helperRight = middle + 1;
+    let current = low;
+
+    // helper 배열을 순회하면서 왼쪽과 오른쪽을 비교하여 array에 넣는다.
+    while (helperLeft <= middle && helperRight <= high) {
+      if (helper[helperLeft] <= helper[helperRight]) {
+        array[current] = helper[helperLeft];
+        helperLeft++;
+      } else {
+        array[current] = helper[helperRight];
+        helperRight++;
+      }
+      current++;
+    }
+
+    // helper 배열의 왼쪽에 남은 요소들을 array에 넣는다.
+    // 오른쪽 요소들은 이미 제자리에 있다.
+    const remaining = middle - helperLeft;
+    for (let i = 0; i <= remaining; i++) {
+      array[current + i] = helper[helperLeft + i];
+    }
+  }
+  ```
+
+##### 퀵 정렬(quick sort) | 평균 실행시간: O(n log n), 최악 실행시간: O(n^2), 메모리: O(log n)
+
+- 무작위로 선정된 한 원소(피벗)를 기준으로, 보다 작은 원소는 왼쪽으로, 큰 원소는 오른쪽으로 보낸다.
+- 피벗값이 정렬된 배열의 중간값이라면, 평균적으로 O(n log n)의 시간복잡도를 가진다.
+- 그러나 최악의 경우에(피벗값이 최소값 혹은 최대값인 경우) O(n^2)의 시간복잡도를 가진다.
+
+  ```ts
+  function quickSort(arr: number[], left: number, right: number): void {
+    const index = partition(arr, left, right);
+    if (left < index - 1) {
+      quickSort(arr, left, index - 1);
+    }
+    if (index < right) {
+      quickSort(arr, index, right);
+    }
+  }
+
+  function partition(arr: number[], left: number, right: number): number {
+    const pivot = arr[Math.floor((left + right) / 2)]; // 분할 기준(피벗) 선정
+    while (left <= right) {
+      while (arr[left] < pivot) left++; // 피벗보다 큰 값을 찾을 때까지 왼쪽 포인터 이동
+      while (arr[right] > pivot) right--; // 피벗보다 작은 값을 찾을 때까지 오른쪽 포인터 이동
+
+      if (left <= right) {
+        swap(arr, left, right);
+        left++;
+        right--;
+      }
+    }
+    return left;
+  }
+
+  function swap(arr: number[], left: number, right: number): void {
+    const temp = arr[left];
+    arr[left] = arr[right];
+    arr[right] = temp;
+  }
+  ```
+
+##### 기수 정렬(radix sort) | 평균 및 최악 실행시간: O(kn), 메모리: O(kn)
+
+- 데이터가 정수 등 유한한 비트로 구성된 경우에 사용
+- 각 자리수를 기준으로 정렬한다.
+
+##### 탐색 알고리즘
+
+###### 이분탐색
+
+```ts
+// 순환적 이분탐색
+function binarySearch(a: number[], x: number): number {
+  let low = 0;
+  let high = a.length - 1;
+  let mid: number;
+
+  while (low <= high) {
+    mid = Math.floor((low + high) / 2);
+    if (a[mid] < x) {
+      low = mid + 1;
+    } else if (a[mid] > x) {
+      high = mid - 1;
+    } else {
+      return mid;
+    }
+  }
+  return -1; // 에러, 찾지 못함.
+}
+```
+
+```ts
+// 재귀적 이분탐색
+function binarySearchRecursive(
+  a: number[],
+  x: number,
+  low: number,
+  high: number
+): number {
+  if (low > high) return -1; // 에러, 찾지 못함.
+
+  let mid = Math.floor((low + high) / 2);
+  if (a[mid] < x) {
+    return binarySearchRecursive(a, x, mid + 1, high);
+  } else if (a[mid] > x) {
+    return binarySearchRecursive(a, x, low, mid - 1);
+  } else {
+    return mid;
+  }
+}
+```
+
+#### 면접 문제
+
+10.1 정렬된 병합
+
+- 도서의 풀이
+
+  ```ts
+  function merge(a: number[], b: number[], lastA: number, lastB: number): void {
+    let idxA = lastA - 1;
+    let idxB = lastB - 1;
+    let idxMerged = lastA + lastB - 1;
+
+
+    while (idxB >= 0) { // b 배열이 끝날 때까지
+      if (idxA >= 0 && a[idxA] > b[idxB]) { // a의 원소가 있고, a의 원소가 b의 원소보다 크면
+        a[idxMerged] = a[idxA];
+        idxA--;
+      } else {
+        a[idxMerged] = b[idxB];
+        idxB--;
+      }
+      idxMerged--;
+    }
+  }
+  ```
+
+10.2 Anagram 묶기
+
+- 도서의 풀이 1
+
+  ```ts
+  function sortChars(str: string) {
+    return str.split('').sort().join('');
+  }
+
+  function anagramComparator(a: string, b: string): number {
+    return sortChars(a).localeCompare(sortChars(b));
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function sort(array: string[]): void {
+    const mapList = new Map<string, string[]>();
+
+    for (const s of array) {
+      const key = sortChars(s);
+      mapList.set(key, [...(mapList.get(key) || []), s]);
+    }
+
+    let index = 0;
+    for (const key of mapList.keys()) {
+      const list = mapList.get(key)!;
+      for (const t of list) {
+        array[index] = t;
+        index++;
+      }
+    }
+  }
+
+  function sortChars(s: string): string {
+    const content = s.split('');
+    content.sort();
+    return content.join('');
+  }
+  ```
+
+10.3 회전된 배열에서 검색
+
+- 도서의 풀이
+
+  ```ts
+  function search(a: number[], left: number, right: number, x: number): number {
+    let mid = Math.floor((left + right) / 2);
+    if (x === a[mid]) return mid;
+    if (right < left) return -1;
+
+    if (a[left] < a[mid]) { // 왼쪽이 정상적으로 정렬된 상태
+      if (x >= a[left] && x < a[mid]) { // x가 왼쪽에 있을 때
+        return search(a, left, mid - 1, x);
+      } else {
+        return search(a, mid + 1, right, x);
+      }
+    } else if (a[mid] < a[left]) { // 오른쪽이 정상적으로 정렬된 상태
+      if (x > a[mid] && x <= a[right]) { // x가 오른쪽에 있을 때
+        return search(a, mid + 1, right, x);
+      } else {
+        return search(a, left, mid - 1, x);
+      }
+    } else if (a[left] === a[mid]) { // [1,1,1,1,2]
+      if (a[mid] != a[right]) { // 왼쪽은 모두 같은 값이고 오른쪽은 다른 값일 때 - [1,1,1,1,2]
+        return search(a, mid + 1, right, x);
+      } else { // [1,1,1,2,1]
+        let result = search(a, left, mid - 1, x);
+        if (result === -1) {
+          return search(a, mid + 1, right, x);
+        } else {
+          return result;
+        }
+      }
+    }
+    return -1;
+  }
+  ```
+
+10.4 크기를 모르는 정렬된 원소 탐색
+
+- 도서의 풀이
+
+  ```ts
+  class Listy {
+    private list: number[];
+    constructor(list: number[]) {
+      this.list = list;
+    }
+
+    elementAt(i: number): number {
+      if (i >= this.list.length) {
+        return -1;
+      }
+      return this.list[i];
+    }
+  }
+
+  function search(list: Listy, value: number): number {
+    let index = 1;
+    while (list.elementAt(index) !== -1 && list.elementAt(index) < value) {
+      index *= 2;
+    }
+    return binarySearch(list, value, Math.floor(index / 2), index);
+  }
+
+  function binarySearch(list: Listy, value: number, low: number, high: number): number {
+    let mid: number;
+
+    while (low <= high) {
+      mid = Math.floor((low + high) / 2);
+      let middle = list.elementAt(mid);
+      if (middle > value || middle === -1) {
+        high = mid - 1;
+      } else if (middle < value) {
+        low = mid + 1;
+      } else {
+        return mid;
+      }
+    }
+    return -1;
+  }
+  ```
