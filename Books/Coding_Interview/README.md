@@ -7922,3 +7922,401 @@ function binarySearchRecursive(
     return -1;
   }
   ```
+
+10.5 드문드문 탐색
+
+- 빈 문자열이 섞여있는 정렬된 문자열 배열이 주어졌을 때, 특정 문자열의 위치를 찾는 메서드를 작성하라.
+- 도서의 풀이 1(재귀)
+
+  ```ts
+  function searchHelper(
+    strings: string[],
+    str: string,
+    first: number,
+    last: number
+  ): number {
+    if (first > last) return -1;
+    let mid = Math.floor((first + last) / 2);
+
+    if (strings[mid] === '') {
+      let left = mid - 1;
+      let right = mid + 1;
+      while (true) {
+        if (left < first && right > last) return -1;
+        else if (right <= last && strings[right] !== '') {
+          mid = right;
+          break;
+        } else if (left >= first && strings[left] !== '') {
+          mid = left;
+          break;
+        }
+        right++;
+        left--;
+      }
+    }
+
+    if (strings[mid] === str) return mid;
+    else if (strings[mid] < str) return searchHelper(strings, str, mid + 1, last);
+    else return searchHelper(strings, str, first, mid - 1);
+  }
+
+  function search(strings: string[], str: string): number {
+    if (strings === null || str === null || str === '') return -1;
+    return searchHelper(strings, str, 0, strings.length - 1);
+  }
+  ```
+
+- 내 풀이(순차)
+
+  ```ts
+  function search(strings: string[], str: string): number {
+    let left = 0;
+    let right = strings.length - 1;
+
+    while (left <= right) {
+      while (left <= right && strings[right] === '') {
+        right--;
+      }
+      if (right < left) return -1;
+
+      let mid = Math.floor((left + right) / 2);
+      while (strings[mid] === '') {
+        mid++;
+      }
+
+      if (strings[mid] === str) return mid;
+      else if (strings[mid] < str) left = mid + 1;
+      else right = mid - 1;
+    }
+    return -1;
+  }
+  ```
+
+10.6 큰 파일 정렬
+
+- 한 줄에 문자열 하나가 쓰여있는 20GB짜리 파일이 있다고 하자. 이 파일을 정렬하려면 어떻게 해야 할까?
+
+- 도서의 풀이
+  - 20GB라는 말 자체가 힌트이다.
+  - 메모리에는 20GB를 담을 수 없다. (요즘은 할 수 있지만.. 더 크다고 가정하자)
+  - 가용한 메모리의 크기 x로 파일을 여러 개로 나눈다.
+  - 이를 개별적으로 정렬한 뒤, 하나씩 병합한다.
+  - 이런 알고리즘을 외부 정렬(External sort)라고 한다.
+
+10.7 빠트린 정수
+
+- 음이 아닌 정수 40억개로 이루어진 입력 파일이 있다. 이 파일에 없는 정수를 생성하는 알고리즘을 작성하라. 단 메모리는 1GB만 사용 할 수 있다.
+
+- 도서의 풀이
+  - 총 40억개(2^32)개의 정수가 있고, int형으로 가정 할 시 정수의 총 수는 2^32개이다.
+  - 즉, 음이 아닌 정수만 40억개라면 필연적으로 중복이 있을 것이다.
+  - 메모리는 1GB(2^30)이다. 즉 80억 비트가 있다.
+  - 40억 비트 크기의 Bit Vector를 생성한 후 0으로 초기화 한다.
+  - 이후 모든 수를 순회하며 BV.set(num, 1)을 실행한다.
+  - 마지막으로 0번 인덱스부터 BV를 순회하며, 값이 0인 인덱스를 반환한다.
+
+  ```ts
+  class BitVector {
+    private readonly bits: Uint32Array;
+    private readonly size: number;
+
+    constructor(size: number) {
+        this.size = size;
+        this.bits = new Uint32Array(Math.ceil(size / 32));
+    }
+
+    init(): void {
+        this.bits.fill(0);
+    }
+
+    setBit(position: number): void {
+        if (position < 0 || position >= this.size) {
+            throw new Error("Index out of bounds");
+        }
+        const index = Math.floor(position / 32);
+        const bitPosition = position % 32;
+        this.bits[index] |= 1 << bitPosition;
+    }
+
+    clearBit(position: number): void {
+        if (position < 0 || position >= this.size) {
+            throw new Error("Index out of bounds");
+        }
+        const index = Math.floor(position / 32);
+        const bitPosition = position % 32;
+        this.bits[index] &= ~(1 << bitPosition);
+    }
+
+    getBit(position: number): boolean {
+        if (position < 0 || position >= this.size) {
+            throw new Error("Index out of bounds");
+        }
+        const index = Math.floor(position / 32);
+        const bitPosition = position % 32;
+        return (this.bits[index] & (1 << bitPosition)) !== 0;
+    }
+  }
+  ```
+
+10.8 중복 찾기
+
+- 1부터 N(<32,000)까지의 숫자로 이루어진 배열이 있다. 배열엔 중복된 숫자가 나타날 수 있고, N이 무엇인지는 알 수 없다. 사용 가능한 메모리가 4KB일 때, 중복된 원소를 모두 출력하려면 어떻게 해야 할까?
+
+- 도서의 풀이
+
+  ```ts
+  class BitSet {
+    private bitset: number[];
+
+    constructor(size: number) {
+      this.bitset = new Array(size);
+    }
+
+    set(pos: number): void {
+      const wordNumber = pos >> 5; // 32로 나누기
+      const bitNumber = pos & 0x1f; // 32로 나눈 나머지
+      this.bitset[wordNumber] |= 1 << bitNumber;
+    }
+
+    get(pos: number): boolean {
+      const wordNumber = pos >> 5;
+      const bitNumber = pos & 0x1f;
+      return (this.bitset[wordNumber] & (1 << bitNumber)) !== 0;
+    }
+  }
+
+  function checkDuplicates(array: number[]): void {
+    const bs = new BitSet(32000);
+    for (let i = 0; i < array.length; i++) {
+      const num = array[i];
+      const num0 = num - 1; // 0부터 시작하므로
+      if (bs.get(num0)) {
+        console.log(num);
+      } else {
+        bs.set(num0);
+      }
+    }
+  }
+  ```
+
+10.9 정렬된 행렬 탐색
+
+- 각 행과 열이 오름차순으로 정렬된 M x N 행렬에서 특정 원소를 찾는 메서드를 구현하라
+
+- 간단한 풀이는, 매 열마다 이진탐색을 진행하는 것이고, 이는 O(M log N)의 시간복잡도를 가진다.
+- 도서의 풀이 1
+
+  ```ts
+  function findElement(matrix: number[][], elem: number): [number, number] {
+    let row = 0;
+    let col = matrix[0].length - 1;
+    while (row < matrix.length && col >= 0) {
+      if (matrix[row][col] === elem) {
+        return [row, col];
+      } else if (matrix[row][col] > elem) {
+        col--;
+      } else {
+        row++;
+      }
+    }
+    return [-1, -1];
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  class Coordinate {
+    constructor(public row: number, public column: number) {}
+
+    inbounds(matrix: number[][]): boolean {
+      return (
+        this.row >= 0 &&
+        this.column >= 0 &&
+        this.row < matrix.length &&
+        this.column < matrix[0].length
+      );
+    }
+
+    isBefore(p: Coordinate): boolean {
+      return this.row <= p.row && this.column <= p.column;
+    }
+
+    clone(): Coordinate {
+      return new Coordinate(this.row, this.column);
+    }
+
+    setToAverage(min: Coordinate, max: Coordinate): void {
+      this.row = Math.floor((min.row + max.row) / 2);
+      this.column = Math.floor((min.column + max.column) / 2);
+    }
+  }
+
+  function findElementHelper(
+    matrix: number[][],
+    origin: Coordinate,
+    dest: Coordinate,
+    x: number
+  ): Coordinate | null {
+    if (!origin.inbounds(matrix) || !dest.inbounds(matrix)) {
+      return null;
+    }
+    if (matrix[origin.row][origin.column] === x) {
+      return origin;
+    } else if (!origin.isBefore(dest)) {
+      return null;
+    }
+
+    // start는 대각선 시작 지점으로 설정하고, end는 대각선 끝 지점으로 설정한다.
+    // Matrix의 M, N이 다를 수 있으므로, 대각선의 길이는 더 작은 쪽을 따라가도록 한다.
+    let start = origin.clone();
+    const diagDist = Math.min(dest.row - origin.row, dest.column - origin.column);
+    let end = new Coordinate(start.row + diagDist, start.column + diagDist);
+    let p = new Coordinate(0, 0);
+
+    while (start.isBefore(end)) {
+      p.setToAverage(start, end);
+      if (x > matrix[p.row][p.column]) {
+        start.row = p.row + 1;
+        start.column = p.column + 1;
+      } else {
+        end.row = p.row - 1;
+        end.column = p.column - 1;
+      }
+    }
+
+    return partitionAndSearch(matrix, origin, dest, start, x);
+  }
+
+  function partitionAndSearch(
+    matrix: number[][],
+    origin: Coordinate,
+    dest: Coordinate,
+    pivot: Coordinate,
+    x: number
+  ): Coordinate | null {
+    const lowerLeftOrigin = new Coordinate(pivot.row, origin.column);
+    const lowerLeftDest = new Coordinate(dest.row, pivot.column - 1);
+    const upperRightOrigin = new Coordinate(origin.row, pivot.column);
+    const upperRightDest = new Coordinate(pivot.row - 1, dest.column);
+
+    const lowerLeft = findElementHelper(
+      matrix,
+      lowerLeftOrigin,
+      lowerLeftDest,
+      x
+    );
+    if (lowerLeft === null) {
+      return findElementHelper(matrix, upperRightOrigin, upperRightDest, x);
+    }
+    return lowerLeft;
+  }
+
+  function findElement(matrix: number[][], x: number): Coordinate | null {
+    const origin = new Coordinate(0, 0);
+    const dest = new Coordinate(matrix.length - 1, matrix[0].length - 1);
+    return findElementHelper(matrix, origin, dest, x);
+  }
+  ```
+
+10.10 스트림에서의 순위
+
+- 도서의 풀이
+
+  ```ts
+  class RankNode {
+    leftSize = 0;
+    left: RankNode | null = null;
+    right: RankNode | null = null;
+    data: number;
+
+    constructor(d: number) {
+      this.data = d;
+    }
+
+    insert(d: number): void {
+      if (d <= this.data) {
+        if (this.left !== null) this.left.insert(d);
+        else this.left = new RankNode(d);
+        this.leftSize++;
+      } else {
+        if (this.right !== null) this.right.insert(d);
+        else this.right = new RankNode(d);
+      }
+    }
+
+    getRank(d: number): number {
+      if (d === this.data) {
+        return this.leftSize;
+      } else if (d < this.data) {
+        if (this.left === null) return -1;
+        else return this.left.getRank(d);
+      } else {
+        const rightRank = this.right === null ? -1 : this.right.getRank(d);
+        if (rightRank === -1) return -1;
+        else return this.leftSize + 1 + rightRank;
+      }
+    }
+  }
+
+  let root: RankNode | null = null;
+
+  function track(num: number): void {
+    if (root === null) root = new RankNode(num);
+    else root.insert(num);
+  }
+
+  function getRankOfNumber(num: number): number {
+    return root?.getRank(num) ?? -1;
+  }
+  ```
+
+10.11 Peak과 Valley
+
+- 도서의 풀이 1
+
+  ```ts
+  function sortValleyPeak(array: number[]): void {
+    array.sort();
+    for (let i = 1; i < array.length; i += 2) {
+      swap(array, i - 1, i);
+    }
+  }
+
+  function swap(array: number[], left: number, right: number): void {
+    const temp = array[left];
+    array[left] = array[right];
+    array[right] = temp;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function sortValleyPeak(array: number[]): void {
+    for (let i = 1; i < array.length; i += 2) {
+      const biggestIndex = maxIndex(array, i - 1, i, i + 1);
+      if (i !== biggestIndex) {
+        swap(array, i, biggestIndex);
+      }
+    }
+  }
+
+  function maxIndex(array: number[], a: number, b: number, c: number): number {
+    const len = array.length;
+    const aValue = a >= 0 && a < len ? array[a] : Number.MIN_SAFE_INTEGER;
+    const bValue = b >= 0 && b < len ? array[b] : Number.MIN_SAFE_INTEGER;
+    const cValue = c >= 0 && c < len ? array[c] : Number.MIN_SAFE_INTEGER;
+
+    const max = Math.max(aValue, Math.max(bValue, cValue));
+    if (aValue === max) return a;
+    else if (bValue === max) return b;
+    else return c;
+  }
+
+  function swap(array: number[], left: number, right: number): void {
+    const temp = array[left];
+    array[left] = array[right];
+    array[right] = temp;
+  }
+  ```
