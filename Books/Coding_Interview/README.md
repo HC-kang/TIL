@@ -8526,3 +8526,486 @@ function binarySearchRecursive(
   - 오류 1: unsigned int는 음수를 표현할 수 없다. 즉 무한루프를 돌게 된다.
   - 오류 2: i가 0보다 작을 때까지 반복문을 돌게 되는데, 이는 i가 0이 되었을 때 반복문을 한번 더 돌게 된다는 것을 의미한다. 즉 0을 출력하고 반복문을 한번 더 돌게 된다.
   - 오류 3: printf의 %d는 signed int를 의미한다. 즉 unsigned int를 출력할 때는 %u를 사용해야 한다.
+
+### 12. C와 C++
+
+- 특정 언어로 코드를 작성 해 보라고 요구받았을 경우, 그 언어의 모든 API를 기억하지 못해도 괜찮다.
+
+#### 클래스와 상속
+
+- C++ 클래스는 다른 객체 지향 언어의 클래스와 비슷한 특성을 갖는다.
+- C++에서 기본적으로 모든 멤버와 메서드는 private이다. 필요시 public 키워드를 사용해 공개해준다.
+
+```cpp
+#include
+using namespace std;
+
+#define NAME_SIZE 50 // 매크로 정의
+
+class Person {
+    int id; // 모든 멤버는 기본적으로 private
+    char name[NAME_SIZE];
+
+    public:
+        void aboutMe() {
+            cout << "I am a person.";
+        }
+};
+
+class Student {
+    public:
+        void aboutMe() {
+            cout << "I am a student.";
+        }
+};
+
+int main() {
+    Student * p = new Student();
+    p->aboutMe(); // "I am a student" 출력
+    delete p; // 할당 받은 메모리를 반환
+    return 0;
+}
+```
+
+#### 생성자와 소멸자
+
+- 생성자(Constructor)는 객체가 생성되면 자동으로 호출된다.
+  - 생성자가 정의되어있지 않으면, 컴파일러는 기본 생성자를 자동으로 만든다.
+  - 혹은 아래와 같이 이를 사용자가 직접 정의 할 수도 있다.
+
+    ```cpp
+    Person(int a) {
+        id = a;
+    }
+
+    Person(int a): id(a) {
+        ...
+    }
+    ```
+
+- 소멸자(Destructor)는 객체가 소멸될 때 자동으로 호출되며, 객체를 삭제하는 작업을 담당한다.
+- 명시적으로 호출 할 수 없으므로, 인자를 전달 할 수 없다.
+
+  ```cpp
+  ~Person() {
+    delete obj; // 클래스 안에서 할당한 메모리 반환
+  }
+  ```
+
+#### 가상 함수
+
+- 가상함수(Virtual function)는 TS의 추상 함수(Abstract function)과 비슷한 개념
+  - 다만 차이점은, cpp에서 가상함수는 선택적으로 구현할 수 있고, 추상함수는 반드시 구현해야 한다는 점임.
+- 앞선 예제에서, 아래와 같이 p가 Student가 아닌 Person이었다면 결과는 "I am a person"이 출력되었을 것임.
+
+  ```cpp
+  Person * p = new Student(); // 이전에 Student * p = new Student(); 였음.
+  p->aboutMe();
+  ```
+
+- 여기서 출력을 Person 이 아니라 Student로 하고싶다면, Person 클래스의 aboutMe() 메서드를 가상함수로 선언하면 됨.
+
+  ```cpp
+  class Person {
+    ...
+    virtual void aboutMe() {
+      cout << "I am a person.";
+    }
+  };
+
+  class Student {
+    public:
+    void aboutMe() {
+      cout << "I am a student.";
+    }
+  };
+  ```
+
+- 만약 Student 외에 Teacher 클래스를 새로 만든다고 하고, Student와 Teacher에 addCourse() 메서드를 추가하고, 이는 Person에서 사용 할 수 없다고 하면 아래와 같이 구현 할 수 있다.
+
+  ```cpp
+  class Person {
+    int id;
+    char name[NAME_SIZE];
+    public:
+      virtual void aboutMe() {
+        cout << "I am a person." << end;
+      }
+      virtual bool addCourse(string s) = 0; // 순수 가상 함수, 추상 함수
+  };
+
+  class Student : public Person {
+    public:
+    void aboutMe() {
+      cout << "I am a student."; << endl;
+    }
+
+    bool addCourse(string s) {
+      cout << "Added course " << s << " to student" << endl;
+    }
+  };
+
+  int main() {
+    Person * p = new Student();
+    p->aboutMe(); // "I am a student" 출력
+    p->addCourse("History"); // "Added course History to student" 출력
+    delete p;
+  }
+  ```
+
+  - 이와 같이 구현한 경우, Person 클래스는 추상 클래스가 되며, 이는 객체를 생성할 수 없다는 것을 의미한다.
+
+#### 가상 소멸자
+
+```cpp
+class Person {
+  public:
+    ~Person() {
+      cout << "Deleting a person." << endl;
+    }
+};
+
+class Student : public Person {
+  public:
+    ~Student() {
+      cout << "Deleting a student." << endl;
+    }
+};
+
+int main() {
+  Person * p = new Student();
+  delete p; // "Deleting a person" 출력
+}
+```
+
+- 위처럼 가상 소멸자를 구현한 경우, 문제가 발생 할 수 있다.
+  - p가 Person인 경우, Person의 소멸자만 호출되고, Student의 소멸자는 호출되지 않는다.
+  - 따라서 Person의 소멸자를 가상 소멸자로 선언해야 한다.
+
+```cpp
+class Person {
+  public:
+    virtual ~Person() {
+      cout << "Deleting a person." << endl;
+    }
+}
+
+class Student : public Person {
+  public:
+    ~Student() {
+      cout << "Deleting a student." << endl;
+    }
+};
+
+int main() {
+  Person * p = new Student();
+  delete p; 
+  // "Deleting a student"
+  // "Deleting a person" 출력
+}
+```
+
+#### 기본값
+
+- 함수의 인자에 기본값을 설정할 수 있다.
+- 기본값은 오른쪽에서부터 채워진다.
+
+  ```cpp
+  int func(int a, int b = 3) {
+    x = a;
+    y = b;
+    return a + b;
+  }
+
+  w = func(4); // 7
+  z = func(4, 5); // 9
+  ```
+
+#### 연산자 오버로딩
+
+- 연산자 오버로딩을 사용하면, +, -, \*, / 등의 연산자를 사용자 정의 객체에 대해 사용할 수 있다.
+
+  ```cpp
+  BookShelf BookShelf::operator+(BookShelf & other) { ... }
+  ```
+
+#### 포인터와 참조
+
+- 포인터(Pointer)는 변수의 메모리 주소를 담는 변수이다.
+- 변수의 값을 읽거나 변경하는 등, 변수에 적용 가능한 모든 연산은 포인터를 통해서도 적용 가능하다.
+- 두 포인터가 같은 주소를 가리키는 경우, 하나의 포인터의 값을 변경하면 다른 포인터의 값도 변경된다.
+
+  ```cpp
+  int * p = new int;
+  *p = 7;
+  int * q = p;
+  *p = 8;
+  cout << *q; // 8 출력
+  ```
+
+- 포인터 변수의 크기는 CPU의 아키텍처에 따라 달라진다.
+  - 32비트 컴퓨터에서는 32비트, 64비트의 컴퓨터에서는 64비트가 된다.
+  - 이러한 차이에 유의해야 하는 이유는, 면접관이 어떤 자료구조를 처리하기 위한 메모리의 크기를 자주 묻기 때문이다.
+
+#### 참조(reference)
+
+- 참조는 기존 객체에 붙은 또다른 이름이다.
+- 별도의 메모리를 갖지 않는다.
+
+  ```cpp
+  int a = 5;
+  int & b = a;
+  b = 7;
+  cout << a; // 7 출력
+  ```
+
+  - b는 a의 참조이므로, b를 변경하면 a도 변경된다.
+- 참조 대상 메모리를 명시하지 않고 참조를 선언할 수 없다.
+  - 다만 아래처럼 독립적인(free-standing) 참조를 만들 수는 있다.
+
+    ```cpp
+    const int & b = 12;
+    ```
+
+- 포인터와 달리 참조는 NULL을 가리킬 수 없다.
+  - 따라서 참조를 사용할 때는 항상 유효한 메모리를 참조하고 있는지 확인해야 한다.
+- 참조는 다른 메모리에 재할당 할 수 없다.
+
+#### 포인터 연산
+
+- 포인터의 덧셈 연산으로 메모리 주소를 증가시킬 수 있다.
+
+  ```cpp
+  int * p = new int[2];
+  p[0] = 0;
+  p[1] = 1;
+  p++;
+  cout << *p; // 1 출력
+  ```
+
+  - 현재는 p의 크기가 1이었고, p가 다른 타입이었다면, 해당 타입의 크기만큼 증가하게 된다.
+
+#### 템플릿
+
+- 템플릿은 하나의 클래스를 여러 타입에 재사용 할 수 있도록 하는 기능이다.
+- 템플릿을 사용하면, 여러 타입의 객체를 저장할 수 있는 연결리스트 등을 만들 수 있다.
+
+  ```cpp
+  template class ShiftedList {
+    T* array;
+    int offset, size;
+    public:
+      ShiftedList(int sz) : offset(0), size(sz) {
+        array = new T[size];
+      }
+
+      ~ShiftedList() {
+        delete [] array;
+      }
+
+      void shiftBy(int n) {
+        offset = (offset + n) % size;
+      }
+
+      T getAt(int i) {
+        return array[convertIndex(i)];
+      }
+
+      void setAt(T item, int i) {
+        array[convertIndex(i)] = item;
+      }
+
+    private:
+      int convertIndex(int i) {
+        int index = (i - offset) % size;
+        while (index < 0) index += size;
+        return index;
+      }
+  };
+  ```
+
+#### 면접 문제
+
+12.3 해시 테이블 vs STL map
+
+- 해시 테이블과 STL map을 비교하고 장단점을 논하라. 해시 테이블은 어떻게 구현되는가? 입력의 개수가 적다면 해시테이블 대신 어떤 자료구조를 활용 할 수 있겠는가?
+
+- 도서의 풀이
+  - 해시테이블(Hash Table)
+    - 값(value)는 키(key)에 대한 해시 함수를 호출하여 저장한다.
+    - 값은 저장한 순서대로 보관되지 않는다.
+    - 저장한 인덱스를 찾기 위해 키를 사용하므로 중복된 키를 사용 할 수 없다.
+    - 삽입 및 탐색 시간은 충돌이 적다는 가정 하에 분할상환(amortized)적으로 O(1)이다.
+      - 충돌하는 경우에는 이 값들을 서로 연결하여(chaining) 관리한다.
+    - 설계 시 유의사항
+      - 키들이 잘 분배될 수 있는 성능 좋은 해시함수를 사용해야한다.
+      - 충돌이 없을 수는 없으므로, 충돌을 처리할 수 있는 방법을 고려해야 한다.
+      - 저장된 용량에 따라 해시 테이블의 크기를 동적으로 조절해야 한다.
+  - STL map(Standard template library의 map)
+    - 레드-블랙 트리(Red-Black Tree)로 구현되어 있다.
+    - 이진 탐색 트리로 구현되어 있으므로, 값이 저장된 순서대로 보관된다.
+    - 키를 사용하여 인덱스를 찾으므로 중복된 키를 사용 할 수 없다.
+    - 충돌을 처리할 필요가 없고, 트리의 균형이 유지되므로 삽입 및 탐색 시간은 O(log n)이다.
+
+  - 입력되는 항목의 수가 적다면 해시테이블 대신 STL map이나 이진 트리를 사용 할 수 있다.
+    - 이럴 경우, O(log n)의 시간이 소요되지만, 항목의 수가 적다고 가정하였으므로 큰 문제가 되지 않는다.
+
+12.5 얕은 복사 vs 깊은 복사
+
+- 얕은 복사와 깊은 복사의 차이점을 설명하라. 어떤 경우에 얕은 복사를 사용하고, 어떤 경우에 깊은 복사를 사용하는가?
+
+- 도서의 풀이
+  - 얕은 복사(Shallow Copy)
+    - 객체의 주소만 복사한다.
+    - 객체의 주소만 복사하므로, 원본 객체와 복사본 객체가 같은 메모리를 참조하게 된다.
+    - 따라서 원본 객체나 복사본 객체 중 하나라도 소멸되면, 다른 하나도 소멸된다.
+  - 깊은 복사(Deep Copy)
+    - 객체의 내용을 복사한다.
+    - 객체의 내용을 복사하므로, 원본 객체와 복사본 객체는 서로 다른 메모리를 참조하게 된다.
+    - 따라서 원본 객체나 복사본 객체 중 하나가 소멸되어도, 다른 하나는 소멸되지 않는다.
+  - 결과적으로 얕은 복사보다는 대체로 깊은 복사를 사용한다.
+
+### 13. 자바
+
+- 대기업일수록 언어 자체에 대한 역량보다는 지원자의 재능에 대해 확인하고싶어하기에 이런 문제를 던지는 경우는 적다.
+- 하지만 이런 질문을 하는 회사도 물론 없는것은 아니다.
+
+#### 언어 자체 질문에 대한 접근법
+
+- 언어의 특징을 명확히 알지 못해 막혔다면 아래의 접근법을 사용해보자.
+  1. 예제 시나리오를 만들어보고, 어떻게 전개되어야 할 지 자문해 보라.
+  2. 다른 언어에서 이 시나리오를 어떻게 처리할지 자문해 보라.
+  3. 프로그래밍 언어를 설계하는 사람이라면 이 상황을 어떻게 설계할 것인지 생각해 보라. 어떤 선택이 어떤 결과로 이어지는가?
+
+- 면접관은, 거의 반사적으로 답을 내놓는 지원자 만큼이나, 그 자리에서 답을 유도해 낼 수 있는 지원자를 (어쩌면 더욱) 선호한다.
+
+#### 오버로딩 vs 오버라이딩
+
+- 오버로딩(Overloading)
+  - 두 메서드가 같은 이름을 가졌으나, 인자의 수나 자료형이 다른 경우
+
+    ```java
+    public double computeArea(Circle c) { ... }
+    public double computeArea(Square s) { ... }
+    ```
+
+- 오버라이딩(Overriding)
+  - 상위 클래스의 메서드와 같은 시그니처를 갖는 함수를 하위 클래스에 재정의하는 것
+
+    ```java
+    public abstract class Shape {
+      public void printMe() {
+        System.out.println("I am a shape.");
+      }
+      public abstract double computeArea();
+    }
+
+    public class Circle extends Shape {
+      private double rad = 5;
+      public void printMe() {
+        System.out.println("I am a circle.");
+      }
+      public double computeArea() {
+        return rad * rad * 3.15;
+      }
+    }
+
+    public class Ambiguous extends Shape {
+      private double area = 10;
+      public double computeArea() {
+        return area;
+      }
+    }
+
+    public class IntroductionOverriding {
+      public static void main(String[] args) {
+        Shape[] shapes = new Shape[2];
+        Circle circle = new Circle();
+        Ambiguous ambiguous = new Ambiguous();
+
+        shapes[0] = circle;
+        shapes[1] = ambiguous;
+
+        for (Shape s: shapes) {
+          s.printMe();
+          System.out.println(s.computeArea());
+        }
+      }
+    }
+    ```
+
+    - 위 코드의 출력 결과는 아래와 같다.
+      - I am a circle.
+      - 78.75
+      - I am a shape.
+      - 10.0
+    - 이 코드에서 Ambiguous는 printMe()를 그대로 둔 반면, Circle은 재정의 하였다.
+
+#### 컬렉션 프레임워크
+
+- 컬렉션 프레임워크(Collection Framework)는 자바에서 제공하는 자료구조를 표준화한 인터페이스이다.
+  - ArrayList
+    - 동적으로 크기가 조절되는 배열이다.
+    - 배열의 크기를 초과하는 요소를 추가하면, 자동으로 크기가 조절된다.
+  - Vector
+    - ArrayList와 비슷하지만 동기화된다.
+      - 동기화(synchronized)란, 멀티스레드 환경에서 하나의 스레드가 자원을 사용하고 있을 때, 다른 스레드가 해당 자원을 사용하지 못하도록 막는 것을 의미한다.
+  - LinkedList
+    - 이중 연결 리스트로 구현되어 있다.
+    - 묻는 경우는 흔치않으나, 순환자(iterator)를 사용하는 방법을 알아두는 것이 좋다.
+  - HashMap
+    - 키와 값으로 이루어진 자료구조이다.
+    - 면접이나 실제 업무 모두에서 자주 사용된다.
+
+#### 면접 문제
+
+13.5 TreeMap, HashMap, LinkedHashMap
+
+- TreeMap, HashMap, LinkedHashMap의 차이점을 설명하라. 그리고 언제 무엇을 사용하는 것이 좋은지 예를 들어 설명하라.
+  - 공통점
+    - 키-값 쌍으로 이루어진 자료구조이다.
+    - 키를 기준으로 순회 할 수 있다.
+  - 차이점
+    - 시간 복잡도
+    - 키가 놓이는 순서
+    - 비교
+      - HashMap
+        - 검색과 삽입에 O(1)이 소요된다.
+        - 키의 순서는 무작위이다.
+        - 내부적으로 연결 리스트로 이루어진 배열로 구현되어있다.
+      - TreeMap
+        - 검색과 삽입에 O(log n)이 소요된다.
+        - 키의 순서는 정렬된다.
+          - 즉, 키는 반드시 Comparable 인터페이스를 구현하고있어야 한다.
+        - 레드-블랙 트리로 구현되어 있다.
+      - LinkedHashMap
+        - 검색과 삽입에 O(1)이 소요된다.
+        - 키의 순서는 삽입된 순서를 따른다.
+        - 양방향 연결 버킷(double-linked bucket)으로 구현되어있다.
+    - 코드 예시와 결과
+
+      ```java
+      void insertAndPrint(AbstractMap<Integer, String> map) {
+        int[] array = {1, -1, 0};
+        for (int x: array) {
+          map.put(x, Integer.toString(x));
+        }
+        for (int k : map.keySet()) {
+          System.out.print(k + ", ");
+        }
+      }
+      ```
+
+      - 결과
+        - HashMap: 무작위 순서
+        - LinkedHashMap: 1, -1, 0
+        - TreeMap: -1, 0, 1
+
+  - 사용목적 제안
+    - 특별한 목적이 없는 경우: HashMap
+      - 오버헤드가 없고, 빠르다.
+    - 정렬된 키가 필요한 경우: TreeMap
+      - 키가 정렬되어 있으므로, 키를 기준으로 순회할 때 유용하다.
+    - 삽입한 순서대로 순회해야 하는 경우: LinkedHashMap
+      - 삽입한 순서대로 순회해야 하는 경우가 많다.
+      - 예를 들어, 캐시를 구현할 때, 가장 오래된 항목을 제거하기 위해 사용
