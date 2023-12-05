@@ -9009,3 +9009,364 @@ int main() {
     - 삽입한 순서대로 순회해야 하는 경우: LinkedHashMap
       - 삽입한 순서대로 순회해야 하는 경우가 많다.
       - 예를 들어, 캐시를 구현할 때, 가장 오래된 항목을 제거하기 위해 사용
+
+### 14. 데이터베이스
+
+#### SQL 문법과 그 변종들
+
+- 명시적 JOIN
+
+  ```sql
+  SELECT CourseName, TeacherName
+  From Courses INNER JOIN Teachers
+  ON Courses.TeacherID = Teachers.TeacherID
+  ```
+
+- 묵시적 JOIN
+
+  ```sql
+  SELECT CourseName, TeacherName
+  FROM Courses, Teachers
+  WHERE Courses.TeacherID = Teachers.TeacherID
+  ```
+
+#### 비정규화 vs 정규화 데이터베이스
+
+- 정규화 데이터베이스(Normalized database): 중복을 최소화하도록 설계된 데이터베이스
+  - 조회 시 JOIN이 많이 필요하다.
+  - 데이터의 일관성을 유지하기 쉽다.
+- 비정규화 데이터베이스(Denormalized database): 성능을 향상시키기 위해 중복을 허용한 데이터베이스
+  - 조회 시 JOIN이 적게 필요하다.
+  - 데이터의 일관성을 유지하기 위해 많은 노력이 필요하다.
+
+#### SQL 문
+
+- 간단한 데이터베이스를 가정
+  - Courses: CourseID*, CourseName, TeacherID
+  - Teachers: TeacherID*, TeacherName
+  - Students: StudentID*, StudentName
+  - StudentCourses: CourseID*, StudentID*
+
+##### 질의 1. 학생 등록
+
+- 모든 학생의 목록을 뽑고 각 학생이 얼마나 많은 강의를 수강하고 있는지 확인하는 질의
+  - 잘못된 코드 1
+
+    ```sql
+    SELECT
+        Students.StudentName,
+        count(*)
+    FROM Students
+        INNER JOIN StudentCourses ON Students.StudentID = StudentCourses.StudentID
+    GROUP BY Students.StudentID
+    ```
+
+    - 문제점
+      - 강의를 하나도 수강하지 않는 학생은 목록에 포함되지 않는다. INNER JOIN이 아닌 LEFT JOIN을 사용해야 한다.
+      - LEFT JOIN을 사용하더라도, 강의를 하나도 수강하지 않는 학생이 1로 표시된다. 따라서 count(*) 대신 count(StudentCourses.CourseID)를 사용해야 한다.
+      - StudentID로 GROUP BY 했지만 StudentName이 명확하지 않다. 따라서 first(Students.StudentName)을 사용해야 한다.
+
+  - 올바른 코드 1
+
+    ```sql
+    SELECT
+        StudentName,
+        Students.StudentID,
+        Cnt
+    From (
+            SELECT
+                Students.StudentID,
+                count(StudentCourses.CourseID) as Cnt
+            FROM Students
+                LEFT JOIN StudentCourses ON Students.StudentID = StudentCourses.StudentID
+            GROUP BY
+                Students.StudentID
+        ) T
+        INNER JOIN Students on T.StudentID = Students.StudentID
+    ```
+
+    - 이 코드의 경우 중첩된 질의문이 불필요해 보일 수 있다. 그래서 StudentName을 내부 질의에서 조회하게되면 문제가 발생한다.
+
+  - 잘못된 코드 2
+
+    ```sql
+    SELECT
+        StudentName,
+        Students.StudentID,
+        count(StudentCourses.CourseID) as Cnt
+    FROM Students
+        LEFT JOIN StudentCourses ON Students.StudentID = StudentCourses.StudentID
+    GROUP BY Students.StudentID
+    ```
+
+    - 이 코드의 경우 StudentName이 명확하지 않다.
+
+  - 올바른 코드 2
+
+    ```sql
+    SELECT
+        StudentName,
+        Students.StudentID,
+        count(StudentCourses.CourseID) as Cnt
+    FROM Students
+        LEFT JOIN StudentCourses ON Students.StudentID = StudentCourses.StudentID
+    GROUP BY
+        Students.StudentID,
+        Students.StudentName
+    ```
+
+    - 이 코드의 경우 StudentName을 GROUP BY에 추가해서 StudentID와 StudentName이 모두 명확하다.
+
+  - 올바른 코드 3
+
+    ```sql
+    SELECT
+        max(StudentName) as StudentName,
+        Students.StudentID,
+        count(StudentCourses.CourseID) as Cnt
+    FROM Students
+        LEFT JOIN StudentCourses ON Students.StudentID = StudentCourses.StudentID
+    GROUP BY Students.StudentID
+    ```
+
+    - 이 코드의 경우 StudentName을 GROUP BY에 추가하지 않았지만, max(StudentName)라는 집계함수를 사용해서 StudentName이 명확하다.
+
+##### 질의 2. 수강생 수 구하기
+
+- 모든 교사 목록과 각 교사가 가르치는 학생 수를 구하는 질의문
+  - 만약 한 교사가 동일한 학생을 여러 강의에서 가르친다면, 그 학생은 다른 학생으로 취급한다.
+  - 교사 리스트는 각 교사가 가르치는 학생 수를 기준으로 내림차순 정렬한다.
+
+  - 올바른 코드
+
+    ```sql
+    SELECT
+        TeacherName,
+        count(StudentCourses.CourseID) as Number
+    FROM Courses
+        INNER JOIN StudentCourses ON Courses.CourseID = StudentCourses.CourseID
+    GROUP BY Courses.TeacherID
+    ```
+
+  - 좀 더 올바른 코드
+
+    ```sql
+    SELECT
+        TeacherName,
+        isnull(StudentSize.Number, 0)
+    FROM Teacher
+        LEFT JOIN (
+            SELECT
+                TeacherID,
+                count(StudentCourses.CourseID) AS Number
+            FROM Courses
+                INNER JOIN StudentCourses ON Courses.CourseID = StudentCourses.CourseID
+            GROUP BY
+                Courses.TeacherID
+        ) StudentSize ON Teacher.TeacherID = StudentSize.TeacherID
+    ORDER BY
+        StudentSize.Number DESC
+    ```
+
+#### 소규모 데이터베이스 설계
+
+- 면접장에서 종종 소규모 데이터베이스를 설계 해 보라는 요청을 받을 수도 있다.
+- 접근법 자체는 객체지향 설계와 비슷하다.
+
+##### 1단계: 모호성 처리
+
+- DB 관련 문제에는 의도적이건 의도적이지 않건, 모호한 부분이 있다.
+- 설계 전에, 정확히 무엇이 요구되는 것인지 이해해야 한다.
+- 예를 들어, 아파트 임대 대행업자가 사용할 시스템을 설계한다고 할 때,
+  - 이 업체의 대리점이 하나인지, 여러 개 인지
+  - 어떤 사람이 같은 빌딩의 집을 두 채 빌리는 등, 거의 없겠지만 발생가능한 일에 대한 처리 여부를 논의해야 한다.
+
+##### 2단계: 핵심 객체 정의
+
+- 핵심 객체(Core objects)는 보통 하나의 테이블을 의미하며, 설계에 어떤 객체가 필요한지를 판단한다.
+- 아파트 임대 업체의 경우, Property, Building, Apartment, Tenant, Manager등이 핵심 객체가 될 수 있다.
+
+##### 3단계: 관계 분석
+
+- 관계 분석(Relationship analysis)는 핵심 객체 간의 관계를 정의하는 것이다.
+- 테이블끼리 어떤 관계가 있는지를 정의한다.
+  - 다대다(many-to-many) 관계인가? 일대다(one-to-many) 관계인가? 아니면 일대인(one-to-one) 관계인가?
+  - Buildings와 Apartments의 관계가 일대다 관계라면 아래와 같이 표현 할 수 있다.
+
+    | Apartments | s |
+    | --- | --- |
+    | ApartmentID | int |
+    | ApartmentAddress | varchar(100) |
+    | **BuildingID** | int |
+
+    | Buildings | s |
+    | --- | --- |
+    | **BuildingID** | int |
+    | BuildingName | varchar(100) |
+    | BuildingAddress | varchar(100) |
+
+  - 한 사람이 하나 이상의 아파트를 임대 할 수 있다면, 다음과 같이 다대다 관계를 표현 할 수 있다.
+
+    | TenantApartMents | s |
+    | --- | --- |
+    | **TenantID** | int |
+    | *ApartmentID* | int |
+
+    | Apartments | s |
+    | --- | --- |
+    | *ApartmentID* | int |
+    | ApartmentAddress | varchar(100) |
+    | BuildingID | int |
+
+    | Tenants | s |
+    | --- | --- |
+    | **TenantID** | int |
+    | TenantName | varchar(100) |
+    | TenantAddress | varchar(100) |
+
+##### 4단계: 행위 조사
+
+- 세부적인 행위들을 채워넣어야 한다.
+- 임대의 경우, 퇴거나 임대비 처리를 위한 새로운 테이블을 추가한다.
+
+#### 대규모 데이터베이스 설계
+
+- 대규모의, 확장성 높은 데이터베이스를 설계할 때에는 JOIN 연산은 매우 느리다.
+- 따라서, 필요한 경우 비정규화를 통해 JOIN 연산을 줄이는 것이 좋다.
+
+#### 면접 문제
+
+14.4 JOIN
+
+- JOIN에는 어떤 종류가 있는가? 이들이 각각 어떻게 다르고, 어떤 상황에 사용해야 하는가?
+- 예시 테이블
+  - 일반 음료
+
+    | Name | Code |
+    | --- | --- |
+    | Budweiser | BUDWEISER |
+    | Coca-Cola | COCACOLA |
+    | Pepsi | PEPSI |
+
+  - 제로칼로리 음료
+
+    | Name | Code |
+    | --- | --- |
+    | Diet Coca-Cola | COCACOLA |
+    | Fresca | FRESCA |
+    | Diet Pepsi | PEPSI |
+    | Pepsi Light | PEPSI |
+    | Purified Water | WATER |
+
+- JOIN의 종류
+  - INNER JOIN
+    - 두 테이블의 교집합을 반환한다.
+    - 위 테이블의 경우 COCACOLA 하나와 PEPSI 두개가 반환된다.
+  - OUTER JOIN
+    - LEFT OUTER JOIN
+      - 왼쪽 테이블의 모든 레코드가 포함된다. 오른쪽 테이블에서 일치하는 레코드가 없는 경우, NULL이 반환된다.
+      - 위 테이블의 경우 COCACOLA 하나와 PEPSI 두개, BUDWEISER 하나가 반환된다.
+    - RIGHT OUTER JOIN
+      - 오른쪽 테이블의 모든 레코드가 포함된다. 왼쪽 테이블에서 일치하는 레코드가 없는 경우, NULL이 반환된다.
+      - 위 테이블의 경우 COCACOLA 하나, FRESCA 하나, PEPSI 두개, WATER 하나가 반환된다.
+    - FULL OUTER JOIN
+      - 왼쪽 테이블과 오른쪽 테이블의 모든 레코드가 포함된다. 서로 일치하는 레코드가 없는 경우, NULL이 반환된다.
+
+14.5 비정규화
+
+- 비정규화란 무엇인가? 그 장단점을 설명하라
+  - 비정규화란, 하나 이상의 테이블에 데이터를 중복해 배치하는 최적화 기법이다. 저장 공간이 낭비되지만 이를 통해 JOIN 비용을 줄일 수 있다.
+
+  | 비정규화의 단점 | 비정규화의 장점 |
+  | --- | --- |
+  | 데이터의 갱신이나 삽입 비용이 높다. | 조인 비용이 줄어들기 때문에 조회 성능이 좋다. |
+  | 데이터 갱신 또는 삽입 코드를 작성하기가 어렵다. | 살펴볼 테이블이 줄어들기 때문에 데이터 조회 쿼리가 간단해진다. 따라서 버그의 가능성도 줄어든다. |
+  | 데이터 간의 일관성이 깨질 수 있다. | - |
+  | 데이터를 중복 저장하므로 저장 공간이 낭비된다. | - |
+
+14.7 성적 데이터베이스 설계
+
+- 학생들의 성적을 저장하는 간단한 데이터베이스를 설계하라. 성적이 우수한 학생 목록을 반환하는 SQL 질의문을 작성하되, 학생 목록은 평균 성적에 따라 내림차순으로 정렬되어야 한다.
+
+- 도서의 풀이
+  - 최소 세 개의 테이블이 필요하다.
+    - Students
+
+      | Students | s |
+      | --- | --- |
+      | StudentID | int |
+      | StudentName | varchar(100) |
+      | Address | varchar(100) |
+
+    - Courses
+
+      | Courses | s |
+      | --- | --- |
+      | CourseID | int |
+      | CourseName | varchar(100) |
+      | ProfessorID | int |
+
+    - CourseEnrollment
+
+      | CourseEnrollment | s |
+      | --- | --- |
+      | CourseID | int |
+      | StudentID | int |
+      | Grade | int |
+      | Term | int |
+
+  - 잘못된 코드
+
+    ```sql
+    SELECT
+        TOP 10 PERCENT AVG(CourseEnrollment.Grade) AS GPA,
+        CourseEnrollment.StudentID
+    FROM CourseEnrollment
+    GROUP BY
+        CourseEnrollment.StudentID
+    ORDER BY
+        AVG(CourseEnrollment.Grade)
+    ```
+
+    - 이 코드의 문제점은 동점자를 모두 표시하지 못한다는 점이다.
+
+  - 올바른 코드 (상위 10%의 학점 구하기)
+
+    ```sql
+    DECLARE @GPACutOff float;
+    SET @GPACutOff = (
+            SELECT min(GPA) as 'GPAMin'
+            FROM (
+                    SELECT
+                        TOP 10 PERCENT AVG(CourseEnrollment.Grade) AS GPA
+                    FROM CourseEnrollment
+                    GROUP BY
+                        CourseEnrollment.StudentID
+                    ORDER BY
+                        GPA DESC
+                ) as Grades
+        );
+    ```
+
+  - 올바른 코드 (해당 학점 이상 학생 조회하기)
+
+    ```sql
+    SELECT StudentName, GPA
+    FROM (
+            SELECT
+                AVG(CourseEnrollment.Grade) AS GPA,
+                CourseEnrollment.StudentID
+            FROM CourseEnrollment
+            GROUP BY
+                CourseEnrollment.StudentID
+            HAVING
+                AVG(CourseEnrollment.Grade) >= @GPACutOff
+        ) Honers
+        INNER JOIN Students ON Honers.studentID = Students.StudentID
+    ```
+
+  - 항상 가정에 대해 유의해야 한다.
+    - 여기서의 문제가 될 수 있는 가정은, 한 강의의 담담 교수는 단 한 명 이라는 것이다.
+  - 그럼에도 불구하고 가정은 필수적이다. 가정이 없다면 모든 경우를 가정하고 개발해야 하는데, 이는 불가능하다.
+    - 유연성(flexibility)와 복잡성(complexity)의 사이에서 적절한 타협점을 찾아야 한다.
+  - 중요한 것은 '어떤 가정을 했느냐' 가 아니라, **'어떤 가정을 했는지 아는 것'**이다.
