@@ -9370,3 +9370,778 @@ int main() {
   - 그럼에도 불구하고 가정은 필수적이다. 가정이 없다면 모든 경우를 가정하고 개발해야 하는데, 이는 불가능하다.
     - 유연성(flexibility)와 복잡성(complexity)의 사이에서 적절한 타협점을 찾아야 한다.
   - 중요한 것은 '어떤 가정을 했느냐' 가 아니라, **'어떤 가정을 했는지 아는 것'**이다.
+
+### 15. 스레드와 락
+
+- 스레드와 락에 관련된 알고리즘을 구현하는 경우는 흔치않다.
+- 하지만, 교착상태(deadlock)에 대한 일반적인 이해를 요구하는 경우는 많다.
+
+#### 자바의 스레드
+
+- 자바의 모든 스레드는 `java.lang.Thread` 클래스의 인스턴스이다.
+- 코드의 시작점인 main() 메서드를 실행하기 위해 하나의 사용자 스레드(user thread; main thread)가 자동으로 생성된다.
+- 자바에서 스레드를 구현하는 방법 두 가지
+  1. `java.lang.Runnable` 인터페이스를 구현하기
+  2. `java.lang.Thread` 클래스를 상속받기
+
+#### Runnable 인터페이스를 구현하는 방법
+
+- Runnable 인터페이스의 구조
+
+  ```java
+  public interface Runnable {
+    void run();
+  }
+  ```
+
+- 사용방법
+  - Runnable 인터페이스를 구현하는 클래스를 만든다.
+  - Thread 타입의 객체를 만들 때, Thread의 생성자에 Runnable 객체를 인자로 넘긴다. 그러면 Thread 객체는 Runnable 객체를 소유하게 된다.
+  - 이전 단계에서 생성한 Thread 객체의 start() 메서드를 호출한다.
+
+- 예제
+
+  ```java
+  public class RunnableThreadExample implements Runnable {
+      public int count = 0;
+
+      public void run() {
+          System.out.println('RunnableThread starting.')
+          try {
+              while (count < 5) {
+                  Thread.sleep(500);
+                  count++;
+              }
+          } catch (InterruptedException exc) {
+              System.out.println('RunnableThread interrupted.')
+          }
+          System.out.println('RunnableThread terminating.')
+      }
+  }
+
+  public static void main(String[] args) {
+      RunnableThreadExample instance = new RunnableThreadExample();
+      Thread thread = new Thread(instance);
+      thread.start();
+
+      while (instance.count != 5) {
+          try {
+              Thread.sleep(250);
+          } catch (InterruptedException exc) {
+              exc.printStackTrace();
+          }
+      }
+  }
+  ```
+
+  - RunnableThreadExample에는 run() 메서드만 구현하면 된다.
+  - 이후 실행은 thread.start()를 호출하는 것으로 시작된다.
+
+#### Thread 클래스를 상속받는 방법
+
+- run() 메서드를 오버라이드하고, 이 메서드 안에 스레드가 실행할 코드를 작성한다.
+- 상위클래스의 생성자를 명시적으로 호출한다.
+
+- 예제
+
+  ```java
+  public class ThreadExample extends Thread {
+      int count = 0;
+
+      public void run() {
+          System.out.println("Thread starting.");
+          try {
+              while (count < 5) {
+                  Thread.sleep(500);
+                  System.out.println("In Thread, count is " + count);
+                  count++;
+              }
+          } catch (InterruptedException exc) {
+              System.out.println("Thread interrupted.");
+          }
+          System.out.println("Thread terminating.");
+      }
+  }
+
+  public class ExampleB {
+      public static void main(String args[]) {
+          ThreadExample instance = new ThreadExample();
+          instance.start();
+
+          while (instance.count != 5) {
+              try {
+                  Thread.sleep(250);
+              } catch (InterruptedException exc) {
+                  exc.printStackTrace();
+              }
+          }
+      }
+  }
+  ```
+
+  - 이전 예제와 비슷하지만, 인터페이스를 구현하는 대신 Thread 클래스를 직접 상속받았고, 인스턴스 자체에서 start()메서드를 직접 호출한다.
+
+#### Thread 상속 vs Runnable 인터페이스 구현
+
+- 대체로 Runnable 인터페이스를 구현하는것이 선호된다.
+  - 자바는 다중 상속을 지원하지 않는다. 따라서 Thread를 상속받는 경우, 다른 클래스를 상속 받을 수 없다.
+    - 이에 반해 Runnable 인터페이스를 구현한 경우 별도의 클래스를 상속받을 수 있다.
+  - Thread 클래스의 모든 것을 상속받는 것은 비효율적이다.
+
+#### 동기화와 락
+
+- 프로세스에서 생성된 스레드는 같은 메모리를 공유한다.
+  - 이에따른 장단점이 존재한다.
+    - 장점
+      - 스레드 간의 데이터를 쉽게 공유할 수 있다.
+    - 단점
+      - 여러 스레드에서 데이터를 변경하는 경우 문제가 발생한다.
+- 위의 단점을 해결하기위해 자바에서는 동기화(synchronization) 방법을 제공한다.
+- Synchronized 와 Lock은 동기화에서 사용되는 두가지 주요 키워드이다.
+
+##### 동기화된 메서드
+
+- synchronized 키워드는 공유자원에 대한 접근을 제어한다.
+  - 메서드 혹은 코드블록에 적용할수도 있다.
+  - 여러 스레드가 같은 객체를 동시에 실행하는것을 방지한다.
+- 예제
+
+  ```java
+  public class MyClass extends Thread {
+      private String name;
+      private MyObject myObj;
+
+      public MyClass(MyObject obj, String n) {
+          name = n;
+          myObj = obj;
+      }
+
+      public void run() {
+          myObj.foo(name);
+      }
+  }
+
+  public class MyObject {
+      public synchronized void foo(String name) {
+          try {
+              System.out.println("Thread " + name + ".foo(): starting");
+              Thread.sleep(3000);
+              System.out
+          } catch (InterruptedException exc) {
+              System.out.println("Thread " + name + ": interrupted.");
+          }
+      }
+  }
+  ```
+
+  - 두 개의 스레드가 하나의 MyClass 인스턴스의 foo() 메서드를 호출할수는 없다.
+
+    ```java
+    // 둘 중 하나의 스레드는 다른 스레드가 foo() 메서드를 호출할 때까지 대기해야 한다.
+    MyObject obj = new MyObject();
+
+    MyClass thread1 = new MyClass(obj, '1');
+    MyClass thread2 = new MyClass(obj, '2');
+
+    thread1.start();
+    thread2.start();
+    ```
+
+  - 하지만, 두 개의 스레드가 서로 다른 MyClass 인스턴스의 foo() 메서드를 호출하는 것은 가능하다.
+
+    ```java
+    MyObject obj1 = new MyObject();
+    MyObject obj2 = new MyObject();
+
+    MyClass thread1 = new MyClass(obj1, '1');
+    MyClass thread2 = new MyClass(obj2, '2');
+
+    thread1.start();
+    thread2.start();
+    ```
+
+- 정적 메서드(static method)는 클래스 락(class lock)에 의해 동기화된다.
+- 같은 클래스에 있는 동기화된 정적 메서드는, 두 스레드에서 동시에 실행될 수 없다.
+  - 서로 다른 메서드를 호출하는 경우에도 불가능하다.
+
+  ```java
+  public class MyClass extends Thread {
+      ...
+      public void run() {
+          if (name.equals("1")) MyObject.foo(name);
+          else if (name.equals("2")) MyObject.bar(name);
+      }
+  }
+
+  public class MyObject {
+      public static synchronized void foo(String name) { ... }
+      public static synchronized void bar(String name) { ... }
+  }
+  ```
+
+  - 결과
+    - Thread 1.foo(): starting
+    - Thread 1.foo(): ending
+    - Thread 2.bar(): starting
+    - Thread 2.bar(): ending
+
+##### 동기화된 블록
+
+- 메서드와 비슷하게, 특정 코드블럭을 동기화 할 수도 있다. 이는 메서드의 동기화와 비슷하게 동작한다.
+- 예시
+
+  ```java
+  public class MyClass extends Thread {
+      ...
+      public void run() {
+          myObj.foo(name);
+      }
+  }
+
+  public class MyObject {
+      public void foo(String name) {
+          synchronized(this) {
+              ...
+          }
+      }
+  }
+  ```
+
+  - 메서드 동기화와 비슷하게, 이 경우에도 인스턴스 하나당 하나의 스레드만 synchronized 블록 내부의 코드를 실행 할 수 있다.
+
+##### 락(Lock)
+
+- 좀 더 세밀하게 동기화를 제어하고 싶을 때에는 락(모니터)을 사용한다.
+- 공유 자원에 붙이면 해당 자원에 대한 접근을 동기화 할 수 있다.
+  - 스레드가 자원에 접근하려면 해당 락을 획득(acquire)해야 한다.
+  - 특정 시점에 락을 가질 수 있는 스레드는 하나 뿐이다.
+- 예시
+
+  ```java
+  public class LockedATM {
+      private Lock lock;
+      private int balance = 100;
+
+      public LockedATM() {
+          lock = new ReentrantLock();
+      }
+
+      public int withdraw(int value) {
+          lock.lock();
+          int temp = balance;
+          try {
+              Thread.sleep(100);
+              temp = temp - value;
+              Thread.sleep(100);
+              balance = temp;
+          } catch (InterruptedException e) { }
+          lock.unlock();
+          return temp;
+      }
+
+      public int deposit(int value) {
+          lock.lock();
+          int temp = balance;
+          try {
+              THread.sleep(100);
+              temp = temp + value;
+              Thread.sleep(300);
+              balance = temp;
+          } catch (InterruptedException e) { }
+          lock.unlock();
+          return temp;
+      }
+  }
+  ```
+
+#### 교착상태와 교착상태 방지
+
+- 교착상태(deadlock)이란, 두 개 이상의 스레드가 서로 상대방의 락을 기다리는 상황을 의미한다.
+  - 교착상태에 빠진 스레드들은 서로의 락이 풀리기를 기다리고있기에, 무한 대기상태에 빠진다.
+  - 교착상태에 빠지려면, 아래의 네 가지 조건이 만족되어야 한다.
+    1. 상호 배재(mutual exclusion): 한 번에 한 스레드만 공유 자원을 사용할 수 있다.
+    2. 점유와 대기(hold and wait): 최소한 하나의 자원을 점유하고 있으면서, 다른 스레드에 의해 점유된 자원을 추가로 얻기 위해 대기하는 스레드가 존재한다.
+    3. 비선점(non-preemption) / 선취(preemption) 불가능: 다른 스레드에 의해 점유된 자원을 강제로 빼앗을 수 없다.
+    4. 순환 대기(circular wait): 각 스레드는 순환적으로 다음 스레드가 점유한 자원을 대기하고 있다.
+
+  - 따라서 위 조건들 중 하나를 제거하면 교착상태를 예방 할 수 있다.
+    - 대부분의 교착상태 방지 알고리즘은 4. 순환 대기 사이클의 발생을 막는데에 초점을 맞춘다.
+
+#### 면접 문제
+
+15.1 프로세스 vs 스레드
+
+- 프로세스
+  - 프로세스는 실행되고있는 프로그램의 인스턴스라고 볼 수 있다.
+  - 프로세스는 CPU 시간이나 메모리등의 시스템 자원이 할당되는 독립적인 개체이다.
+  - 각 프로세스는 별도의 메모리 공간에서 실행되며, 한 프로세스는 다른 프로세스의 변수나 자료구조에 접근할 수 없다.
+    - 필요시에는 프로세스 간 통신(inter-process communication)을 통해 서로 통신할 수 있다.
+    - 방법은 파이프, 파일, 소켓 등이 있다.
+- 스레드
+  - 스레드는 프로세스 내에서 실행되는 여러 흐름의 단위이다.
+  - 프로세스의 자원(힙 공간 등)을 공유한다.
+  - 같은 프로세스 안의 스레드들은 이웃 스레드(sibling thread)라고 부른다.
+  - 각 스레드는 별도의 레지스터와 스택을 갖지만, 힙 메모리는 서로 공유한다.
+    - 즉 한 스레드가 프로세스의 자원을 변경하면, 다른 스레드도 그 변경 결과를 즉시 볼 수 있다.
+
+15.2 문맥 전환
+
+- 문맥 전환(context switch)에 소요되는 시간을 측정하려면 어떻게 해야할까?
+
+- 중요한 점은, 실제로 구할 수 있는 것은 근사치일 뿐이고, 정확한 값을 구할 수 없다는 것이다.
+  - 문맥 전환은 운영체제의 스케줄러에 의해 관리되기 때문에, 운영체제의 종류에 따라 문맥 전환에 소요되는 시간이 다르다.
+  - 또한, 문맥 전환에 소요되는 시간은 프로세스의 개수, 스레드의 개수, CPU의 개수, CPU의 성능 등에 따라 달라진다.
+  - 따라서, 문맥 전환에 소요되는 시간을 정확히 구할 수 없다.
+- 그럼에도 방법을 제시 해 보자면,
+  - P1 프로세스에서 P2 프로세스로 데이터 토큰을 주고받는 파이프 등의 경로를 만들어 둘 사이의 문맥 전환을 유도한다.
+  - 이후 절차는 아래와 같다
+    1. P2는 P1의 데이터를 기다리며 블록된다.
+    2. P1이 시작 시간을 기록한다.
+    3. P1이 P2에게 토큰을 보낸다.
+    4. P1은 P2가 보내는 응답 토큰을 읽으려 한다. - 이 때 문맥 전환이 발생한다.
+    5. P2가 스케줄링되고 토큰을 수신한다.
+    6. P2가 응답 토큰을 P1에게 보낸다.
+    7. P2는 P1이 보내는 응답 토큰을 읽으려 한다. - 이 때 다시 문맥 전환이 발생한다.
+    8. P1이 스케줄링되고 토큰을 수신한다.
+    9. P1이 종료 시간을 기록한다.
+  
+  - 총 걸린 시간 T = 2 * (Td + Tc + Tr)
+    - Td: 데이터 전송 시간
+    - Tc: 문맥 전환 시간
+    - Tr: 응답 시간
+  - 이 시간을 여러 번 측정해서, 최소값을 구하면 그것이 근사치가 된다.
+
+15.3 철학자의 만찬
+
+- 철학자의 만찬 문제
+  - 철학자들이 원탁에 앉아있다.
+  - 그들 사이에 젓가락이 하나씩 놓여있다.
+  - 음식을 먹으려면 젓가락이 한 쌍이 필요하다.
+  - 철학자들은 무조건 왼쪽 젓가락을 먼저 집는다.
+  - 이 상태에서 모든 철학자들이 동시에 음식을 먹으려고 한다면, 교착상태에 빠질 수 있다.
+- 이 문제를 시뮬레이션하는 프로그램을 작성하라.
+- 그리고 스레드와 락을 사용하여 이 프로그램이 교착상태에 빠지지 않도록 하라.
+- 시뮬레이션 코드
+
+  ```java
+  class Chopstick {
+      private Lock lock;
+
+      public Chopstick() {
+          lock = new ReentrantLock();
+      }
+
+      public void pickUp() {
+          lock.lock();
+      }
+
+      public void putDown() {
+          lock.unlock();
+      }
+  }
+
+  class Philosopher extends Thread {
+      private int bites = 10;
+      private Chopstick left, right;
+
+      public Philosopher(Chopstick left, Chopstick right) {
+          this.left = left;
+          this.right = right;
+      }
+
+      public void eat() {
+          pickUp();
+          chew();
+          putDown();
+      }
+
+      public void pickUp() {
+          left.pickUp();
+          right.pickUp();
+      }
+
+      public void chew() { }
+
+      public void putDown() {
+          right.putDown();
+          left.putDown();
+      }
+
+      public void run() {
+          for (int i = 0; i < bites; i++) {
+              eat();
+          }
+      }
+  }
+  ```
+
+- 도서의 풀이 1: 전부 혹은 아무것도 아닌 것
+
+  ```java
+  class Chopstick {
+      private Lock lock;
+
+      public Chopstick() {
+          lock = new ReentrantLock();
+      }
+
+      public void pickUp() {
+          lock.tryLock();
+      }
+
+      public void putDown() {
+          lock.unlock();
+      }
+  }
+
+  class Philosopher extends Thread {
+      private int bites = 10;
+      private Chopstick left, right;
+
+      public Philosopher(Chopstick left, Chopstick right) {
+          this.left = left;
+          this.right = right;
+      }
+
+      public void eat() {
+          if (pickUp()) {
+              chew();
+              putDown();
+          }
+      }
+
+      public void pickUp() {
+          if (!left.pickUp()) {
+              return false;
+          }
+          if (!right.pickUp()) {
+              left.putDown();
+              return false;
+          }
+          return true;
+      }
+
+      public void chew() { }
+
+      public void putDown() {
+          right.putDown();
+          left.putDown();
+      }
+
+      public void run() {
+          for (int i = 0; i < bites; i++) {
+              eat();
+          }
+      }
+  }
+  ```
+
+  - 그러나 이 경우 철학자들이 모두 완벽하게 동기화 된 경우 무한히 왼쪽 젓가락을 들었다 내려놓는 것을 반복하게 된다.
+
+- 도서의 풀이 2: 젓가락에 우선순위 두기
+
+  ```java
+  class Chopstick {
+      private Lock lock;
+      private int number;
+
+      public Chopstick(int n) {
+          lock = new ReentrantLock();
+          this.number = n;
+      }
+
+      public void pickUp() {
+          lock.lock();
+      }
+
+      public void putDown() {
+          lock.unlock();
+      }
+
+      public int getNumber() {
+          return number;
+      }
+  }
+
+  class Philosopher extends Thread {
+      private int bites = 10;
+      private Chopstick lower, higher;
+      private int index;
+
+      public Philosopher(int i, Chopstick left, Chopstick right) {
+          index = i;
+          if (left.getNumber() < right.getNumber()) {
+              this.lower = left;
+              this.higher = right;
+          } else {
+              this.lower = right;
+              this.higher = left;
+          }
+      }
+
+      public void eat() {
+          pickUp();
+          chew();
+          putDown();
+      }
+
+      public void pickUp() {
+          left.pickUp();
+          right.pickUp();
+      }
+
+      public void chew() { }
+
+      public void putDown() {
+          right.putDown();
+          left.putDown();
+      }
+
+      public void run() {
+          for (int i = 0; i < bites; i++) {
+              eat();
+          }
+      }
+  }
+  ```
+
+15.4 교착상태 없는 클래스
+
+- 도서의 풀이
+
+  ```java
+  class LockFactory {
+      private static LockFactory instance;
+
+      private int numberOfLocks = 5; // 기본값
+      private LockNode[] locks;
+
+      // 프로세스가 어떤 순서로 락을 획득 할 것이라 선언했는지에 대한 정보를 보관
+      private HashMap<Integer, LinkedList<LockNode>> lockOrder;
+
+      private lockFactory(int count) { ... }
+      public static LockFactory getInstance() { return instance; }
+
+      public static synchronized LockFactory initialize(int count) {
+          if (instance == null) instance = new LockFactory(count);
+          return instance;
+      }
+
+      public boolean hasCycle(HashMap<Integer, Boolean> touchedNodes, int[] resourceInOrder) {
+          // 사이클 체크
+          for (int resource : resourcesInOrder) {
+              if (touchedNodes.get(resource) == false) {
+                  LockNode n = locks[resource];
+                  if (n.hasCycle(touchedNodes)) {
+                      return true;
+                  }
+              }
+          }
+          return false;
+      }
+
+      // 교착상태를 방지하기 위해 프로세스가 어떤 순서로 락을 요청할지 선언하게 한다.
+      // 그 순서가 교착상태를 만들어내지 않는지 확인한다.
+      public boolean declare(int ownerId, int[] resourceInOrder) {
+          HashMap<Integer, Boolean> touchedNodes = new HashMap<Integer, Boolean>();
+
+          // 그래프에 노드를 추가한다.
+          int index = 1;
+          touchedNodes.put(resourcesInOrder[0], false);
+          for (index = 1; index < resourcesInOrder.length; index++) {
+              LockNode prev = locks[resourcesInOrder[index - 1]];
+              LockNode curr = locks[resourcesInOrder[index]];
+              prev.joinTo(curr);
+              touchedNodes.put(resourcesInOrder[index], false);
+          }
+
+          // 사이클이 생겼다면, 자원 리스트를 삭제하고 false 반환
+          if (hasCycle(touchedNodes, resourcesInOrder)) {
+              for (int j = 1; j < resourcesInOrder.length; j++) {
+                  LockNode p = locks[resourcesInOrder[j - 1]];
+                  LockNode c = locks[resourcesInOrder[j]];
+                  p.remove(c);
+              }
+              return false;
+          }
+
+          // 사이클이 탐지되지 않았다면 선언된 순서를 저장해서 나중에 프로세스가 요청한 순서대로 락을 획득할 수 있게 한다.
+          LinkedList<LockNode> list = new LinkedList<LockNode>();
+          for (int i = 0; i < resourcesInOrder.length; i++) {
+              LockNode resource = locks[resourcesInOrder[i]];
+              list.add(resource);
+          }
+          lockOrder.put(ownerId, list);
+
+          return true;
+      }
+
+      // 프로세스가 선언한 순서대로 락을 요구하는지 확인한 다음 락을 획득한다.
+      public Lock getLock(int ownerId, int resourceId) {
+          LinkedList<LockNode> nodes = lockOrder.get(ownerId);
+          if (nodes == null) return null;
+
+          LockNode head = list.getFirst();
+          if (head.getId() == resourceId) {
+              list.removeFirst();
+              return head.getLock();
+          }
+          return null;
+      }
+  }
+
+  public class LockNode {
+      public enum VisitState { FRESH, VISITING, VISITED };
+
+      private ArrayList<LockNode> children;
+      private int lockId;
+      private Lock lock;
+      private int maxLocks;
+
+      public LockNode(int id, int max) { ... }
+
+      // 사이클이 생기지 않는지 확인하고 this를 node에 연결
+      public void joinTo(LockNode node) { children.add(node); }
+      public void remove(LockNode node) { children.remove(node); }
+
+      // 깊이 우선 탐색을 통해 사이클을 확인
+      public boolean hasCycle(HashMap<Integer, Boolean> touchedNodes) {
+          VisitState[] visited = new VisitState[maxLocks];
+          for (int i = 0; i < maxLocks; i++) {
+              visited[i] = VisitState.FRESH;
+          }
+          return hasCycle(visited, touchedNodes);
+      }
+
+      private boolean hasCycle(VisitState[] visited, HashMap<Integer, Boolean> touchedNodes) {
+          if (touchedNodes.containsKey(lockId)) {
+              touchedNodes.put(lockId, true);
+          }
+          if (visited[lockId] == VisitState.VISITING) {
+              return true;
+          } else if (visited[lockId] == VisitState.FRESH) {
+              visited[lockId] = VisitState.VISITING;
+              for (LockNode n : children) {
+                  if (n.hasCycle(visited, touchedNodes)) {
+                      return true;
+                  }
+              }
+              visited[lockId] = VisitState.VISITED;
+          }
+          return false;
+      }
+
+      public Lock getLock() {
+          if (lock == null) lock = new ReentrantLock();
+          return lock;
+      }
+
+      public int getId() { return lockId; }
+  }
+  ```
+
+15.5 순서대로 호출
+
+- 틀린 풀이
+
+  ```java
+  public class FooBad {
+      public int pauseTime = 1000;
+      public ReentrantLock lock1, lock2;
+
+      public FooBad() {
+          try {
+              lock1 = new ReentrantLock();
+              lock2 = new ReentrantLock();
+              lock1.lock();
+              lock2.lock();
+          } catch (...) { ... }
+      }
+
+      public void first() {
+          try {
+              ...
+              lock1.unlock(); 
+          }
+      }
+
+      public void second() {
+          try {
+              lock1.lock();
+              lock1.unlock();
+              ...
+              lock2.unlock();
+          } catch (...) { ... }
+      }
+
+      public void third() {
+          try {
+              lock2.lock();
+              lock2.unlock();
+              ...
+          } catch (...) { ... }
+      }
+  }
+  ```
+
+  - 이 코드의 경우, 락을 거는 스레드와 다른 스레드가 락을 풀려고 시도하고있다.
+  - 이 경우, 락의 소유권은 락을 처음 건 스레드가 가지므로, 락을 풀려는 스레드는 무한히 대기하게 된다.
+
+- 옳은 풀이(세마포어 활용)
+
+  ```java
+  public class Foo {
+      public Semaphore sem1, sem2;
+
+      public Foo() {
+          try {
+              sem1 = new Semaphore(1);
+              sem2 = new Semaphore(1);
+
+              sem1.acquire();
+              sem2.acquire();
+          } catch (...) { ... }
+      }
+
+      public void first() {
+          try {
+              ..
+              sem1.release();
+          } catch (...) { ... }
+      }
+
+      public void second() {
+          try {
+              sem1.acquire();
+              sem1.release();
+              ...
+              sem2.release();
+          } catch (...) { ... }
+      }
+
+      public void third() {
+          try {
+              sem2.acquire();
+              sem2.release();
+              ...
+          } catch (...) { ... }
+      }
+  }
+  ```
+
+  - 세마포어: 락과 비슷한 동작을 하지만, 락과 달리 락을 획득한 스레드가 아닌 다른 스레드가 락을 해제할 수 있다.
+
+15.6 동기화된 메서드
+
+- 동기화된 메서드 A와 일반 메서드 B가 구현된 클래스가 있다.
+- 같은 프로그램에서 두개의 스레드가 존재 할 때,
+  1. A를 동시에 실행 할 수 있는가?
+  2. 혹은 A, B를 동시에 실행 할 수 있는가?
+- 도서의 풀이 1
+  - 상황에 따라 다르다.
+  - 두 스레드가 같은 객체를 가지고있다면 No, 다른 객체라면 Yes이다.
+- 도서의 풀이 2
+  - 스레드 1이 B를 실행하는동안, 스레드 2가 A를 실행할 수 있다.
+  - 이는 A만 synchronized이고 B는 synchronized가 아니기 때문이다.
+  - 중요한 점은, 객체별로 synchronized 메서드 하나만 실행 가능하다는 사실이다.
+    - 비-synchronized 메서드는 여러 스레드에서 동시에 실행 가능하다.
