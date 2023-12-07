@@ -585,7 +585,7 @@ function f(n: number): number {
 - 답: O(a * s(log a + log s)) -> a: 배열의 크기, s: 문자열의 길이
   - 각각의 문자열을 정렬하는데 O(s log s)가 소요된다.
   - 전체 배열을 다시 정렬하는데 O(s * a log a)가 소요된다.
-    - 각 배열의 문자열을 비교하는 시간 O(s) * 비교 횟수 O(a log a) = O(s * a log a)가 소요된다.
+    - 각 배열의 문자열을 비교하는 시간 O(s) *비교 횟수 O(a log a) = O(s* a log a)가 소요된다.
 
 예제 9.
 
@@ -664,7 +664,7 @@ function f(n: number): number {
   - 순열이 완성되기 전까지 permutation 함수가 호출되는 횟수 = n * n! 미만
     - 말단 노드의 수는 n!개, 트리의 높이는 n이므로, 말단 노드의 수는 n * n! 미만이다.
   - 각 함수 호출을 처리하는 데에 걸리는 시간 = O(n)
-  - 총 수행시간 = O(n * n!) = O(n^2 * n!)
+  - 총 수행시간 = O(n *n!) = O(n^2* n!)
 
 예제 13.
 
@@ -805,7 +805,7 @@ function f(n: number): number {
   ![Alt text](images/image04.png)
   - 듣기: 문제와 관련된 모든 정보를 집중해서 잘 듣자.
     - 단순히 정확히 이해해라의 수준이 아닌, 정확히 이해했는지를 확인해야 한다.
-    - 또한 불확실한 부분이 있다면, 질문을 통해 명확히 해야 한다. 
+    - 또한 불확실한 부분이 있다면, 질문을 통해 명확히 해야 한다.
   - 예제: 주어진 예제 이외에도 직접 다른 예제를 찾아보고, 적용해라.
     - 명확한 예제를 쓰고
     - 충분히 큰 예제를 쓰고
@@ -5391,19 +5391,19 @@ class Node {
 #### 소수
 
 - 모든 자연수는 소수의 곱으로 나타낼 수 있다
-  - 84 = 2^2 * 3^1 * 7^1
+  - 84 = 2^2 *3^1* 7^1
 
 - 가분성(divisibility)
   - 어떤 수 x로 y를 나눌 수 있으면, x를 소수의 곱으로 분할했을 때 나타난 수의 집합은 y를 소수의 곱으로 분할했을때 나타난 집합의 부분집합이다.
   - 일반화
-    - x = 2^i1 * 3^i2 * 5^i3 * 7^i4 * 11^i5 * ...
-    - y = 2^j1 * 3^j2 * 5^j3 * 7^j4 * 11^j5 * ...
+    - x = 2^i1 *3^i2* 5^i3 *7^i4* 11^i5 * ...
+    - y = 2^j1 *3^j2* 5^j3 *7^j4* 11^j5 * ...
     - x % y === 0이면, i1 >= j1, i2 >= j2, i3 >= j3, i4 >= j4, i5 >= j5, ... 이다.
   - 즉 gcd(최대공약수; greatest common divisor)는 아래와 같다.
-    - gcd(x, y) = 2^min(i1, j1) * 3^min(i2, j2) * 5^min(i3, j3) * 7^min(i4, j4) * 11^min(i5, j5) * ...
+    - gcd(x, y) = 2^min(i1, j1) *3^min(i2, j2)* 5^min(i3, j3) *7^min(i4, j4)* 11^min(i5, j5) * ...
   - lcm(최소공배수; least common multiple)는 아래와 같다.
-    - lcm(x, y) = 2^max(i1, j1) * 3^max(i2, j2) * 5^max(i3, j3) * 7^max(i4, j4) * 11^max(i5, j5) * ...
-  - gcm * lcm = 2^(i1 + j1) * 3^(i2 + j2) * 5^(i3 + j3) * 7^(i4 + j4) * 11^(i5 + j5) * ...
+    - lcm(x, y) = 2^max(i1, j1) *3^max(i2, j2)* 5^max(i3, j3) *7^max(i4, j4)* 11^max(i5, j5) * ...
+  - gcm *lcm = 2^(i1 + j1)* 3^(i2 + j2) *5^(i3 + j3)* 7^(i4 + j4) *11^(i5 + j5)* ...
     - 즉, **gcm * lcm = x * y**가 된다.
 
 - 소수판별
@@ -5475,7 +5475,7 @@ class Node {
   - 예를 들어, 1~10까지 수 중 하나를 뽑을 때, 5보다 작은 짝수를 뽑을 확률은 아래와 같다.
     - P(x=짝수 ∩ x<=5) = P(x=짝수|x<=5) * P(x<=5)
   - 베이즈 정리
-    - P(A ∩ B) = P(B|A) * P(A) = P(A|B) * P(B)
+    - P(A ∩ B) = P(B|A) *P(A) = P(A|B)* P(B)
     - 즉, P(A|B) = P(B|A) * P(A) / P(B)
 - A ∪ B의 확률
   - P(A ∪ B) = P(A) + P(B) - P(A ∩ B)
@@ -10145,3 +10145,161 @@ int main() {
   - 이는 A만 synchronized이고 B는 synchronized가 아니기 때문이다.
   - 중요한 점은, 객체별로 synchronized 메서드 하나만 실행 가능하다는 사실이다.
     - 비-synchronized 메서드는 여러 스레드에서 동시에 실행 가능하다.
+
+### 16. 중간 난이도 연습문제
+
+16.1 숫자 교환
+
+- 도서의 풀이
+
+  ```ts
+  function swap(a: number, b: number): [number, number] {
+    a = a - b
+    b = a + b
+    a = b - a
+    return [a, b]
+  }
+
+  function swap2(arr: [number, number]): [number, number] {
+    a = a ^ b
+    b = a ^ b
+    a = a ^ b
+    return [a, b]
+  }
+  ```
+
+16.2 단어 출현 빈도
+
+- 도서의 풀이 1(1회성 조회)
+
+  ```ts
+  function getFrequency(book: string[], word: string): number {
+    word = word.trim().toLowerCase();
+    let count = 0;
+    for (const w of book) {
+      if (w.trim().toLowerCase() === word) {
+        count++;
+      }
+    }
+    return count;
+  }
+  ```
+
+- 도서의 풀이 2(반복 조회를 위한 전처리)
+
+  ```ts
+  function setupDictionary(book: string[]): Map<string, number> {
+    const table = new Map<string, number>();
+    for (let word of book) {
+      word = word.toLowerCase();
+      if (word.trim() !== '') {
+        if (!table.has(word)) {
+          table.set(word, 0);
+        }
+        table.set(word, table.get(word)! + 1);
+      }
+    }
+    return table;
+  }
+
+  function getFrequency(table: Map<string, number>, word: string): number {
+    if (table === null || word === null) return -1;
+    word = word.toLowerCase();
+    if (table.has(word)) {
+      return table.get(word)!;
+    }
+    return 0;
+  }
+  ```
+
+16.3 교차점
+
+- 도서의 풀이
+
+  ```ts
+  class Point {
+    public x: number;
+    public y: number;
+
+    constructor(x: number, y: number) {
+      this.x = x;
+      this.y = y;
+    }
+
+    public setLocation(x: number, y: number) {
+      this.x = x;
+      this.y = y;
+    }
+  }
+
+  class Line {
+    public slope: number;
+    public yIntercept: number;
+
+    constructor(start: Point, end: Point) {
+      const deltaY = end.y - start.y;
+      const deltaX = end.x - start.x;
+      this.slope = deltaY / deltaX;
+      this.yIntercept = end.y - this.slope * end.x;
+    }
+  }
+
+  function swap(one: Point, two: Point): void {
+    const x = one.x;
+    const y = one.y;
+    one.setLocation(two.x, two.y);
+    two.setLocation(x, y);
+  }
+
+  function _isBetween(start: number, middle: number, end: number): boolean {
+    if (start > end) {
+      return end <= middle && middle <= start;
+    } else {
+      return start <= middle && middle <= end;
+    }
+  }
+
+  function isBetween(start: Point, middle: Point, end: Point): boolean {
+    return (
+      _isBetween(start.x, middle.x, end.x) && _isBetween(start.y, middle.y, end.y)
+    );
+  }
+
+  function intersection(
+    start1: Point,
+    end1: Point,
+    start2: Point,
+    end2: Point
+  ): Point | null {
+    // 로직 간소화를 위해 케이스를 하나로 고정
+    if (start1.x > end1.x) swap(start1, end1);
+    if (start2.x > end2.x) swap(start2, end2);
+    if (start1.x > start2.x) {
+      swap(start1, start2);
+      swap(end1, end2);
+    }
+
+    const line1 = new Line(start1, end1);
+    const line2 = new Line(start2, end2);
+
+    if (line1.slope === line2.slope) {
+      if (
+        line1.yIntercept === line2.yIntercept &&
+        isBetween(start1, start2, end1)
+      ) {
+        return start2;
+      }
+      return null;
+    }
+
+    const x = (line2.yIntercept - line1.yIntercept) / (line1.slope - line2.slope);
+    const y = x * line1.slope + line1.yIntercept;
+    const intersection = new Point(x, y);
+
+    if (isBetween(start1, intersection, end1) && isBetween(start2, intersection, end2)) {
+      return intersection;
+    }
+    return null;
+  }
+  ```
+  
