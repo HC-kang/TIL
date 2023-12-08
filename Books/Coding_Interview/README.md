@@ -10303,3 +10303,435 @@ int main() {
   }
   ```
   
+16.4 틱-택-토의 승자
+
+- 틱택토 게임의 설계 전 확인사항
+  1. hasWon이 한 번만 호출되는가? 아니면 여러번 호출 되는가?
+  2. 마지막 움직임을 알고있는가?
+  3. 3x3뿐 아닌, NxN게임판에 대한 해법도 구현해야 하는가?
+  4. 일반적으로 코드의 길이 vs 수행시간 vs 코드 가독성 사이에 어떤 우선순위 관계가 있는가?
+
+- 도서의 풀이 1: hasWon이 여러 번 호출된다면?
+  - 3x3 게임판에서 가능한 모든 경우의 수는 3^9 = 19683가지이다.
+  - 이 모든 케이스를 key로, 게임의 결과를 value로 하는 해시테이블을 만들어서 해결할 수 있다.
+
+  ```ts
+  const Piece = {
+    Empty: 0,
+    Red: 1,
+    Blue: 2,
+  } as const;
+
+  type Piece = typeof Piece[keyof typeof Piece];
+
+  function hasWon(board: number): Piece {
+    return winnerHashTable[board];
+  }
+
+  function convertBoardToInt(board: Piece[][]): number {
+    let sum = 0;
+    for (let i = 0; i < board.length; i++) {
+      for (let j = 0; j < board[i].length; j++) {
+        const value = board[i][j].valueOf();
+        sum = sum * 3 + value;
+      }
+    }
+    return sum;
+  }
+
+  const winnerHashTable = { ... }
+
+  ```
+
+- 도서의 풀이 2: 마지막 움직임을 알고 있는 경우
+  - 마지막 수의 위치와 Piece를 알 수 있다면, 그 위치를 기준으로 가로, 세로, 대각선을 검사하면 된다.
+
+  ```ts
+  const Piece = {
+    Empty: 0,
+    Red: 1,
+    Blue: 2,
+  } as const;
+
+  type Piece = (typeof Piece)[keyof typeof Piece];
+
+  function hasWon(board: Piece[][], row: number, column: number): Piece {
+    if (board.length !== board[0].length) return Piece.Empty;
+
+    const piece = board[row][column];
+
+    if (piece === Piece.Empty) return Piece.Empty;
+
+    if (hasWonRow(board, row) || hasWonColumn(board, column)) {
+      return piece;
+    }
+
+    if (row === column && hasWonDiagonal(board, 1)) {
+      return piece;
+    }
+
+    if (row === board.length - column - 1 && hasWonDiagonal(board, -1)) {
+      return piece;
+    }
+
+    return Piece.Empty;
+  }
+
+  function hasWonRow(board: Piece[][], row: number): boolean {
+    for (let c = 1; c < board[row].length; c++) {
+      if (board[row][c] !== board[row][0]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function hasWonColumn(board: Piece[][], column: number): boolean {
+    for (let r = 1; r < board.length; r++) {
+      if (board[r][column] !== board[0][column]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function hasWonDiagonal(board: Piece[][], direction: number): boolean {
+    let row = 0;
+    let column = direction == 1 ? 0 : board.length - 1;
+    let first = board[0][column];
+    for (let i = 0; i < board.length; i++) {
+      if (board[row][column] !== first) {
+        return false;
+      }
+      row += 1;
+      column += direction;
+    }
+    return true;
+  }
+  ```
+
+- 도서의 풀이 3: 3x3 게임판만 고려한 설계
+
+  ```ts
+  const Piece = {
+    Empty: 0,
+    Red: 1,
+    Blue: 2,
+  } as const;
+
+  type Piece = (typeof Piece)[keyof typeof Piece];
+
+  function hasWon(board: Piece[][]): Piece {
+    for (let i = 0; i < board.length; i++) {
+      if (hasWinner(board[i][0], board[i][1], board[i][2])) {
+        return board[i][0];
+      }
+
+      if (hasWinner(board[0][i], board[1][i], board[2][i])) {
+        return board[0][i];
+      }
+    }
+
+    if (hasWinner(board[0][0], board[1][1], board[2][2])) {
+      return board[0][0];
+    }
+
+    if (hasWinner(board[0][2], board[1][1], board[2][0])) {
+      return board[0][2];
+    }
+
+    return Piece.Empty;
+  }
+
+  function hasWinner(p1: Piece, p2: Piece, p3: Piece): boolean {
+    if (p1 === Piece.Empty) {
+      return false;
+    }
+    return p1 === p2 && p2 === p3;
+  }
+  ```
+
+- 도서의 풀이 4: NxN 게임판을 고려한 설계
+  - for 루프 사용
+
+    ```ts
+    function hasWon(board: Piece[][]): Piece {
+      const size = board.length;
+      if (board[0].length !== size) return Piece.Empty;
+      let first: Piece;
+
+      for (let i = 0; i < size; i++) {
+        first = board[i][0];
+        if (first === Piece.Empty) continue;
+        for (let j = 1; j < size; j++) {
+          if (board[i][j] !== first) {
+            break;
+          } else if (j === size - 1) {
+            return first;
+          }
+        }
+      }
+
+      for (let i = 0; i < size; i++) {
+        first = board[0][i];
+        if (first === Piece.Empty) continue;
+        for (let j = 1; j < size; j++) {
+          if (board[j][i] !== first) {
+            break;
+          } else if (j === size - 1) {
+            return first;
+          }
+        }
+      }
+
+      first = board[0][0];
+      if (first !== Piece.Empty) {
+        for (let i = 1; i < size; i++) {
+          if (board[i][i] !== first) {
+            break
+          } else if (i === size - 1) {
+            return first;
+          }
+        }
+      }
+
+      first = board[0][size - 1];
+      if (first !== Piece.Empty) {
+        for (let i = 1; i < size; i++) {
+          if (board[i][size - i - 1] !== first) {
+            break;
+          } else if (i === size - 1) {
+            return first;
+          }
+        }
+      }
+      
+      return Piece.Empty;
+    }
+    ```
+
+  - 증가 및 감소 함수
+
+    ```ts
+    class Check {
+      row: number;
+      column: number;
+      rowIncrement: number;
+      columnIncrement: number;
+
+      constructor(row: number, column: number, rowI: number, colI: number) {
+        this.row = row;
+        this.column = column;
+        this.rowIncrement = rowI;
+        this.columnIncrement = colI;
+      }
+
+      increment(): void {
+        this.row += this.rowIncrement;
+        this.column += this.columnIncrement;
+      }
+
+      inBounds(size: number): boolean {
+        return (
+          this.row >= 0 && this.row < size && this.column >= 0 && this.column < size
+        );
+      }
+    }
+
+    function hasWon(board: Piece[][]): Piece {
+      if (board.length !== board[0].length) return Piece.Empty;
+      const size = board.length;
+
+      const instructions = new Array<Check>();
+      for (let i = 0; i < board.length; i++) {
+        instructions.push(new Check(0, i, 1, 0));
+        instructions.push(new Check(i, 0, 0, 1));
+      }
+      instructions.push(new Check(0, 0, 1, 1));
+      instructions.push(new Check(0, size - 1, 1, -1));
+
+      for (const instr of instructions) {
+        const winner = hasWonHelper(board, instr);
+        if (winner !== Piece.Empty) {
+          return winner;
+        }
+      }
+      return Piece.Empty;
+    }
+
+    function hasWonHelper(board: Piece[][], instr: Check): Piece {
+      let first = board[instr.row][instr.column];
+      while (instr.inBounds(board.length)) {
+        if (board[instr.row][instr.column] !== first) {
+          return Piece.Empty;
+        }
+        instr.increment();
+      }
+      return first;
+    }
+    ```
+
+  - 반복자(iterator)
+
+    ```ts
+    class Position {
+      constructor(public row: number, public column: number) {}
+    }
+
+    class PositionIterator implements Iterator<Position> {
+      private rowIncrement: number;
+      private colIncrement: number;
+      private size: number;
+      private current: Position;
+
+      constructor(p: Position, rowIncrement: number, colIncrement: number, size: number) {
+        this.rowIncrement = rowIncrement;
+        this.colIncrement = colIncrement;
+        this.size = size;
+        this.current = new Position(p.row - rowIncrement, p.column - colIncrement);
+      }
+
+      hasNext(): boolean {
+        return this.current.row + this.rowIncrement < this.size && this.current.column + this.colIncrement < this.size;
+      }
+
+      next(...args: [] | [undefined]): IteratorResult<Position, any> {
+        const current = new Position(this.current.row + this.rowIncrement, this.current.column + this.colIncrement);
+        if (current.row >= this.size || current.column >= this.size) {
+          return { done: true, value: undefined };
+        }
+        this.current = current;
+        return { done: false, value: current };
+      }
+
+      return?(value?: any): IteratorResult<Position, any> {
+        if (value) {
+          this.current = value;
+        }
+        return { done: true, value: this.current };
+      }
+
+      throw?(e?: any): IteratorResult<Position, any> {
+        if (e) {
+          throw e;
+        }
+        return { done: true, value: undefined };
+      }
+    }
+
+    function hasWon(board: Piece[][]): Piece {
+      if (board.length !== board[0].length) return Piece.Empty;
+      const size = board.length;
+
+      const instructions: PositionIterator[] = [];
+      for (let i = 0; i < board.length; i++) {
+        instructions.push(new PositionIterator(new Position(0, i), 1, 0, size));
+        instructions.push(new PositionIterator(new Position(i, 0), 0, 1, size));
+      }
+      instructions.push(new PositionIterator(new Position(0, 0), 1, 1, size));
+      instructions.push(new PositionIterator(new Position(0, size - 1), 1, -1, size));
+
+      for (const iterator of instructions) {
+        const winner = hasWonHelper(board, iterator);
+        if (winner !== Piece.Empty) {
+          return winner;
+        }
+      }
+      return Piece.Empty;
+    }
+
+    function hasWonHelper(board: Piece[][], iterator: PositionIterator): Piece {
+      const firstPosition = iterator.next().value;
+      const first = board[firstPosition.row][firstPosition.column];
+      while (iterator.hasNext()) {
+        const position = iterator.next().value;
+        if (board[position.row][position.column] !== first) {
+          return Piece.Empty;
+        }
+      }
+      return first;
+    }
+    ```
+
+16.5 계승(factorial)의 0
+
+- 도서의 풀이 1
+
+  ```ts
+  function factorsOf5(i: number): number {
+    let count = 0;
+    while (i % 5 === 0) {
+      count++;
+      i /= 5;
+    }
+    return count;
+  }
+
+  function countFactZeros(num: number): number {
+    let count = 0;
+    for (let i = 2; i <= num; i++) {
+      count += factorsOf5(i);
+    }
+    return count;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function countFactZeros(num: number): number {
+    let count = 0;
+    if (num < 0) {
+      return -1;
+    }
+    for (let i = 5; Math.floor(num / i) > 0; i *= 5) {
+      count += Math.floor(num / i);
+    }
+    return count;
+  }
+  ```
+
+16.6 최소의 차이
+
+- 정수로 이루어진 두 개의 배열에서 각각 하나의 원소를 선택했을 때, 두 원소의 차이의 절댓값이 최소가 되는 값을 반환하는 함수를 작성하라.
+- 도서의 풀이 1: 무식한 방법
+
+  ```ts
+  function findSmallestDifference(array1: number[], array2: number[]): number {
+    if (array1.length === 0 || array2.length === 0) {
+      return -1;
+    }
+    let min = Number.MAX_SAFE_INTEGER;
+    for (let i = 0; i < array1.length; i++) {
+      for (let j = 0; j < array2.length; j++) {
+        if (Math.abs(array1[i] - array2[j]) < min) {
+          min = Math.abs(array1[i] - array2[j]);
+        }
+      }
+    }
+    return min;
+  }
+  ```
+
+- 도서의 풀이 2: 최적화
+
+  ```ts
+  function findSmallestDifference(array1: number[], array2: number[]): number {
+    array1.sort((a, b) => a - b);
+    array2.sort((a, b) => a - b);
+    let a = 0;
+    let b = 0;
+    let difference = Number.MAX_VALUE;
+    while (a < array1.length && b < array2.length) {
+      if (Math.abs(array1[a] - array2[b]) < difference) {
+        difference = Math.abs(array1[a] - array2[b]);
+      }
+      if (array1[a] < array2[b]) {
+        a++;
+      } else {
+        b++;
+      }
+    }
+    return difference;
+  }
+  ```
