@@ -10735,3 +10735,220 @@ int main() {
     return difference;
   }
   ```
+
+16.7 최대 숫자
+
+- 주어진 두 수의 최댓값을 찾는 메서드를 작성하라.
+- 단, if-else나 비교 연산자는 사용 할 수 없다.
+
+- 도서의 풀이 1(불완전)
+
+  ```ts
+  // 32비트 정수만 가능
+  function flip(bit: number): number {
+    return 1 ^ bit;
+  }
+
+  function sign(a: number): number {
+    return flip((a >> 31) & 0x1);
+  }
+
+  function getMaxNaive(a: number, b: number): number {
+    const k = sign(a - b);
+    const q = flip(k);
+    return a * k + b * q;
+  }
+  ```
+
+- 도서의 풀이 2(오버플로인 경우 해결)
+
+  ```ts
+  function flip(bit: number): number {
+    return 1 ^ bit;
+  }
+
+  function sign(a: number): number {
+    return flip((a >> 31) & 0x1);
+  }
+
+  function getMax(a: number, b: number): number {
+    const c = a - b;
+
+    const sa = sign(a); // a의 부호가 양수인가?
+    const sb = sign(b); // b의 부호가 양수인가?
+    const sc = sign(c); // 오버플로로 인해 불확실한 값
+
+    const useSignOfA = sa ^ sb; // a와 b의 부호가 다른가?
+
+    const useSignOfC = flip(sa ^ sb); // a와 b의 부호가 같은가?
+
+    // a와 b의 부호가 다르면 k는 a의 부호를 따르고, a와 b의 부호가 같으면 k는 c의 부호를 따른다.
+    const k = useSignOfA * sa + useSignOfC * sc;
+    const q = flip(k); // k의 반대 부호
+
+    return a * k + b * q;
+  }
+  ```
+
+16.8 정수를 영어로
+
+- 정수가 주어졌을 때, 이 숫자를 영어 구문으로 표현해주는 프로그램을 작성하라.
+- ex) 1000 -> 'One Thousand', 234 -> 'Two Hundred Thirty Four'
+
+- 도서의 풀이
+
+  ```ts
+  const smalls = [
+    'Zero',
+    'One',
+    'Two',
+    'Three',
+    'Four',
+    'Five',
+    'Six',
+    'Seven',
+    'Eight',
+    'Nine',
+    'Ten',
+    'Eleven',
+    'Twelve',
+    'Thirteen',
+    'Fourteen',
+    'Fifteen',
+    'Sixteen',
+    'Seventeen',
+    'Eighteen',
+    'Nineteen',
+  ];
+
+  const tens = [
+    '',
+    '',
+    'Twenty',
+    'Thirty',
+    'Forty',
+    'Fifty',
+    'Sixty',
+    'Seventy',
+    'Eighty',
+    'Ninety',
+  ];
+
+  const bigs = ['', 'Thousand', 'Million', 'Billion'];
+
+  const hundred = 'Hundred';
+
+  const negative = 'Negative';
+
+  function convert(num: number): string {
+    if (num === 0) return smalls[0];
+    else if (num < 0) return negative + ' ' + convert(-1 * num);
+    const parts = [] as string[];
+    let chunkCount = 0;
+
+    while (num > 0) {
+      if (num % 1000 !== 0) {
+        const chunk = convertChunk(num % 1000) + ' ' + bigs[chunkCount];
+        parts.unshift(chunk);
+      }
+      num = Math.floor(num / 1000);
+      chunkCount++;
+    }
+    return parts.join(' ');
+  }
+
+  function convertChunk(number: number): string {
+    const parts = [] as string[];
+
+    if (number >= 100) {
+      parts.push(smalls[Math.floor(number / 100)]);
+      parts.push(hundred);
+      number %= 100;
+    }
+
+    if (number >= 10 && number <= 19) {
+      parts.push(smalls[number]);
+    } else if (number >= 20) {
+      parts.push(tens[Math.floor(number / 10)]);
+      number %= 10;
+    }
+
+    if (number >= 1 && number <= 9) {
+      parts.push(smalls[number]);
+    }
+
+    return parts.join(' ');
+  }
+  ```
+
+16.9 연산자
+
+- 덧셈 연산자만을 사용해서 정수에 대한 곱셈, 뺄셈, 나눗셈 연산을 수행하는 메서드를 작성하라.
+- 단, 결과는 모두 정수가 되어야 한다.
+
+- 도서의 풀이
+
+  ```ts
+  function negate(a: number): number {
+    let neg = 0;
+    const newSign = a < 0 ? 1 : -1;
+    let delta = newSign;
+    while (a !== 0) {
+      let differentSigns = (a + delta > 0) !== (a > 0);
+      if (a + delta !== 0 && differentSigns) {
+        delta = newSign; // delta가 너무 크다면 다시 1로 초기화
+      }
+      neg += delta;
+      a += delta;
+      delta += delta; // delta를 2배씩 증가시킴
+    }
+    return neg;
+  }
+
+  function minus(a: number, b: number): number {
+    return a + negate(b);
+  }
+
+  function multiply(a: number, b: number): number {
+    if (a < b) {
+      return multiply(b, a); // b가 더 작은 경우에 알고리즘이 더 빠름.
+    }
+    let sum = 0;
+    for (let i = abs(b); i > 0; i = minus(i, 1)) {
+      sum += a;
+    }
+    if (b < 0) {
+      sum = negate(sum);
+    }
+    return sum;
+  }
+
+  function abs(a: number): number {
+    if (a < 0) {
+      return negate(a);
+    } else {
+      return a;
+    }
+  }
+
+  function divide(a: number, b: number): number {
+    if (b === 0) {
+      throw new Error('Division by zero.');
+    }
+    const absA = abs(a);
+    const absB = abs(b);
+
+    let product = 0;
+    let x = 0;
+    while (product + absB <= absA) {
+      product += absB;
+      x++;
+    }
+
+    if ((a < 0 && b < 0) || (a > 0 && b > 0)) {
+      return x;
+    } else {
+      return negate(x);
+    }
+  }
+  ```
