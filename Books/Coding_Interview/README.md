@@ -11163,3 +11163,245 @@ int main() {
 16.12 XML 인코딩
 
 - 생략
+
+16.13 정사각형 절반으로 나누기
+
+- 도서의 풀이
+
+  ```ts
+  class Point {
+    constructor(public x: number, public y: number) {}
+  }
+
+  class Line {
+    constructor(public start: Point, public end: Point) {}
+  }
+
+  class Square {
+    constructor(
+      public left: number,
+      public top: number,
+      public right: number,
+      public bottom: number
+    ) {}
+
+    size(): number {
+      return this.right - this.left;
+    }
+
+    middle(): Point {
+      return new Point(
+        (this.left + this.right) / 2,
+        (this.top + this.bottom) / 2
+      );
+    }
+
+    extend(mid1: Point, mid2: Point, size: number): Point {
+      const xDir = mid1.x < mid2.x ? -1 : 1;
+      const yDir = mid1.y < mid2.y ? -1 : 1;
+
+      if (mid1.x === mid2.x) {
+        return new Point(mid1.x, mid1.y + yDir * size / 2);
+      }
+
+      const slope = (mid1.y - mid2.y) / (mid1.x - mid2.x);
+      let x1 = 0;
+      let y1 = 0;
+      if (Math.abs(slope) === 1) {
+        x1 = mid1.x + xDir * size / 2;
+        y1 = mid1.y + yDir * size / 2;
+      } else if (Math.abs(slope) < 1) {
+        x1 = mid1.x + xDir * size / 2;
+        y1 = slope * (x1 - mid1.x) + mid1.y;
+      } else {
+        y1 = mid1.y + yDir * size / 2;
+        x1 = (y1 - mid1.y) / slope + mid1.x;
+      }
+      return new Point(x1, y1);
+    }
+
+    cut(other: Square): Line {
+      const p1 = this.extend(this.middle(), other.middle(), this.size());
+      const p2 = this.extend(this.middle(), other.middle(), -1 * this.size());
+      const p3 = this.extend(other.middle(), this.middle(), other.size());
+      const p4 = this.extend(other.middle(), this.middle(), -1 * other.size());
+
+      let start = p1;
+      let end = p1;
+      const points = [p2, p3, p4];
+      for (let i = 0; i < points.length; i++) {
+        if (points[i].x < start.x ||
+          (points[i].x === start.x && points[i].y < start.y)) {
+            start = points[i];
+          } else if (points[i].x > end.x ||
+            (points[i].x === end.x && points[i].y > end.y)) {
+              end = points[i];
+            }
+      }
+      return new Line(start, end);
+    }
+  }
+  ```
+
+16.14 최고의 직선
+
+- 2차원 평면 위에 점이 여러 개 찍혀 있을 때, 가장 많은 수의 점을 동시에 지나는 직선을 구하라.
+
+- 도서의 풀이
+
+  ```ts
+  function findBestLine(points: GraphPoint[]): Line {
+    const linesBySlope = getListOfLines(points);
+    return getBestLine(linesBySlope);
+  }
+
+  function getListOfLines(points: GraphPoint[]): Map<number, Line[]> {
+    const linesBySlope = new Map<number, Line[]>();
+    for (let i = 0; i < points.length; i++) {
+      for (let j = i + 1; j < points.length; j++) {
+        const line = new Line(points[i], points[j]);
+        const key = Line.floorToNearestEpsilon(line.slope);
+        linesBySlope.set(key, [...(linesBySlope.get(key) || []), line]);
+      }
+    }
+    return linesBySlope;
+  }
+
+  function getBestLine(linesBySlope: Map<number, Line[]>): Line {
+    let bestLine = null as Line | null;
+    let bestCount = 0;
+
+    const slopes = linesBySlope.keys();
+
+    for (const slope of slopes) {
+      const lines = linesBySlope.get(slope)!;
+      for (const line of lines) {
+        const count = countEquivalentLines(linesBySlope, line);
+        if (count > bestCount) {
+          bestLine = line;
+          bestCount = count;
+          bestLine.print();
+          console.log(bestCount);
+        }
+      }
+    }
+    return bestLine!;
+  }
+
+  function countEquivalentLines(linesBySlope: Map<number, Line[]>, line: Line): number {
+    const key = Line.floorToNearestEpsilon(line.slope);
+    let count = countEquivalentLinesHelper(linesBySlope.get(key) as Line[], line);
+    count += countEquivalentLinesHelper(linesBySlope.get(key - Line.epsilon) as Line[], line);
+    count += countEquivalentLinesHelper(linesBySlope.get(key + Line.epsilon) as Line[], line);
+    return count;
+  }
+
+  function countEquivalentLinesHelper(lines: Line[], line: Line): number {
+    if (lines === null || lines === undefined) return 0;
+    let count = 0;
+    for (const parallelLine of lines) {
+      if (parallelLine.isEquivalent(line)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  class Line {
+    static epsilon = 0.0001;
+    slope: number;
+    intercept: number;
+    private infiniteSlope = false;
+
+    constructor(p: GraphPoint, q: GraphPoint) {
+      if (Math.abs(p.x - q.x ) > Line.epsilon) {
+        this.slope = (p.y - q.y) / (p.x - q.x);
+        this.intercept = p.y - this.slope * p.x;
+      } else {
+        this.slope = Number.MAX_VALUE;
+        this.infiniteSlope = true;
+        this.intercept = p.x;
+      }
+    }
+
+    static floorToNearestEpsilon(d: number): number {
+      const r = d / Line.epsilon;
+      return r * Line.epsilon;
+    }
+
+    isEquivalentValue(a: number, b: number): boolean {
+      return Math.abs(a - b) < Line.epsilon;
+    }
+
+    isEquivalent(line: Line): boolean {
+      if (this.isEquivalentValue(this.slope, line.slope) && this.isEquivalentValue(this.intercept, line.intercept) && this.infiniteSlope === line.infiniteSlope) {
+        return true;
+      }
+      return false;
+    }
+
+    print(): void {
+      console.log(`y = ${this.slope}x + ${this.intercept}`);
+    }
+  }
+
+  class GraphPoint {
+    constructor(public x: number, public y: number) {}
+  }
+  ```
+
+16.15 Master Mind
+
+- 도서의 풀이
+
+  ```ts
+  class Result {
+    hits = 0;
+    pseudoHits = 0;
+
+    toString(): string {
+      return `(${this.hits}, ${this.pseudoHits})`
+    }
+  }
+
+  function getCode(c: string): number {
+    switch (c) {
+      case 'B':
+        return 0;
+      case 'G':
+        return 1;
+      case 'R':
+        return 2;
+      case 'Y':
+        return 3;
+      default:
+        return -1;
+    }
+  }
+
+  const MAX_COLORS = 4;
+
+  function estimate(guess: string, solution: string): Result {
+    if (guess.length !== solution.length) throw new Error('Invalid guess');
+    const res = new Result();
+    const frequencies = new Array(MAX_COLORS).fill(0);
+
+    for (let i = 0; i < guess.length; i++) {
+      if (guess.charAt(i) === solution.charAt(i)) {
+        res.hits++;
+      } else {
+        const code = getCode(solution.charAt(i));
+        frequencies[code]++;
+      }
+    }
+
+    for (let i = 0; i < guess.length; i++) {
+      const code = getCode(guess.charAt(i));
+      if (code >= 0 && frequencies[code] >0 && guess.charAt(i) !== solution.charAt(i)) {
+        res.pseudoHits++;
+        frequencies[code]--;
+      }
+    }
+    return res;
+  }
+  ```
