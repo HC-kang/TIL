@@ -10952,3 +10952,214 @@ int main() {
     }
   }
   ```
+
+16.10 살아 있는 사람
+
+- 사람의 출생년도와 사망년도가 리스트로 주어졌을 때, 가장 많은 사람이 동시에 살았던 연도를 찾는 메서드를 작성하라.
+- 해당 연도의 일부에만 살아있더라도 살아있던 것으로 간주한다.
+- 도서의 풀이 1(무식한 방법)
+
+  ```ts
+  class Person {
+    constructor(
+      public birth: number,
+      public death: number,
+    ) {}
+  }
+
+  function maxAliveYear(people: Person[], min: number, max: number): number {
+    let maxAlive = 0;
+    let maxAliveYear = min;
+
+    for (let year = min; year <= max; year++) {
+      let alive = 0;
+      for (const person of people) {
+        if (person.birth <= year && year <= person.death) {
+          alive++;
+        }
+      }
+      if (alive > maxAlive) {
+        maxAlive = alive;
+        maxAliveYear = year;
+      }
+
+    }
+    return maxAliveYear;
+  }
+  ```
+
+- 도서의 풀이 2(조금 나은 방법)
+
+  ```ts
+  function maxAliveYear(people: Person[], min: number, max: number): number {
+    const years = createYearMap(people, min, max);
+    const best = getMaxIndex(years);
+    return best + min;
+  }
+
+  function createYearMap(people: Person[], min: number, max: number): number[] {
+    const years = new Array(max - min + 2).fill(0);
+    for (const person of people) {
+      incrementRange(years, person.birth - min, person.death - min);
+    }
+    return years;
+  }
+
+  function incrementRange(values: number[], left: number, right: number) {
+    for (let i = left; i <= right; i++) {
+      values[i]++;
+    }
+  }
+
+  function getMaxIndex(values: number[]): number {
+    let max = 0;
+    for (let i = 1; i < values.length; i++) {
+      if (values[i] > values[max]) {
+        max = i;
+      }
+    }
+    return max;
+  }
+  ```
+
+- 도서의 풀이 3(조금 더 개선)
+
+  ```ts
+  function maxAliveYear(people: Person[], min: number, max: number): number {
+    const births = getSortedYears(people, true);
+    const deaths = getSortedYears(people, false);
+
+    let birthIndex = 0;
+    let deathIndex = 0;
+    let currentlyAlive = 0;
+    let maxAlive = 0;
+    let maxAliveYear = min;
+
+    while (birthIndex < births.length) {
+      if (births[birthIndex] <= deaths[deathIndex]) { // <=가 중요, 같은 해에 태어나고 죽은 사람도 있을 수 있음
+        currentlyAlive++;
+        if (currentlyAlive > maxAlive) {
+          maxAlive = currentlyAlive;
+          maxAliveYear = births[birthIndex];
+        }
+        birthIndex++;
+      } else if (births[birthIndex] > deaths[deathIndex]) {
+        currentlyAlive--;
+        deathIndex++;
+      }
+    }
+    return maxAliveYear;
+  }
+
+  function getSortedYears(people: Person[], copyBirthYear: boolean): number[] {
+    const years = [] as number[];
+    for (let i = 0; i < people.length; i++) {
+      years[i] = copyBirthYear ? people[i].birth : people[i].death;
+    }
+    return years.sort((a, b) => a - b);
+  }
+  ```
+
+- 도서의 풀이 4(최적화)
+
+  ```ts
+  function maxAliveYear(people: Person[], min: number, max: number): number {
+    const populationDeltas = getPopulationDeltas(people, min, max);
+    const maxAliveYear = getMaxAliveYear(populationDeltas);
+    return maxAliveYear + min;
+  }
+
+  function getPopulationDeltas(
+    people: Person[],
+    min: number,
+    max: number
+  ): number[] {
+    const populationDeltas = new Array(max - min + 2).fill(0);
+    for (const person of people) {
+      const birth = person.birth - min;
+      populationDeltas[birth]++;
+      const death = person.death - min;
+      populationDeltas[death + 1]--;
+    }
+    return populationDeltas;
+  }
+
+  function getMaxAliveYear(deltas: number[]): number {
+    let maxAliveYear = 0;
+    let maxAlive = 0;
+    let currentlyAlive = 0;
+    for (let year = 0; year < deltas.length; year++) {
+      currentlyAlive += deltas[year];
+      if (currentlyAlive > maxAlive) {
+        maxAliveYear = year;
+        maxAlive = currentlyAlive;
+      }
+    }
+
+    return maxAliveYear;
+  }
+  ```
+
+16.11 다이빙 보드
+
+- 도서의 풀이 1(재귀)
+
+  ```ts
+  function allLengths(k: number, shorter: number, longer: number): Set<number> {
+    const lengths = new Set<number>();
+    getAllLengths(k, 0, shorter, longer, lengths);
+    return lengths;
+  }
+
+  function getAllLengths(k: number, total: number, shorter: number, longer: number, lengths: Set<number>): void {
+    if (k === 0) {
+      lengths.add(total);
+      return;
+    }
+    getAllLengths(k - 1, total + shorter, shorter, longer, lengths);
+    getAllLengths(k - 1, total + longer, shorter, longer, lengths);
+  }
+  ```
+
+- 도서의 풀이 2(메모이제이션)
+
+  ```ts
+  function allLengths(k: number, shorter: number, longer: number): Set<number> {
+    const lengths = new Set<number>();
+    const visited = new Set<string>();
+    getAllLengths(k, 0, shorter, longer, lengths, visited);
+    return lengths;
+  }
+
+  function getAllLengths(k: number, total: number, shorter: number, longer: number, lengths: Set<number>, visited: Set<string>): void {
+    if (k === 0) {
+      lengths.add(total);
+      return;
+    }
+    const key = `${k} ${total}`;
+    if (visited.has(key)) {
+      return;
+    }
+    getAllLengths(k - 1, total + shorter, shorter, longer, lengths, visited);
+    getAllLengths(k - 1, total + longer, shorter, longer, lengths, visited);
+    visited.add(key);
+  }
+  ```
+
+- 도서의 풀이 3(최적)
+
+  ```ts
+  function allLengths(k: number, shorter: number, longer: number): Set<number> {
+    const lengths = new Set<number>();
+    for (let nShorter = 0; nShorter <= k; nShorter++) {
+      const nLonger = k - nShorter;
+      const length = nShorter * shorter + nLonger * longer;
+      lengths.add(length);
+    }
+    return lengths;
+  }
+  ```
+
+16.12 XML 인코딩
+
+- 생략
