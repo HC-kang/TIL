@@ -11405,3 +11405,260 @@ int main() {
     return res;
   }
   ```
+
+16.16 부분 정렬
+
+- 정수 배열이 주어졌을 때, m부터 n까지 원소만 정렬하면 전체 배열이 정렬되는 인덱스 m과 n을 찾으라.
+- 단, n-m을 최소화해야 한다.
+- 도서의 풀이
+
+  ```ts
+  function findUnsortedSequence(array: number[]): void {
+    const endLeft = findEndOfLeftSubsequence(array);
+    if (endLeft >= array.length - 1) return; // 이미 정렬되어 있음
+
+    const startRight = findStartOfRightSubsequence(array);
+    // startRight가 0이면 이미 3번 라인에서 return 되었을 것
+
+    let maxIndex = endLeft; 
+    let minIndex = startRight;
+    // 정렬이 흐트러진 부분에서 최소값과 최대값을 찾는다.
+    for (let i = endLeft + 1; i < startRight; i++) {
+      if (array[i] < array[minIndex]) minIndex = i;
+      if (array[i] > array[maxIndex]) maxIndex = i;
+    }
+
+    // 정렬이 흐트러진 부분의 최소값과 최대값을 기준으로 좌우로 확장
+    let leftIndex = shrinkLeft(array, minIndex, endLeft);
+    let rightIndex = shrinkRight(array, maxIndex, startRight);
+
+    console.log(leftIndex, rightIndex);
+  }
+
+  function findEndOfLeftSubsequence(array: number[]): number {
+    // 첫번째로 오름차순이 깨지는 지점을 찾는다.
+    for (let i = 1; i < array.length; i++) {
+      if (array[i] < array[i - 1]) return i - 1;
+    }
+    // 오름차순이 깨지지 않으면 마지막 인덱스를 반환
+    return array.length - 1;
+  }
+
+  function findStartOfRightSubsequence(array: number[]): number {
+    // 마지막으로 내림차순이 깨지는 지점을 찾는다.
+    for (let i = array.length - 2; i >= 0; i--) {
+      if (array[i] > array[i + 1]) return i + 1;
+    }
+    // 내림차순이 깨지지 않으면 0을 반환
+    return 0;
+  }
+
+  function shrinkLeft(array: number[], minIndex: number, start: number): number {
+    const comp = array[minIndex];
+    for (let i = start - 1; i >= 0; i--) {
+      if (array[i] <= comp) return i + 1;
+    }
+    return 0;
+  }
+
+  function shrinkRight(array: number[], maxIndex: number, start: number): number {
+    const comp = array[maxIndex];
+    for (let i = start; i < array.length; i++) {
+      if (array[i] >= comp) return i - 1;
+    }
+    return array.length - 1;
+  }
+  ```
+
+16.17 연속 수열
+
+- 정수 배열이 주어졌을 때, 연속한 합이 가장 큰 수열을 찾고 그 합을 반환
+
+- 도서의 풀이
+
+  ```ts
+  function getMaxSum(a: number[]): number {
+    let maxSum = 0;
+    let sum = 0;
+    for (let i = 0; i < a.length; i++) {
+      sum += a[i];
+      if (maxSum < sum) {
+        maxSum = sum;
+      } else if (sum < 0) {
+        sum = 0;
+      }
+    }
+    return maxSum;
+  }
+  ```
+
+16.18 패턴 매칭
+
+- 패턴 문자열과 일반 문자열 두 개가 주어진다.
+- 패턴 문자열은 a, b로만 구성되어있고 일반 문자열을 표현하는 역할을 한다.
+  - 예를 들면, 일반 문자열 'catcatgocatgo'은  'aabab'패턴과 일치한다.
+
+- 도서의 풀이 1(무식한 풀이)
+
+  ```ts
+  function doesMatch(pattern: string, value: string): boolean {
+    if (pattern.length === 0) return value.length === 0; // 길이가 0이면 true
+
+    const size = value.length;
+    // mainSize를 찾기위해 순회
+    for (let mainSize = 0; mainSize < size; mainSize++) {
+      const main = value.substring(0, mainSize);
+      // altSize를 찾기위해 순회
+      for (let altStart = mainSize; altStart <= size; altStart++) {
+        for (let altEnd = altStart; altEnd <= size; altEnd++) {
+          const alt = value.substring(altStart, altEnd);
+          // pattern과 같은지 확인
+          const cand = buildFromPattern(pattern, main, alt);
+          if (cand === value) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  function buildFromPattern(pattern: string, main: string, alt: string): string {
+    let result = '';
+    const first = pattern.charAt(0);
+    for (const c of pattern) {
+      if (c === first) {
+        result += main;
+      } else {
+        result += alt;
+      }
+    }
+    return result;
+  }
+  ```
+
+- 도서의 풀이 2(약간의 최적화)
+  
+  ```ts
+  function doesMatch(pattern: string, value: string): boolean {
+    if (pattern.length === 0) return value.length === 0;
+
+    const mainChar = pattern.charAt(0);
+    const altChar = mainChar === 'a' ? 'b' : 'a';
+    const size = value.length;
+
+    const countOfMain = countOf(pattern, mainChar);
+    const countOfAlt = pattern.length - countOfMain;
+    const firstAlt = pattern.indexOf(altChar);
+    // main의 최대 길이를 대략적으로 구함
+    const maxMainSize = Math.floor(size / countOfMain);
+
+    for (let mainSize = 0; mainSize <= maxMainSize; mainSize++) {
+      const remainingLength = size - mainSize * countOfMain;
+      const first = value.substring(0, mainSize);
+      // alt의 길이가 0이거나, alt의 길이로 나누어 떨어지면
+      if (countOfAlt === 0 || remainingLength % countOfAlt === 0) {
+        const altIndex = firstAlt * mainSize;
+        const altSize =
+          countOfAlt === 0 ? 0 : Math.floor(remainingLength / countOfAlt);
+        const second =
+          countOfAlt === 0 ? '' : value.substring(altIndex, altSize + altIndex);
+
+        const cand = buildFromPattern(pattern, first, second);
+        if (cand === value) return true;
+      }
+    }
+    return false;
+  }
+
+  function countOf(pattern: string, c: string): number {
+    let count = 0;
+    for (let i = 0; i < pattern.length; i++) {
+      if (pattern.charAt(i) === c) count++;
+    }
+    return count;
+  }
+
+  function buildFromPattern(pattern: string, main: string, alt: string): string {
+    let result = '';
+    const first = pattern.charAt(0);
+    for (const c of pattern) {
+      if (c === first) {
+        result += main;
+      } else {
+        result += alt;
+      }
+    }
+    return result;
+  }
+  ```
+
+- 도서의 풀이 3(최적화)
+
+  ```ts
+  function doesMatch(pattern: string, value: string): boolean {
+    if (pattern.length === 0) return value.length === 0;
+
+    const mainChar = pattern.charAt(0);
+    const altChar = mainChar === 'a' ? 'b' : 'a';
+    const size = value.length;
+
+    const countOfMain = countOf(pattern, mainChar);
+    const countOfAlt = pattern.length - countOfMain;
+    const firstAlt = pattern.indexOf(altChar);
+    const maxMainSize = Math.floor(size / countOfMain);
+
+    for (let mainSize = 0; mainSize <= maxMainSize; mainSize++) {
+      const remainingLength = size - mainSize * countOfMain;
+      if (countOfAlt === 0 || remainingLength % countOfAlt === 0) {
+        const altIndex = firstAlt * mainSize;
+        const altSize = countOfAlt === 0 ? 0 : remainingLength / countOfAlt;
+        if (matches(pattern, value, mainSize, altSize, altIndex)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function matches(
+    pattern: string,
+    value: string,
+    mainSize: number,
+    altSize: number,
+    firstAlt: number
+  ): boolean {
+    let stringIndex = mainSize;
+    for (let i = 1; i < pattern.length; i++) {
+      const size = pattern.charAt(i) === pattern.charAt(0) ? mainSize : altSize;
+      const offset = pattern.charAt(i) === pattern.charAt(0) ? 0 : firstAlt;
+      if (!isEqual(value, offset, stringIndex, size)) {
+        return false;
+      }
+      stringIndex += size;
+    }
+    return true;
+  }
+
+  function isEqual(
+    s1: string,
+    offset1: number,
+    offset2: number,
+    size: number
+  ): boolean {
+    for (let i = 0; i < size; i++) {
+      if (s1.charAt(offset1 + i) !== s1.charAt(offset2 + i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function countOf(pattern: string, c: string): number {
+    let count = 0;
+    for (let i = 0; i < pattern.length; i++) {
+      if (pattern.charAt(i) === c) count++;
+    }
+    return count;
+  }
+  ```
