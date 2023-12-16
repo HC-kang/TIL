@@ -12251,3 +12251,475 @@ int main() {
     }
   }
   ```
+
+16.23 Rand5로부터 Rand7
+
+- rand5()를 사용해서 rand7()을 구현하라.
+
+- 도서의 풀이 1(호출 횟수 고정 - 오답)
+
+  ```ts
+  function rand7() {
+    const v = rand5() + rand5();
+    return v % 7;
+  }
+  ```
+
+  - 결과
+    > 0: 11.9908%,  
+    > 1: 11.9788%,  
+    > 2: 11.991%,  
+    > 3: 16.0459%,  
+    > 4: 20.0421%,  
+    > 5: 16.0114%,  
+    > 6: 11.94%
+
+- 도서의 풀이 2(호출 횟수 미정)
+
+  ```ts
+  function rand7() {
+    while (true) {
+      const num = 5 * rand5() + rand5();
+      if (num < 21) return num % 7;
+    }
+  }
+  ```
+
+  - 결과
+    > 0: 14.2154%,  
+    > 1: 14.2508%,  
+    > 2: 14.3691%,  
+    > 3: 14.2863%,  
+    > 4: 14.2799%,  
+    > 5: 14.2993%,  
+    > 6: 14.2992%
+
+- 도서의 풀이 3( 2 * rand5 사용)
+
+  ```ts
+  function rand7() {
+    while (true) {
+      const r1 = 2 * rand5(); // 짝수 0, 2, 4, 6, 8
+      const r2 = rand5();
+      if (r2 !== 4) {
+        const rand1 = r2 % 2; // 0 or 1 생성
+        const num = r1 + rand1;
+        if (num < 7) return num;
+      }
+    }
+  }
+  ```
+
+  - 결과
+    > 0: 14.2564%,  
+    > 1: 14.2895%,  
+    > 2: 14.3248%,  
+    > 3: 14.2303%,  
+    > 4: 14.2637%,  
+    > 5: 14.355%,  
+    > 6: 14.2803%
+
+16.24 합이 되는 쌍
+
+- 정수형 배열이 주어졌을 때, 두 원소의 합이 특정 값이 되는 모든 원소쌍을 반환하는 알고리즘을 설계하라.
+
+- 도서의 풀이 1(무식한 방법)
+
+  ```ts
+  class Pair {
+    constructor(public first: number, public second: number) {}
+  }
+
+  function printPairSums(arr: number[], sum: number): Pair[] {
+    const result: Pair[] = [];
+    for (let i = 0; i < arr.length; i++) {
+      for (let j = i + 1; j < arr.length; j++) {
+        if (arr[i] + arr[j] === sum) {
+          result.push(new Pair(arr[i], arr[j]));
+        }
+      }
+    }
+    return result;
+  }
+  ```
+
+- 도서의 풀이 2(최적화, 해시맵)
+
+  ```ts
+  class Pair {
+    constructor(public first: number, public second: number) {}
+  }
+
+  function printPairSums(arr: number[], sum: number): Pair[] {
+    const result: Pair[] = [];
+    const unpairedCount = new Map<number, number>();
+    for (const x of arr) {
+      const complement = sum - x;
+      if (unpairedCount.get(complement) || 0 > 0) {
+        result.push(new Pair(x, complement));
+        adjustCounterBy(unpairedCount, complement, -1);
+      } else {
+        adjustCounterBy(unpairedCount, x, 1);
+      }
+    }
+    return result;
+  }
+
+  function adjustCounterBy(counter: Map<number, number>, key: number, delta: number): void {
+    counter.set(key, (counter.get(key) || 0) + delta);
+  }
+  ```
+
+- 도서의 풀이 3(정렬)
+
+  ```ts
+  function printPairSums(arr: number[], sum: number): void {
+    arr.sort((a, b) => a - b);
+    let first = 0;
+    let last = arr.length - 1;
+    while (first < last) {
+      const s = arr[first] + arr[last];
+      if (s === sum) {
+        console.log(arr[first], arr[last]);
+        first++;
+        last--;
+      } else {
+        if (s < sum) first++;
+        else last--;
+      }
+    }
+  }
+  ```
+
+16.25 LRU 캐시
+
+- 가장 오래된 아이템을 제거하는 '최저 사용 빈도(least recently used)'캐시를 설계하고 구현하라.
+- 캐시는 특정 키와 연관된 값을 입력하거나 읽어 들일 수 있어야 하며, 그 크기는 최대로 초기화되어있다.
+- 캐시가 꽉 차면 가장 오래된 아이템을 제거하고 새로운 아이템을 캐시에 추가한다.
+
+- 도서의 풀이
+
+  ```ts
+  class MyCache {
+    private maxCacheSize: number;
+    private map: Map<number, LinkedListNode> = new Map<number, LinkedListNode>();
+    private listHead: LinkedListNode | null = null;
+    private listTail: LinkedListNode | null = null;
+
+    constructor(maxCacheSize: number) {
+      this.maxCacheSize = maxCacheSize;
+    }
+
+    public getValue(key: number): string | null {
+      const item = this.map.get(key) || null;
+      if (item === null) return null;
+      if (item !== this.listHead) {
+        this.removeFromLinkedList(item);
+        this.insertAtFrontOfLinkedList(item);
+      }
+      return item.value;
+    }
+
+    private removeFromLinkedList(node: LinkedListNode): void {
+      if (node === null) return;
+      if (node.prev !== null) node.prev.next = node.next;
+      if (node.next !== null) node.next.prev = node.prev;
+      if (node === this.listTail) this.listTail = node.prev;
+      if (node === this.listHead) this.listHead = node.next;
+    }
+
+    private insertAtFrontOfLinkedList(node: LinkedListNode): void {
+      if (this.listHead === null) {
+        this.listHead = node;
+        this.listTail = node;
+      } else {
+        this.listHead.prev = node;
+        node.next = this.listHead;
+        this.listHead = node;
+      }
+    }
+
+    public removeKey(key: number): boolean {
+      const node: LinkedListNode | null = this.map.get(key) || null;
+      if (node === null) return false;
+      this.removeFromLinkedList(node);
+      this.map.delete(key);
+      return true;
+    }
+
+    public setKeyValue(key: number, value: string): void {
+      this.removeKey(key);
+      if (this.map.size >= this.maxCacheSize && this.listTail !== null) {
+        this.removeKey(this.listTail.key);
+      }
+      const node = new LinkedListNode(key, value);
+      this.insertAtFrontOfLinkedList(node);
+      this.map.set(key, node);
+    }
+  }
+
+  class LinkedListNode {
+    public next: LinkedListNode | null = null;
+    public prev: LinkedListNode | null = null;
+
+    constructor(public key: number, public value: string) {}
+  }
+  ```
+
+16.26 계산기
+
+- 양의 정수, +, -, *, /로 구성된 수식을 계산하는 프로그램을 작성하라.
+- 괄호는 없다고 가정하되, 연산자 우선순위를 지켜야 한다.
+
+- 도서의 풀이 1
+
+  ```ts
+  function compute(sequence: string): number {
+    const terms: Term[] = Term.parseTermSequence(sequence);
+    if (terms.length === 0) return Number.NaN;
+
+    let result = 0;
+    let processing: Term | null = null;
+    for (let i = 0; i < terms.length; i++) {
+      const current = terms[i];
+      const next = i + 1 < terms.length ? terms[i + 1] : null;
+
+      processing = collapseTerm(processing, current);
+      if (next === null || next.getOperator() === Operator.ADD || next.getOperator() === Operator.SUBTRACT) {
+        result = applyOp(result, processing!.getOperator(), processing!.getNumber());
+        processing = null;
+      }
+    }
+    return result;
+  }
+
+  function collapseTerm(primary: Term | null, secondary: Term | null): Term | null {
+    if (primary === null) return secondary;
+    if (secondary === null) return primary;
+
+    const value = applyOp(primary.getNumber(), secondary.getOperator(), secondary.getNumber());
+    primary.setNumber(value);
+    return primary;
+  }
+
+  function applyOp(left: number, op: Operator, right: number): number {
+    if (op === Operator.ADD) return left + right;
+    else if (op === Operator.SUBTRACT) return left - right;
+    else if (op === Operator.MULTIPLY) return left * right;
+    else if (op === Operator.DIVIDE) {
+      if (right === 0) {
+        return Number.MIN_SAFE_INTEGER;
+      }
+      return left / right;
+    }
+    else return right;
+    return right;
+  }
+
+  class Operator {
+    public static readonly ADD = 0;
+    public static readonly SUBTRACT = 1;
+    public static readonly MULTIPLY = 2;
+    public static readonly DIVIDE = 3;
+    public static readonly BLANK = 4;
+  }
+
+  class Term {
+    constructor(private v: number, private op: Operator) {}
+
+    public getNumber(): number {
+      return this.v;
+    }
+
+    public getOperator(): Operator {
+      return this.op;
+    }
+
+    public setNumber(v: number): void {
+      this.v = v;
+    }
+
+    public static parseTermSequence(sequence: string): Term[] {
+      const terms: Term[] = [];
+      let offset = 0;
+      while (offset < sequence.length) {
+        let op: Operator = Operator.BLANK;
+        if (offset > 0) {
+          op = Term.parseOperator(sequence[offset]);
+          if (op === Operator.BLANK) {
+            return [];
+          }
+          offset++;
+        }
+        try {
+          let value = Term.parseNextNumber(sequence, offset);
+          offset += value.toString().length;
+          const term = new Term(value, op);
+          terms.push(term);
+        } catch (err) {
+          return [];
+        }
+      }
+      return terms;
+    }
+
+    public static parseOperator(op: string): Operator {
+      switch (op) {
+        case '+': return Operator.ADD;
+        case '-': return Operator.SUBTRACT;
+        case '*': return Operator.MULTIPLY;
+        case '/': return Operator.DIVIDE;
+      }
+      return Operator.BLANK;
+    }
+
+    public static parseNextNumber(sequence: string, offset: number): number {
+      let result = '';
+      while (offset < sequence.length && this.isDigit(sequence[offset])) {
+        result += sequence[offset];
+        offset++;
+      }
+      return parseInt(result);
+    }
+
+    public static isDigit(c: string): boolean {
+      return c >= '0' && c <= '9';
+    }
+  }
+  ```
+
+- 도서의 풀이 2(스택)
+
+  ```ts
+  class Operator {
+    public static readonly ADD = 0;
+    public static readonly SUBTRACT = 1;
+    public static readonly MULTIPLY = 2;
+    public static readonly DIVIDE = 3;
+    public static readonly BLANK = 4;
+  }
+
+  function compute(sequence: string): number {
+    const numberStack = new Stack<number>();
+    const operatorStack = new Stack<Operator>();
+
+    for (let i = 0; i < sequence.length; i++) {
+      try {
+        const value = parseNextNumber(sequence, i);
+        numberStack.push(value);
+
+        i += value.toString().length;
+        if (i >= sequence.length) {
+          break;
+        }
+
+        const op = parseNextOperator(sequence, i);
+        collapseTop(op, numberStack, operatorStack);
+        operatorStack.push(op);
+      } catch (err) {
+        return Number.MIN_SAFE_INTEGER;
+      }
+    }
+
+    collapseTop(Operator.BLANK, numberStack, operatorStack);
+    if (numberStack.size() === 1 && operatorStack.size() === 0) {
+      return numberStack.pop();
+    }
+    return 0;
+  }
+
+  function collapseTop(
+    futureTop: Operator,
+    numberStack: Stack<number>,
+    operatorStack: Stack<Operator>
+  ) {
+    while (operatorStack.size() >= 1 && numberStack.size() >= 2) {
+      if (priorityOfOperator(futureTop) <= priorityOfOperator(operatorStack.peek())) {
+        const second = numberStack.pop();
+        const first = numberStack.pop();
+        const op = operatorStack.pop();
+        const collapsed = applyOp(first, op, second);
+        numberStack.push(collapsed);
+      } else {
+        break;
+      }
+    }
+  }
+
+  function priorityOfOperator(op: Operator) {
+    switch (op) {
+      case Operator.ADD: return 1;
+      case Operator.SUBTRACT: return 1;
+      case Operator.MULTIPLY: return 2;
+      case Operator.DIVIDE: return 2;
+      case Operator.BLANK: return 0;
+    }
+    return 0;
+  }
+
+  function applyOp(left: number, op: Operator, right: number) {
+    if (op === Operator.ADD) return left + right;
+    else if (op === Operator.SUBTRACT) return left - right;
+    else if (op === Operator.MULTIPLY) return left * right;
+    else if (op === Operator.DIVIDE) {
+      if (right === 0) {
+        return Number.MIN_SAFE_INTEGER;
+      }
+      return left / right;
+    }
+    else return right;
+  }
+
+  function parseNextNumber(seq: string, offset: number): number {
+    let result = '';
+    while (offset < seq.length && isDigit(seq[offset])) {
+      result += seq[offset];
+      offset++;
+    }
+    return Number(result);
+  }
+
+  function isDigit(c: string): boolean {
+    return c >= '0' && c <= '9';
+  }
+
+  function parseNextOperator(sequence: string, offset: number): Operator {
+    if (offset < sequence.length) {
+      const op = sequence[offset];
+      switch (op) {
+        case '+': return Operator.ADD;
+        case '-': return Operator.SUBTRACT;
+        case '*': return Operator.MULTIPLY;
+        case '/': return Operator.DIVIDE;
+      }
+    }
+    return Operator.BLANK;
+  }
+
+  class Stack<T> {
+    private stack: T[] = [];
+
+    public isEmpty(): boolean {
+      return this.stack.length === 0;
+    }
+
+    public push(value: T) {
+      this.stack.push(value);
+    }
+
+    public pop(): T {
+      if (this.isEmpty()) {
+        throw new Error('Stack is empty');
+      }
+      return this.stack.pop()!;
+    }
+
+    public peek(): T {
+      return this.stack[this.stack.length - 1];
+    }
+
+    public size(): number {
+      return this.stack.length;
+    }
+  }
+  ```
