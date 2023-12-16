@@ -11662,3 +11662,592 @@ int main() {
     return count;
   }
   ```
+
+16.19 연못 크기
+
+- 대륙의 해발고도를 표현한 정수형 배열이 주어졌다. 여기서 0은 수면을 나타내고 연못은 수직, 수평, 대각선으로 연결된 수면의 영역을 나타낸다. 연못의 크기는 연결된 수면의 개수라고 했을 때, 모든 연못의 크기를 계산하는 메서드를 작성하라.
+
+- 도서의 풀이 1
+
+  ```ts
+  function computePondSizes(land: number[][]): number[] {
+    const pondSizes: number[] = [];
+    for (let r = 0; r < land.length; r++) {
+      for (let c = 0; c < land[r].length; c++) {
+        if (land[r][c] === 0) {
+          let size = computeSize(land, r, c);
+          pondSizes.push(size);
+        }
+      }
+    }
+    return pondSizes;
+  }
+
+  function computeSize(land: number[][], row: number, col: number): number {
+    if (
+      row < 0 ||
+      col < 0 ||
+      row >= land.length ||
+      col >= land[row].length ||
+      land[row][col] !== 0
+    ) {
+      return 0;
+    }
+    let size = 1;
+    land[row][col] = -1;
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        size += computeSize(land, row + dr, col + dc);
+      }
+    }
+    return size;
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  function computePondSizes(land: number[][]): number[] {
+    const visited = new Array(land.length)
+      .fill(0)
+      .map(() => new Array(land[0].length).fill(false));
+    const pondSizes: number[] = [];
+    for (let r = 0; r < land.length; r++) {
+      for (let c = 0; c < land[0].length; c++) {
+        const size = computeSize(land, visited, r, c);
+        if (size > 0) pondSizes.push(size);
+      }
+    }
+    return pondSizes;
+  }
+
+  function computeSize(
+    land: number[][],
+    visited: boolean[][],
+    r: number,
+    c: number
+  ): number {
+    if (
+      r < 0 ||
+      c < 0 ||
+      r >= land.length ||
+      c >= land[0].length ||
+      visited[r][c] ||
+      land[r][c] !== 0
+    ) {
+      return 0;
+    }
+    let size = 1;
+    visited[r][c] = true;
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        size += computeSize(land, visited, r + dr, c + dc);
+      }
+    }
+    return size;
+  }
+  ```
+
+16.20 T9
+
+- 과거의 핸드폰에서는 문자 입력을 돕기 위해 각 숫자에 0~4개의 알파벳을 대응시켰다. 이에 따라 어떤 수열이 주어지면 그 수열에 대응되는 단어 리스트를 만들 수 있었다. 유효한 단어 리스트(여러분이 원하는 방식으로 자료구조가 주어진다)와 어떤 수열이 주어졌을 때, 해당 수열에 매핑되는 단어 리스트를 출력하는 알고리즘을 작성하라. 각 숫자에 대응되는 알파벳은 다음과 같다.
+- 1: none, 2: abc, 3: def, 4: ghi, 5: jkl, 6: mno, 7: pqrs, 8: tuv, 9: wxyz, 0: none
+
+- 도서의 풀이
+
+  ```ts
+  function getValidT9Words(number: string, wordList: Set<string>): string[] {
+    const results: string[] = [];
+    getValidWords(number, 0, "", wordList, results);
+    return results;
+  }
+
+  function  getValidWords(number: string, index: number, prefix: string, wordSet: Set<string>, results: string[]): void {
+    if (index === number.length) {
+      if (wordSet.has(prefix)) {
+          results.push(prefix);
+      }
+      return;
+  }
+
+  const digit = number.charAt(index);
+  const letters = getT9Chars(digit);
+
+  if (letters) {
+      for (const letter of letters) {
+          getValidWords(number, index + 1, prefix + letter, wordSet, results);
+      }
+  }
+  }
+
+  function getT9Chars(digit: string): string[] | null {
+    if (!digit.match(/\d/)) {
+      return null;
+    }
+    const dig = parseInt(digit, 10);
+    return t9Letters[dig];
+  }
+
+  const t9Letters = [
+    null,
+    null,
+    ['a', 'b', 'c'],
+    ['d', 'e', 'f'],
+    ['g', 'h', 'i'],
+    ['j', 'k', 'l'],
+    ['m', 'n', 'o'],
+    ['p', 'q', 'r', 's'],
+    ['t', 'u', 'v'],
+    ['w', 'x', 'y', 'z']
+  ];
+  ```
+
+16.21 합의 교환
+
+- 정수형 배열 두 개가 주어졌을 때, 각 배열에서 원소를 하나씩 교환해서 두 배열의 합이 같아지게 만들라.
+
+- 도서의 풀이 1(무식한 방법)
+
+  ```ts
+  function sum(arr: number[]): number {
+    return arr.reduce((acc, cur) => acc + cur, 0);
+  }
+
+  function findSwapValue(arr1: number[], arr2: number[]): number[] {
+    const sum1 = sum(arr1);
+    const sum2 = sum(arr2);
+
+    for (const one of arr1) {
+      for (const two of arr2) {
+        const newSum1 = sum1 - one + two;
+        const newSum2 = sum2 - two + one;
+        if (newSum1 === newSum2) {
+          return [one, two];
+        }
+      }
+    }
+    return [];
+  }
+  ```
+
+- 도서의 풀이 2(차이를 찾는 방법)
+
+  ```ts
+  function sum(arr: number[]): number {
+    return arr.reduce((acc, cur) => acc + cur, 0);
+  }
+
+  function findSwapValue(arr1: number[], arr2: number[]): number[] {
+    const target = getTarget(arr1, arr2);
+    if (target === null) return [];
+
+    for (const one of arr1) {
+      for (const two of arr2) {
+        if (one - two === target) {
+          return [one, two];
+        }
+      }
+    }
+    return [];
+  }
+
+  function getTarget(arr1: number[], arr2: number[]): number | null {
+    const sum1 = sum(arr1);
+    const sum2 = sum(arr2);
+    if ((sum1 - sum2) % 2 !== 0) return null;
+    return Math.floor((sum1 - sum2) / 2);
+  }
+  ```
+
+- 도서의 풀이 3(최적화)
+
+  ```ts
+  function sum(arr: number[]): number {
+    return arr.reduce((acc, cur) => acc + cur, 0);
+  }
+
+  function findSwapValue(arr1: number[], arr2: number[]): number[] {
+    const target = getTarget(arr1, arr2);
+    if (target === null) return [];
+    return findDifference(arr1, arr2, target);
+  }
+
+  function findDifference(arr1: number[], arr2: number[], target: number): number[] {
+    const contents2 = getContents(arr2);
+    for (const one of arr1) {
+      let two = one - target;
+      if (contents2.has(two)) return [one, two];
+    }
+    return [];
+  }
+
+  function getContents(arr: number[]): Set<number> {
+    const contents = new Set<number>();
+    for (const one of arr) {
+      contents.add(one);
+    }
+    return contents;
+  }
+
+  function getTarget(arr1: number[], arr2: number[]): number | null {
+    const sum1 = sum(arr1);
+    const sum2 = sum(arr2);
+    if ((sum1 - sum2) % 2 !== 0) return null;
+    return Math.floor((sum1 - sum2) / 2);
+  }
+  ```
+
+- 도서의 풀이 4(정렬되어있는 경우)
+
+  ```ts
+  function sum(arr: number[]): number {
+    return arr.reduce((acc, cur) => acc + cur, 0);
+  }
+
+  function findSwapValue(arr1: number[], arr2: number[]): number[] {
+    const target = getTarget(arr1, arr2);
+    if (target === null) return [];
+    return findDifference(arr1, arr2, target);
+  }
+
+  function findDifference(arr1: number[], arr2: number[], target: number): number[] {
+    let a = 0;
+    let b = 0;
+    while (a < arr1.length && b < arr2.length) {
+      const difference = arr1[a] - arr2[b];
+      if (difference === target) {
+        return [arr1[a], arr2[b]];
+      } else if (difference > target) {
+        b++;
+      }
+      a++;
+    }
+    return [];
+  }
+
+  function getTarget(arr1: number[], arr2: number[]): number | null {
+    const sum1 = sum(arr1);
+    const sum2 = sum(arr2);
+    if ((sum1 - sum2) % 2 !== 0) return null;
+    return Math.floor((sum1 - sum2) / 2);
+  }
+  ```
+
+16.22 랭턴 개미
+
+- 검은색과 하얀색 셀로 구성된 격자판이 무한히 펼쳐져 있고, 어딘가에 개미 한마리가 기어다니고 있다. 이 개미는 오른쪽을 바라보고 있고, 다음과 같이 움직인다.
+  1. 하얀색 셀에선 이셀의 색을 검은색으로 바꾼 뒤 오른쪽으로 90도 회전하고 한 칸 전진한다.
+  2. 검은색 셀에선 이셀의 색을 하얀색으로 바꾼 뒤 왼쪽으로 90도 회전하고 한 칸 전진한다.
+- 이 개미의 첫 K번 움직임을 시뮬레이션하는 프로그램을 작성하고 최종 격자판을 출력하는 프로그램을 작성하라.
+- 이 격자판을 표현하는 자료구조를 직접 작성하라.
+
+- 도서의 풀이 1
+
+  ```ts
+  class Grid {
+    private grid: boolean[][];
+    private ant: Ant = new Ant();
+
+    constructor(size: number = 1) {
+      this.grid = Array.from({ length: size }, () => new Array(size).fill(false));
+
+    }
+
+    private copyWithShift(oldGrid: boolean[][], newGrid: boolean[][], shiftRow: number, shiftColumn: number): void {
+      for (let r = 0; r < oldGrid.length; r++) {
+        for (let c = 0; c < oldGrid[0].length; c++) {
+          newGrid[r + shiftRow][c + shiftColumn] = oldGrid[r][c];
+        }
+      }
+    }
+
+    private ensureFit(position: Position) {
+      let shiftRow = 0;
+      let shiftColumn = 0;
+
+      let numRows = this.grid.length;
+      if (position.row < 0) {
+        shiftRow = numRows;
+        numRows *= 2;
+      } else if (position.row >= numRows) {
+        numRows *= 2;
+      }
+
+      let numColumns = this.grid[0].length;
+      if (position.column < 0) {
+        shiftColumn = numColumns;
+        numColumns *= 2;
+      } else if (position.column >= numColumns) {
+        numColumns *= 2;
+      }
+
+      if (numRows !== this.grid.length || numColumns !== this.grid[0].length) {
+        const newGrid = Array.from({ length: numRows }, () => new Array(numColumns).fill(false));
+        this.copyWithShift(this.grid, newGrid, shiftRow, shiftColumn);
+        this.ant.adjustPosition(shiftRow, shiftColumn);
+        this.grid = newGrid;
+      }
+    }
+
+    private flip(position: Position): void {
+      const row = position.row;
+      const column = position.column;
+      this.grid[row][column] = this.grid[row][column] ? false : true;
+    }
+
+    public move(): void {
+      this.ant.turn(this.grid[this.ant.position.row][this.ant.position.column]);
+      this.flip(this.ant.position);
+      this.ant.move();
+      this.ensureFit(this.ant.position);
+    }
+
+    public toString(): string {
+      let result = '';
+      for (let r = 0; r < this.grid.length; r++) {
+        for (let c = 0; c < this.grid[0].length; c++) {
+          if (r === this.ant.position.row && c === this.ant.position.column) {
+            result += this.ant.orientation;
+          } else if (this.grid[r][c]) {
+            result += 'X';
+          } else {
+            result += '_';
+          }
+        }
+        result += '\n';
+      }
+      result += 'Ant: ' + this.ant.orientation + '\n';
+      return result;
+    }
+  }
+
+  class Ant {
+    public position: Position = new Position(0, 0);
+    public orientation: Orientation = Orientation.right;
+
+    public turn(clockwise: boolean): void {
+      this.orientation = this.orientation.turn(clockwise);
+    }
+
+    public move(): void {
+      if (this.orientation === Orientation.left) {
+        this.position.column--;
+      } else if (this.orientation === Orientation.right) {
+        this.position.column++;
+      } else if (this.orientation === Orientation.up) {
+        this.position.row--;
+      } else if (this.orientation === Orientation.down) {
+        this.position.row++;
+      } else {
+        throw new Error('Invalid orientation');
+      }
+    }
+
+    public adjustPosition(shiftRow: number, shiftColumn: number): void {
+      this.position.row += shiftRow;
+      this.position.column += shiftColumn;
+    }
+  }
+
+  class Orientation {
+    public static left: Orientation = new Orientation('left');
+    public static right: Orientation = new Orientation('right');
+    public static up: Orientation = new Orientation('up');
+    public static down: Orientation = new Orientation('down');
+
+    private name: string;
+
+    private constructor(name: string) {
+      this.name = name;
+    }
+
+    public turn(clockwise: boolean): Orientation {
+      if (this === Orientation.left) {
+        return clockwise ? Orientation.up : Orientation.down;
+      } else if (this === Orientation.right) {
+        return clockwise ? Orientation.down : Orientation.up;
+      } else if (this === Orientation.up) {
+        return clockwise ? Orientation.right : Orientation.left;
+      } else if (this === Orientation.down) {
+        return clockwise ? Orientation.left : Orientation.right;
+      } else {
+        throw new Error('Invalid orientation');
+      }
+    }
+
+    public toString(): string {
+      if (this === Orientation.left) {
+        return '\u2190';
+      } else if (this === Orientation.up) {
+        return '\u2191';
+      } else if (this === Orientation.right) {
+        return '\u2192';
+      } else if (this === Orientation.down) {
+        return '\u2193';
+      } else {
+        throw new Error('Invalid orientation');
+      }
+    }
+  }
+
+  class Position {
+    constructor(public row: number, public column: number) {}
+  }
+  ```
+
+- 도서의 풀이 2
+
+  ```ts
+  class Board {
+    private whites: Set<Position> = new Set<Position>();
+    private ant: Ant = new Ant();
+    private topLeftCorner = new Position(0, 0);
+    private bottomRightCorner = new Position(0, 0);
+
+    constructor() { }
+
+    public move(): void {
+      this.ant.turn(this.isWhite(this.ant.position));
+      this.flip(this.ant.position);
+      this.ant.move();
+      this.ensureFit(this.ant.position);
+    }
+
+    private flip(position: Position): void {
+      if (this.whites.has(position)) {
+        this.whites.delete(position);
+      } else {
+        this.whites.add(position.clone());
+      }
+    }
+
+    private ensureFit(position: Position): void {
+      const row = position.row;
+      const column = position.column;
+
+      this.topLeftCorner.row = Math.min(this.topLeftCorner.row, row);
+      this.topLeftCorner.column = Math.min(this.topLeftCorner.column, column);
+
+      this.bottomRightCorner.row = Math.max(this.bottomRightCorner.row, row);
+      this.bottomRightCorner.column = Math.max(this.bottomRightCorner.column, column);
+    }
+
+    public isWhite(posOrRow: Position | number, column: number | undefined = undefined): boolean {
+      if (posOrRow instanceof Position) {
+        return this.whites.has(posOrRow);
+      }
+      return this.whites.has(new Position(posOrRow, column!));
+    }
+
+    public toString(): string {
+      let result = '';
+      const rowMin = this.topLeftCorner.row;
+      const rowMax = this.bottomRightCorner.row;
+      const colMin = this.topLeftCorner.column;
+      const colMax = this.bottomRightCorner.column;
+      for (let r = rowMin; r <= rowMax; r++) {
+        for (let c = colMin; c <= colMax; c++) {
+          if (r === this.ant.position.row && c === this.ant.position.column) {
+            result += this.ant.orientation.toString();
+          } else if (this.isWhite(r, c)) {
+            result += 'X';
+          } else {
+            result += '_';
+          }
+        }
+        result += '\n';
+      }
+      result += 'Ant: ' + this.ant.orientation.toString() + '. \n';
+      return result;
+    }
+  }
+
+  class Ant {
+    public position: Position = new Position(0, 0);
+    public orientation: Orientation = Orientation.right;
+
+    public turn(clockwise: boolean): void {
+      this.orientation = this.orientation.turn(clockwise);
+    }
+
+    public move(): void {
+      if (this.orientation === Orientation.left) {
+        this.position.column--;
+      } else if (this.orientation === Orientation.right) {
+        this.position.column++;
+      } else if (this.orientation === Orientation.up) {
+        this.position.row--;
+      } else if (this.orientation === Orientation.down) {
+        this.position.row++;
+      } else {
+        throw new Error('Invalid orientation');
+      }
+    }
+
+    public adjustPosition(shiftRow: number, shiftColumn: number): void {
+      this.position.row += shiftRow;
+      this.position.column += shiftColumn;
+    }
+  }
+
+  class Orientation {
+    public static left: Orientation = new Orientation('left');
+    public static right: Orientation = new Orientation('right');
+    public static up: Orientation = new Orientation('up');
+    public static down: Orientation = new Orientation('down');
+
+    private name: string;
+
+    private constructor(name: string) {
+      this.name = name;
+    }
+
+    public turn(clockwise: boolean): Orientation {
+      if (this === Orientation.left) {
+        return clockwise ? Orientation.up : Orientation.down;
+      } else if (this === Orientation.right) {
+        return clockwise ? Orientation.down : Orientation.up;
+      } else if (this === Orientation.up) {
+        return clockwise ? Orientation.right : Orientation.left;
+      } else if (this === Orientation.down) {
+        return clockwise ? Orientation.left : Orientation.right;
+      } else {
+        throw new Error('Invalid orientation');
+      }
+    }
+
+    public toString(): string {
+      if (this === Orientation.left) {
+        return '\u2190';
+      } else if (this === Orientation.up) {
+        return '\u2191';
+      } else if (this === Orientation.right) {
+        return '\u2192';
+      } else if (this === Orientation.down) {
+        return '\u2193';
+      } else {
+        throw new Error('Invalid orientation');
+      }
+    }
+  }
+
+  class Position {
+    constructor(public row: number, public column: number) {}
+
+    public equals(o: Object): boolean {
+      if (o instanceof Position) {
+        const p = o as Position;
+        return this.row === p.row && this.column === p.column;
+      }
+      return false;
+    }
+
+    public hashCode(): number {
+      return (this.row * 31) ^ this.column;
+    }
+
+    public clone(): Position {
+      return new Position(this.row, this.column);
+    }
+  }
+  ```
