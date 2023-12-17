@@ -12723,3 +12723,78 @@ int main() {
     }
   }
   ```
+
+### 17. 어려운 연습문제 해법
+
+17.1 덧셈 없이 더하기
+
+- 두 수를 더하는 함수를 작성하라.
+- 단, +를 비록한 어떤 연산자도 사용 할 수 없다.
+
+- 도서의 풀이 1(재귀)
+
+  ```ts
+  function add(a: number, b: number): number {
+    if (b === 0) return a;
+    const sum = a ^ b;
+    const carry = (a & b) << 1;
+    return add(sum, carry);
+  }
+  ```
+
+- 도서의 풀이 2(순환)
+
+  ```ts
+  function add(a: number, b: number): number {
+    while (b !== 0) {
+      const sum = a ^ b;
+      const carry = (a & b) << 1;
+      a = sum;
+      b = carry;
+    }
+    return a;
+  }
+  ```
+
+17.2 섞기
+
+- 카드 한 벌을 완벽히 섞는 메서드를 작성하라.
+- '완벽히'라는 뜻은, 카드 한 벌(52장)을 섞는 모든 경우의수인 52! 개의 경우의 수가 모두 같은 확률로 나와야 한다는 뜻이다.
+- 완벽한 난수 생성기가 있다고 가정해도 좋다.
+
+- 도서의 풀이 1(재귀)
+
+  ```ts
+  function rand(lower: number, upper: number): number {
+    return lower + Math.floor(Math.random() * (upper - lower + 1));
+  }
+
+  function shuffleArrayRecursively(cards: number[], i: number): number[] {
+    if (i === 0) return cards;
+    shuffleArrayRecursively(cards, i - 1);
+    const k = rand(0, i);
+
+    const temp = cards[k];
+    cards[k] = cards[i];
+    cards[i] = temp;
+
+    return cards;
+  }
+  ```
+
+- 도서의 풀이 2(순환)
+
+  ```ts
+  function rand(lower: number, upper: number): number {
+    return lower + Math.floor(Math.random() * (upper - lower + 1));
+  }
+
+  function shuffleArrayIteratively(cards: number[]): void {
+    for (let i = 0; i < cards.length; i++) {
+      const k = rand(0, i);
+      const temp = cards[k];
+      cards[k] = cards[i];
+      cards[i] = temp;
+    }
+  }
+  ```
