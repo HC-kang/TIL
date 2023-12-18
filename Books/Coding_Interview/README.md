@@ -12798,3 +12798,234 @@ int main() {
     }
   }
   ```
+
+17.3 임의의 집합
+
+- 길이가 n인 배열에서 m개의 원소를 무작위로 추출하는 메서드를 작성하라.
+- 단 각 원소가 선택될 확률은 동일해야 한다.
+
+- 도서의 풀이(재귀)
+
+  ```ts
+  function rand(lower: number, upper: number): number {
+    return lower + Math.floor(Math.random() * (upper - lower + 1));
+  }
+
+  function pickMRecursively(original: number[], m: number, i: number): number[] {
+    if (i + 1 === m) {
+      return original.slice(0, m);
+    } else if (i + 1 > m) {
+      const subset = pickMRecursively(original, m, i - 1);
+      const k = rand(0, i);
+      if (k < m) {
+        subset[k] = original[i];
+      }
+      return subset;
+    }
+    return [];
+  }
+  ```
+
+- 도서의 풀이 2(순환)
+
+  ```ts
+  function rand(lower: number, upper: number): number {
+    return lower + Math.floor(Math.random() * (upper - lower + 1));
+  }
+
+  function pickMIteratively(original: number[], m: number): number[] {
+    const subset = new Array(m);
+    for (let i = 0; i < m; i++) {
+      subset[i] = original[i];
+    }
+
+    for (let i = m; i < original.length; i++) {
+      const k = rand(0, i);
+      if (k < m) {
+        subset[k] = original[i];
+      }
+    }
+    return subset;
+  }
+  ```
+
+17.4 빠진 숫자
+
+- 배열 A에는 0부터 n까지의 숫자 중 하나를 뺀 나머지가 모두 들어있다.
+- 각 원소는 2진수로 표현되어있다.
+- 상수 시간으로 수행 할 수 있는 연산은 'A[i]의 j번째 비트 확인하기'뿐이다.
+- 배열 A에서 빠진 숫자가 무엇인지 확인하는 코드를 작성하라.
+- O(n) 시간에 수행 할 수 있는가?
+
+- 도서의 풀이
+
+  ```ts
+  class BitInteger {
+    private value: number;
+    private bits: boolean[];
+    static MAX_BITS: number = 8;
+
+    constructor(value: number) {
+      if (value < 0 || value > Math.pow(2, BitInteger.MAX_BITS) - 1) {
+        throw new Error('Value is out of range');
+      }
+      this.value = value;
+      this.bits = new Array(BitInteger.MAX_BITS).fill(false);
+      this.initBits();
+    }
+
+    private initBits(): void {
+      for (let i = 0; i < BitInteger.MAX_BITS; i++) {
+        this.bits[i] = (this.value & (1 << i)) !== 0;
+      }
+    }
+
+    public toString(): string {
+      return this.bits.map(bit => bit ? '1' : '0').reverse().join('');
+    }
+
+    public fetch(column: number): number {
+      if (column < 0 || column >= BitInteger.MAX_BITS) {
+        throw new Error('Column out of range');
+      }
+      return this.bits[column] ? 1 : 0;
+    }
+  }
+
+  function findMissing(arr: BitInteger[]): number {
+    return findMissingHelper(arr, 0);
+  }
+
+  function findMissingHelper(input: BitInteger[], column: number): number {
+    if (column >= BitInteger.MAX_BITS) {
+      return 0;
+    }
+    const oneBits: BitInteger[] = [];
+    const zeroBits: BitInteger[] = [];
+
+    for (const t of input) {
+      if (t.fetch(column) === 0) {
+        zeroBits.push(t);
+      } else {
+        oneBits.push(t);
+      }
+    }
+    if (zeroBits.length <= oneBits.length) {
+      const v = findMissingHelper(zeroBits, column + 1);
+      return (v << 1) | 0;
+    } else {
+      const v = findMissingHelper(oneBits, column + 1);
+      return (v << 1) | 1;
+    }
+  }
+  ```
+
+17.5 문자와 숫자
+
+- 문자와 숫자로 채워진 배열이 주어진 경우, 문자와 숫자의 개수가 같으면서 가장 긴 부분배열을 구하라.
+
+- 도서의 풀이 1(무식한 방법)
+
+  ```ts
+  function findLongestSubArray(arr: string[]): string[] {
+    for (let len = arr.length; len > 1; len--) {
+      for (let i = 0; i <= arr.length - len; i++) {
+        if (hasEqualLettersNumber(arr, i, i + len - 1)) {
+          return extractSubarray(arr, i, i + len - 1);
+        }
+      }
+    }
+    return [];
+  }
+
+  function hasEqualLettersNumber(arr: string[], start: number, end: number): boolean {
+    let counter = 0;
+    for (let i = start; i <= end; i++) {
+      if (isLetter(arr[i])) {
+        counter++;
+      } else if (isDigit(arr[i])) {
+        counter--;
+      }
+    }
+    return counter === 0;
+  }
+
+  function extractSubarray(arr: string[], start: number, end: number): string[] {
+    const subArray = new Array(end - start + 1);
+    for (let i = start; i <= end; i++) {
+      subArray[i - start] = arr[i];
+    }
+    return subArray;
+  }
+
+  function isLetter(char: string): boolean {
+    const code = char.charCodeAt(0);
+    return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+  }
+
+  function isDigit(char: string): boolean {
+    const code = char.charCodeAt(0);
+    return code >= 48 && code <= 57;
+  }
+  ```
+
+- 도서의 풀이 2(최적 해법)
+
+  ```ts
+  function findLongestSubArray(arr: string[]): string[] {
+    const deltas = computeDeltaArray(arr);
+    const match = findLongestMatch(deltas);
+    return extract(arr, match[0] + 1, match[1]);
+  }
+
+  function computeDeltaArray(arr: string[]): number[] {
+    const deltas = Array(arr.length).fill(0);
+    let delta = 0;
+    for (let i = 0; i < arr.length; i++) {
+      if (isLetter(arr[i])) {
+        delta++;
+      } else if (isDigit(arr[i])) {
+        delta--;
+      }
+      deltas[i] = delta;
+    }
+    return deltas;
+  }
+
+  function findLongestMatch(deltas: number[]): number[] {
+    const map = new Map<number, number>();
+    map.set(0, -1);
+    let max = [-1, -1];
+    for (let i = 0; i < deltas.length; i++) {
+      if (!map.has(deltas[i])) {
+        map.set(deltas[i], i);
+      } else {
+        const match = map.get(deltas[i])!;
+        const distance = i - match;
+        const longest = max[1] - max[0];
+        if (distance > longest) {
+          max = [match, i];
+        }
+      }
+    }
+    return max;
+  }
+
+  function extract(arr: string[], start: number, end: number): string[] {
+    const subArray = new Array(end - start + 1);
+      for (let i = start; i <= end; i++) {
+        subArray[i - start] = arr[i];
+      }
+      return subArray;
+  }
+
+  function isLetter(char: string): boolean {
+    const code = char.charCodeAt(0);
+    return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+  }
+
+  function isDigit(char: string): boolean {
+    const code = char.charCodeAt(0);
+    return code >= 48 && code <= 57;
+  }
+  ```
