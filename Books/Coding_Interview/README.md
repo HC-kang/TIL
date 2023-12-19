@@ -13029,3 +13029,277 @@ int main() {
     return code >= 48 && code <= 57;
   }
   ```
+
+17.8 서커스 타워
+
+- 어느 서커스단은 한 사람 어깨 위에 다른 사람이 올라서도록 하는 '인간 탑 쌓기'를 공연한다.
+- 탑의 각 사람은 아래 사람보다 키도 작고 몸무게도 가벼워야 한다.
+- 단원의 키와 몸무게가 주어졌을 때, 가장 많은 사람을 포함하는 탑을 찾는 알고리즘을 작성하라.
+
+- 도서의 풀이 1(재귀)
+
+  ```ts
+  function longestIncreasingSeq(items: HtWt[]): HtWt[] {
+    items.sort((a, b) => a.compareTo(b));
+    return bestSeqAtIndex(items, [], 0);
+  }
+
+  function bestSeqAtIndex(arr: HtWt[], seq: HtWt[], index: number): HtWt[] {
+    if (index >= arr.length) return seq;
+    const value = arr[index];
+    let bestWith: HtWt[] | null = null;
+    if (canAppend(seq, value)) {
+      const seqWith = seq.slice();
+      seqWith.push(value);
+      bestWith = bestSeqAtIndex(arr, seqWith, index + 1);
+    }
+
+    let bestWithout: HtWt[] = bestSeqAtIndex(arr, seq, index + 1);
+
+    if (bestWith === null || bestWithout.length > bestWith.length) {
+      return bestWithout;
+    } else {
+      return bestWith;
+    }
+  }
+
+  function canAppend(solution: HtWt[], value: HtWt): boolean {
+    if (solution === null) return false;
+    if (solution.length === 0) return true;
+
+    const last: HtWt = solution[solution.length - 1];
+    return last.isBefore(value);
+  }
+
+  function max(seq1: HtWt[], seq2: HtWt[]): HtWt[] {
+    if (seq1 === null) return seq2;
+    if (seq2 === null) return seq1;
+    return seq1.length > seq2.length ? seq1 : seq2;
+  }
+
+  class HtWt {
+    constructor(private height: number, private weight: number) {}
+
+    compareTo(other: HtWt): number {
+      if (this.height !== other.height) {
+        return this.height - other.height;
+      } else {
+        return this.weight - other.weight;
+      }
+    }
+
+    isBefore(other: HtWt): boolean {
+      if (this.height < other.height && this.weight < other.weight) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+  ```
+
+- 도서의 풀이 2(순환)
+
+  ```ts
+  function longestIncreasingSeq(arr: HtWt[]): HtWt[] {
+    arr.sort((a, b) => a.compareTo(b));
+    const solutions: HtWt[][] = [];
+    let bestSeq: HtWt[] | null = null;
+
+    for (let i = 0; i < arr.length; i++) {
+      const longestAtIndex = bestSeqAtIndex(arr, solutions, i);
+      solutions.push(longestAtIndex);
+      bestSeq = max(bestSeq!, longestAtIndex);
+    }
+    return bestSeq!;
+  }
+
+  function bestSeqAtIndex(
+    arr: HtWt[],
+    solutions: HtWt[][],
+    index: number
+  ): HtWt[] {
+    const value: HtWt = arr[index];
+    let bestSeq: HtWt[] = [];
+
+    for (let i = 0; i < index; i++) {
+      const solution: HtWt[] = solutions[i];
+      if (canAppend(solution, value)) {
+        bestSeq = max(solution, bestSeq);
+      }
+    }
+
+    const best = bestSeq.slice();
+    best.push(value);
+
+    return best;
+  }
+
+  function canAppend(solution: HtWt[], value: HtWt): boolean {
+    if (solution === null) return false;
+    if (solution.length === 0) return true;
+
+    const last: HtWt = solution[solution.length - 1];
+    return last.isBefore(value);
+  }
+
+  function max(seq1: HtWt[], seq2: HtWt[]): HtWt[] {
+    if (seq1 === null) return seq2;
+    if (seq2 === null) return seq1;
+    return seq1.length > seq2.length ? seq1 : seq2;
+  }
+
+  class HtWt {
+    constructor(private height: number, private weight: number) {}
+
+    compareTo(other: HtWt): number {
+      if (this.height !== other.height) {
+        return this.height - other.height;
+      } else {
+        return this.weight - other.weight;
+      }
+    }
+
+    isBefore(other: HtWt): boolean {
+      if (this.height < other.height && this.weight < other.weight) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+  ```
+
+17.23 최대 검은색 정방행렬
+
+- 도서의 풀이 1(무식한 풀이)
+
+  ```ts
+  function findSquare(matrix: number[][]): SubSquare | null {
+    for (let i = matrix.length; i >= 1; i--) {
+      const square: SubSquare | null = findSquareWithSize(matrix, i);
+      if (square !== null) return square;
+    }
+    return null;
+  }
+
+  function findSquareWithSize(matrix: number[][], squareSize: number): SubSquare | null {
+    const count = matrix.length - squareSize + 1;
+    for (let row = 0; row < count; row++) {
+      for (let col = 0; col < count; col++) {
+        if (isSquare(matrix, row, col, squareSize)) {
+          return new SubSquare(row, col, squareSize);
+        }
+      }
+    }
+    return null;
+  }
+
+  function isSquare(matrix: number[][], row: number, col: number, size: number): boolean {
+    for (let j = 0; j < size; j++) {
+      if (matrix[row][col + j] === 1) {
+        return false;
+      }
+      if (matrix[row+size-1][col + j] === 1) {
+        return false;
+      }
+    }
+
+    for (let i = 1; i < size - 1; i++) {
+      if (matrix[row + i][col] === 1) {
+        return false;
+      }
+      if (matrix[row + i][col + size - 1] === 1) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  class SubSquare {
+    constructor(public row: number, public col: number, public size: number) {}
+  }
+  ```
+
+- 도서의 풀이(최적화)
+
+  ```ts
+  class SquareCell {
+    constructor(public zerosRight = 0, public zerosBelow = 0) {}
+  }
+
+  function findSquare(matrix: number[][]): SubSquare | null {
+    const processed: SquareCell[][] = processSquare(matrix);
+    for (let i = matrix.length; i >= 1; i--) {
+      const square: SubSquare | null = findSquareWithSize(processed, i);
+      if (square !== null) return square;
+    }
+    return null;
+  }
+
+  function findSquareWithSize(
+    matrix: SquareCell[][],
+    squareSize: number
+  ): SubSquare | null {
+    const count = matrix.length - squareSize + 1;
+    for (let row = 0; row < count; row++) {
+      for (let col = 0; col < count; col++) {
+        if (isSquare(matrix, row, col, squareSize)) {
+          return new SubSquare(row, col, squareSize);
+        }
+      }
+    }
+    return null;
+  }
+
+  function isSquare(
+    matrix: SquareCell[][],
+    row: number,
+    col: number,
+    size: number
+  ): boolean {
+    const topLeft: SquareCell = matrix[row][col];
+    const topRight: SquareCell = matrix[row][col + size - 1];
+    const bottomLeft: SquareCell = matrix[row + size - 1][col];
+
+    if (
+      topLeft.zerosRight < size ||
+      topLeft.zerosBelow < size ||
+      topRight.zerosBelow < size ||
+      bottomLeft.zerosRight < size
+    ) {
+      return false;
+    }
+    return true;
+  }
+
+  function processSquare(matrix: number[][]): SquareCell[][] {
+    const processed: SquareCell[][] = Array(matrix.length).fill(
+      Array(matrix.length).fill(new SquareCell())
+    );
+    for (let r = matrix.length - 1; r >= 0; r--) {
+      for (let c = matrix.length - 1; c >= 0; c--) {
+        let rightZeros = 0;
+        let belowZeros = 0;
+        if (matrix[r][c] === 0) {
+          rightZeros++;
+          belowZeros++;
+          if (c + 1 < matrix.length) {
+            const previous = processed[r][c + 1];
+            rightZeros += previous.zerosRight;
+          }
+          if (r + 1 < matrix.length) {
+            const previous = processed[r + 1][c];
+            belowZeros += previous.zerosBelow;
+          }
+        }
+        processed[r][c] = new SquareCell(rightZeros, belowZeros);
+      }
+    }
+    return processed;
+  }
+
+  class SubSquare {
+    constructor(public row: number, public col: number, public size: number) {}
+  }
+  ```
