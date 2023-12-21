@@ -13170,6 +13170,141 @@ int main() {
   }
   ```
 
+17.9 k번째 배수
+
+- 소인수가 3, 5, 7로만 구성된 숫자 중 k번째 숫자를 찾는 알고리즘을 설계하라.
+- 3, 5, 7이 모두 포함되어야 하는 것은 아니다.
+- 3, 5, 7 이외의 다른 소인수가 포함되면 안된다.
+- 예시) 1, 3, 5, 7, 9, 15, 31...
+
+- 도서의 풀이 1(무식한 방법)
+
+  ```ts
+  function getKthMagicNumber(k: number): number {
+    const possibilities = allPossibleKFactors(k);
+    possibilities.sort((a, b) => a - b);
+    return possibilities[k - 1];
+  }
+
+  function allPossibleKFactors(k: number): number[] {
+    const values: number[] = [];
+    for (let a = 0; a <= k; a++) {
+      const powA = Math.pow(3, a);
+      for (let b = 0; b <= k; b++) {
+        const powB = Math.pow(5, b);
+        for (let c = 0; c <= k; c++) {
+          const powC = Math.pow(7, c);
+          let value = powA * powB * powC;
+
+          if (value < 0 || powA === Infinity || powB === Infinity || powC === Infinity) {
+            value = Infinity;
+          }
+          values.push(value);
+        }
+      }
+    }
+    return values;
+  }
+  ```
+
+- 도서의 풀이 2(최적화)
+
+  ```ts
+  function getKthMagicNumber(k: number): number {
+    if (k < 0) {
+      return 0;
+    }
+    let val = 0;
+    const queue3: number[] = [1];
+    const queue5: number[] = [];
+    const queue7: number[] = [];
+
+    for (let i = 0; i < k; i++) {
+      const v3 = queue3.length > 0 ? queue3[0] : Number.MAX_SAFE_INTEGER;
+      const v5 = queue5.length > 0 ? queue5[0] : Number.MAX_SAFE_INTEGER;
+      const v7 = queue7.length > 0 ? queue7[0] : Number.MAX_SAFE_INTEGER;
+      val = Math.min(v3, v5, v7);
+      if (val === v3) {
+        queue3.shift();
+        queue3.push(3 * val);
+        queue5.push(5 * val);
+      } else if (val === v5) {
+        queue5.shift();
+        queue5.push(5 * val);
+      } else if (val === v7) {
+        queue7.shift();
+      }
+      queue7.push(7 * val);
+    }
+    return val;
+  }
+  ```
+
+17.10 다수원소
+
+- 다수원소란 배열에서 그 개수가 절반 이상인 원소를 말한다.
+- 양의 정수로 이루어진 배열이 주어졌을 때, 다수원소를 찾으라.
+- 다수원소가 없다면 -1을 반환하라.
+- 시간복잡도는 O(n), 공간복잡도는 O(1)이어야 한다.
+
+- 도서의 풀이 1(시간복잡도 무시)
+
+  ```ts
+  function findMajorityElement(arr: number[]): number {
+    for (const x of arr) {
+      if (validate(arr, x)) {
+        return x;
+      }
+    }
+    return -1;
+  }
+
+  function validate(arr: number[], majority: number): boolean {
+    let count = 0;
+    for (const n of arr) {
+      if (n === majority) {
+        count++;
+      }
+    }
+    return count > arr.length / 2;
+  }
+  ```
+
+- 도서의 풀이 2(최적)
+
+  ```ts
+  function findMajorityElement(arr: number[]): number {
+    const candidate = getCandidate(arr);
+    return validate(arr, candidate) ? candidate : -1;
+  }
+
+  function getCandidate(arr: number[]): number {
+    let majority = 0;
+    let count = 0;
+    for (const n of arr) {
+      if (count === 0) {
+        majority = n;
+      }
+      if (n === majority) {
+        count++;
+      } else {
+        count--;
+      }
+    }
+    return majority;
+  }
+
+  function validate(arr: number[], majority: number): boolean {
+    let count = 0;
+    for (const n of arr) {
+      if (n === majority) {
+        count++;
+      }
+    }
+    return count > arr.length / 2
+  }
+  ```
+
 17.23 최대 검은색 정방행렬
 
 - 도서의 풀이 1(무식한 풀이)
