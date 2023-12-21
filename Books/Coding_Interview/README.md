@@ -13305,6 +13305,224 @@ int main() {
   }
   ```
 
+17.12 BiNode
+
+- BiNode라는, 두 개의 노드에 대한 포인터를 가진 자료구조가 있다.
+- BiNode를 사용해서 구현된 이진탐색트리를 양방향 연결 리스트로 변환하는 메서드를 작성하라.
+- 값은 순서는 유지되어야 하며, 모든 연산은 in place로 이루어져야 한다.
+
+- 도서의 풀이 1(추가 자료구조 도입: NodePair)
+
+  ```ts
+  class BiNode {
+    data: number;
+    node1: BiNode | null;
+    node2: BiNode | null;
+
+    constructor(data: number) {
+      this.data = data;
+      this.node1 = null;
+      this.node2 = null;
+    }
+  }
+
+  class NodePair {
+    constructor(public head: BiNode, public tail: BiNode) {}
+  }
+
+  function convert(root: BiNode | null): NodePair | null {
+    if (root === null) return null;
+    const part1 = convert(root.node1);
+    const part2 = convert(root.node2);
+
+    if (part1 !== null) {
+      concat(part1.tail, root);
+    }
+    if (part2 !== null) {
+      concat(root, part2.head);
+    }
+
+    return new NodePair(
+      part1 === null ? root : part1.head,
+      part2 === null ? root : part2.tail
+    );
+  }
+
+  function concat(x: BiNode, y: BiNode): void {
+    x.node2 = y;
+    y.node1 = x;
+  }
+  ```
+
+- 도서의 풀이 2(Head로 Tail 찾기)
+
+  ```ts
+  class BiNode {
+    data: number;
+    node1: BiNode | null;
+    node2: BiNode | null;
+
+    constructor(data: number) {
+      this.data = data;
+      this.node1 = null;
+      this.node2 = null;
+    }
+  }
+
+  function convert(root: BiNode | null): BiNode | null {
+    if (root === null) return null;
+
+    const part1 = convert(root.node1);
+    const part2 = convert(root.node2);
+
+    if (part1 !== null) {
+      concat(getTail(part1)!, root);
+    }
+
+    if (part2 !== null) {
+      concat(root, part2);
+    }
+
+    return part1 === null ? root : part1;
+  }
+
+  function getTail(node: BiNode | null): BiNode | null {
+    if (node === null) return null;
+    while (node.node2 !== null) {
+      node = node?.node2;
+    }
+    return node;
+  }
+
+  function concat(x: BiNode, y: BiNode): void {
+    x.node2 = y;
+    y.node1 = x;
+  }
+  ```
+
+- 도서의 풀이 3(환형 연결리스트)
+
+  ```ts
+  class BiNode {
+    data: number;
+    node1: BiNode | null;
+    node2: BiNode | null;
+
+    constructor(data: number) {
+      this.data = data;
+      this.node1 = null;
+      this.node2 = null;
+    }
+  }
+
+  function convertToCircular(root: BiNode | null): BiNode | null {
+    if (root === null) return null;
+
+    const part1 = convertToCircular(root.node1);
+    const part3 = convertToCircular(root.node2);
+
+    if (part1 === null && part3 === null) {
+      root.node1 = root;
+      root.node2 = root;
+      return root;
+    }
+    const tail3 = (part3 === null) ? null : part3.node1;
+
+    if (part1 === null) {
+      concat(part3!.node1!, root);
+    } else {
+      concat(part1.node1!, root);
+    }
+
+    if (part3 === null) {
+      concat(root, part1!);
+    } else {
+      concat(root, part3);
+    }
+
+    if (part1 !== null && part3 !== null) {
+      concat(tail3!, part1);
+    }
+
+    return part1 === null ? root : part1;
+  }
+
+  function convert(root: BiNode | null): BiNode | null {
+    const head = convertToCircular(root);
+    head!.node1!.node2 = null;
+    head!.node1 = null;
+    return head;
+  }
+
+  function concat(x: BiNode, y: BiNode): void {
+    x.node2 = y;
+    y.node1 = x;
+  }
+  ```
+
+17.15 가장 긴 단어
+
+- 주어진 단어 리스트에서, 다른 단어들을 조합해서 만들 수 있는 가장 긴 단어를 찾는 프로그램을 작성하라.
+
+- 도서의 풀이 1(두 단어)
+
+  ```ts
+  function getLongestWord(list: string[]): string {
+    const arr = list.sort((a, b) => b.length - a.length);
+    const arrSet = new Set<string>();
+
+    let now = '';
+    for (const str of arr) {
+      arrSet.add(str);
+      now = str;
+    }
+
+    for (const s of arr) {
+      for (let i =1; i < s.length; i++) {
+        const left = s.substring(0, i);
+        const right = s.substring(i);
+        if (arrSet.has(left) && arrSet.has(right)) {
+          return s;
+        }
+      }
+    }
+    return now;
+  }
+  ```
+
+- 도서의 풀이 2(세 개 이상)
+
+  ```ts
+  function printLongestWord(arr: string[]): string {
+    const arrSet = new Set<string>();
+    for (const str of arr) {
+      arrSet.add(str);
+    }
+    arr.sort((a, b) => b.length - a.length);
+    for (const s of arr) {
+      if (canBuildWord(s, true, arrSet)) {
+        return s;
+      }
+    }
+    return '';
+  }
+
+  function canBuildWord(str: string, isOriginalWord: boolean, s: Set<string>): boolean {
+    if (s.has(str) && !isOriginalWord) {
+      return s.has(str);
+    }
+    for (let i = 1; i < str.length; i++) {
+      const left = str.substring(0, i);
+      const right = str.substring(i);
+      if (s.has(left) && canBuildWord(right, false, s)) {
+        return true;
+      }
+    }
+    s.delete(str);
+    return false;
+  }
+  ```
+
 17.23 최대 검은색 정방행렬
 
 - 도서의 풀이 1(무식한 풀이)
