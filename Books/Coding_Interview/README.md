@@ -13523,6 +13523,163 @@ int main() {
   }
   ```
 
+17.16 마사지사
+
+- 마사지사는 매 마사지 사이에 15분간의 휴식이 필요하다.
+- 연달아 들어온 마사지 예약 리스트가 주어졌을 때, 총 예약 시간이 가장 긴 최적의 마사지 예약 순서를 찾는 알고리즘을 작성하라.
+- 모든 예약 시간은 15의 배수이며, 중복될 수 없고 변경이 불가능하다.
+
+- 도서의 풀이 1(재귀)
+
+  ```ts
+  function maxMinutes(massages: number[]): number {
+    return maxMinutesHelper(massages, 0);
+  }
+
+  function maxMinutesHelper(massages: number[], index: number): number {
+    if (index >= massages.length) return 0;
+
+    const bestWith = massages[index] + maxMinutesHelper(massages, index + 2);
+    const bestWithout = maxMinutesHelper(massages, index + 1);
+
+    return Math.max(bestWith, bestWithout);
+  }
+  ```
+
+- 도서의 풀이 2(재귀 + 메모이제이션)
+
+  ```ts
+  function maxMinutes(massages: number[]): number {
+    const memo: number[] = [];
+    return maxMinutesHelper(massages, 0, memo);
+  }
+
+  function maxMinutesHelper(massages: number[], index: number, memo: number[]): number {
+    if (index >= massages.length) return 0;
+    if (memo[index] === undefined) {
+      const bestWith = massages[index] + maxMinutesHelper(massages, index + 2, memo);
+      const bestWithout = maxMinutesHelper(massages, index + 1, memo);
+      memo[index] = Math.max(bestWith, bestWithout);
+    }
+    return memo[index];
+  }
+  ```
+
+- 도서의 풀이 3(순환 + 메모이제이션)
+
+  ```ts
+  function maxMinutes(massages: number[]): number {
+    const memo: number[] = [];
+    memo[massages.length] = 0;
+    memo[massages.length + 1] = 0;
+    for (let i = massages.length - 1; i >= 0; i--) {
+      const bestWith = massages[i] + memo[i + 2];
+      const bestWithout = memo[i + 1];
+      memo[i] = Math.max(bestWith, bestWithout);
+    }
+    return memo[0];
+  }
+  ```
+
+- 도서의 풀이 4(순환, 최적)
+
+  ```ts
+  function maxMinutes(massages: number[]): number {
+    let oneAway = 0;
+    let twoAway = 0;
+    for (let i = massages.length - 1; i >= 0; i--) {
+      const bestWith = massages[i] + twoAway;
+      const bestWithout = oneAway;
+      const current = Math.max(bestWith, bestWithout);
+      twoAway = oneAway;
+      oneAway = current;
+    }
+    return oneAway;
+  }
+  ```
+
+17.19 빠진 숫자 찾기
+
+- 1부터 N까지 숫자 중 하나를 뺀 나머지가 정확히 한 번씩 등장하는 배열이 있다.
+- 빠진 숫자를 O(n)시간과 O(1)공간에 찾을 수 있는가?
+- 만약 빠진 숫자가 하나가 아니라 두 개 라면 어떤가?
+
+- 도서의 풀이 1(곱셈연산 사용)
+
+  ```ts
+  function missingOneWithProduct(arr: number[]): number {
+    const fullProduct = productToN(arr.length + 1);
+    let actualProduct = 1;
+    for (let i = 0; i < arr.length; i++) {
+      actualProduct *= arr[i];
+    }
+    const missingNumber = fullProduct / actualProduct;
+    return missingNumber;
+  }
+
+  function productToN(n: number): number{
+    let product = 1;
+    for (let i = 2; i <= n; i++) {
+      product *= i;
+    }
+    return product;
+  }
+  ```
+
+- 도서의 풀이 2(덧셈연산 사용)
+
+  ```ts
+  function missingOneWithSum(arr: number[]): number {
+    const fullSum = (arr.length + 1) * (arr.length + 2) / 2;
+    let actualSum = 0;
+    for (let i = 0; i < arr.length; i++) {
+      actualSum += arr[i];
+    }
+    const missingNumber = fullSum - actualSum;
+    return missingNumber;
+  }
+  ```
+
+- 도서의 풀이 3(두 개의 숫자가 없는 경우)
+
+  ```ts
+  function missingTwo(arr: number[]): number[] {
+    const maxValue = arr.length + 2;
+    let remSquare = squareSumToN(maxValue, 2);
+    let remOne = (maxValue * (maxValue + 1)) / 2;
+
+    for (let i = 0; i < arr.length; i++) {
+      remSquare -= arr[i] ** 2;
+      remOne -= arr[i];
+    }
+
+    return solveEquation(remOne, remSquare);
+  }
+
+  function squareSumToN(n: number, power: number): number {
+    let sum = 0;
+    for (let i = 1; i <= n; i++) {
+      sum += Math.pow(i, power);
+    }
+    return sum;
+  }
+
+  function solveEquation(r1: number, r2: number): number[] {
+    let a = 2;
+    let b = -2 * r1;
+    let c = r1 * r1 - r2;
+
+    let part1 = -1 * b;
+    let part2 = Math.sqrt(b * b - 4 * a * c);
+    let part3 = 2 * a;
+
+    let solutionX = (part1 + part2) / part3;
+    let solutionY = r1 - solutionX;
+
+    return [solutionX, solutionY];
+  }
+  ```
+
 17.23 최대 검은색 정방행렬
 
 - 도서의 풀이 1(무식한 풀이)
