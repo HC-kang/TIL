@@ -13680,6 +13680,198 @@ int main() {
   }
   ```
 
+17.21 막대 그래프의 부피
+
+- 히스토그램에 물을 채운다고 했을 때, 이 그래프에 저장 할 수 있는 물의 양을 계산하는 알고리즘을 작성하라.
+- 막대의 폭은 1로 가정한다.
+
+- 도서의 풀이 1(재귀)
+
+  ```ts
+  function computeHistogramVolume(histogram: number[]): number {
+    const start = 0;
+    const end = histogram.length - 1;
+
+    const max = findIndexOfMax(histogram, start, end);
+    const leftVolume = subgraphVolume(histogram, start, max, true);
+    const rightVolume = subgraphVolume(histogram, max, end, false);
+
+    return leftVolume + rightVolume;
+  }
+
+  function subgraphVolume(
+    histogram: number[],
+    start: number,
+    end: number,
+    isLeft: boolean
+  ): number {
+    if (start >= end) return 0;
+    let sum = 0;
+
+    if (isLeft) {
+      let max = findIndexOfMax(histogram, start, end - 1);
+      sum += borderedVolume(histogram, max, end);
+      sum += subgraphVolume(histogram, start, max, isLeft);
+    } else {
+      let max = findIndexOfMax(histogram, start + 1, end);
+      sum += borderedVolume(histogram, start, max);
+      sum += subgraphVolume(histogram, max, end, isLeft);
+    }
+
+    return sum;
+  }
+
+  function findIndexOfMax(
+    histogram: number[],
+    start: number,
+    end: number
+  ): number {
+    let indexOfMax = start;
+    for (let i = start + 1; i <= end; i++) {
+      if (histogram[i] > histogram[indexOfMax]) {
+        indexOfMax = i;
+      }
+    }
+    return indexOfMax;
+  }
+
+  function borderedVolume(
+    histogram: number[],
+    start: number,
+    end: number
+  ): number {
+    if (start >= end) return 0;
+
+    let min = Math.min(histogram[start], histogram[end]);
+    let sum = 0;
+    for (let i = start + 1; i < end; i++) {
+      sum += min - histogram[i];
+    }
+    return sum;
+  }
+  ```
+
+- 도서의 풀이 2(최적)
+
+  ```ts
+  function computeHistogramVolume(histogram: number[]): number {
+    const start = 0;
+    const end = histogram.length - 1;
+
+    const data = createHistogramData(histogram);
+
+    const max = data[0].getRightMaxIndex();
+    const leftVolume = subgraphVolume(data, start, max, true);
+    const rightVolume = subgraphVolume(data, max, end, false);
+
+    return leftVolume + rightVolume;
+  }
+
+  function createHistogramData(histo: number[]): HistogramData[] {
+    const histogram: HistogramData[] = [];
+    for (let i = 0; i < histo.length; i++) {
+      histogram.push(new HistogramData(histo[i]));
+    }
+
+    let maxIndex = 0;
+    for (let i = 0; i < histo.length; i++) {
+      if (histo[maxIndex] < histo[i]) {
+        maxIndex = i;
+      }
+      histogram[i].setLeftMaxIndex(maxIndex);
+    }
+
+    maxIndex = histo.length - 1;
+    for (let i = histo.length - 1; i >= 0; i--) {
+      if (histo[maxIndex] < histo[i]) {
+        maxIndex = i;
+      }
+      histogram[i].setRightMaxIndex(maxIndex);
+    }
+
+    return histogram;
+  }
+
+  function subgraphVolume(
+    histogram: HistogramData[],
+    start: number,
+    end: number,
+    isLeft: boolean
+  ): number {
+    if (start >= end) return 0;
+    let sum = 0;
+    if (isLeft) {
+      const max = histogram[end - 1].getLeftMaxIndex();
+      sum += borderedVolume(histogram, max, end);
+      sum += subgraphVolume(histogram, start, max, isLeft);
+    } else {
+      const max = histogram[start + 1].getRightMaxIndex();
+      sum += borderedVolume(histogram, start, max);
+      sum += subgraphVolume(histogram, max, end, isLeft);
+    }
+
+    return sum;
+  }
+
+  function borderedVolume(
+    data: HistogramData[],
+    start: number,
+    end: number
+  ): number {
+    if (start >= end) return 0;
+
+    const min = Math.min(data[start].getHeight(), data[end].getHeight());
+    let sum = 0;
+    for (let i = start + 1; i < end; i++) {
+      sum += min - data[i].getHeight();
+    }
+    return sum;
+  }
+
+  class HistogramData {
+    private height: number;
+    private leftMaxIndex = -1;
+    private rightMaxIndex = -1;
+
+    constructor(height: number) {
+      this.height = height;
+    }
+
+    getHeight(): number { return this.height };
+    getLeftMaxIndex(): number { return this.leftMaxIndex };
+    getRightMaxIndex(): number { return this.rightMaxIndex };
+    setLeftMaxIndex(index: number): void { this.leftMaxIndex = index };
+    setRightMaxIndex(index: number): void { this.rightMaxIndex = index };
+  }
+  ```
+
+- 도서의 풀이 3(최적, 간략화)
+
+  ```ts
+  function computeHistogramVolume(histo: number[]) {
+    const leftMaxes: number[] = [];
+    let leftMax = histo[0];
+    for (let i = 0; i < histo.length; i++) {
+      leftMax = Math.max(leftMax, histo[i]);
+      leftMaxes.push(leftMax);
+    }
+
+    let sum = 0;
+
+    let rightMax = histo[histo.length - 1];
+    for (let i = histo.length - 1; i >= 0; i--) {
+      rightMax = Math.max(rightMax, histo[i]);
+      const secondTallest = Math.min(rightMax, leftMaxes[i]);
+
+      if (secondTallest > histo[i]) {
+        sum += secondTallest - histo[i];
+      }
+    }
+
+    return sum;
+  }
+  ```
+
 17.23 최대 검은색 정방행렬
 
 - 도서의 풀이 1(무식한 풀이)
@@ -13811,5 +14003,272 @@ int main() {
 
   class SubSquare {
     constructor(public row: number, public col: number, public size: number) {}
+  }
+  ```
+
+17.26 드문드문 유사도
+
+- 정수로 이루어진 두 문서간의 유사도는 '교집합의 크기 / 합집합의 크기'로 나타낼 수 있다.
+- 다수 문서의 상호 유사도가 0일 것 같은 문서가 다수 주어져있다.
+- 이 때, 유사도가 0이 아닌 문서 쌍과 그 유사도를 반환하는 알고리즘을 작성하라.
+
+- 도서의 풀이 1(무식한 방법)
+
+  ```ts
+  function computeSimilarities(documents: Doc[]): Map<DocPair, number> {
+    const similarities = new Map<DocPair, number>();
+    for (let i = 0; i < documents.length; i++) {
+      for (let j = i + 1; j < documents.length; j++) {
+        const doc1 = documents[i];
+        const doc2 = documents[j];
+        const sim = computeSimilarity(doc1, doc2);
+        if (sim > 0) {
+          const pair = new DocPair(doc1.getId(), doc2.getId());
+          similarities.set(pair, sim);
+        }
+      }
+    }
+    return similarities;
+  }
+
+  function computeSimilarity(doc1: Doc, doc2: Doc): number {
+    let intersection = 0;
+    const set1 = new Set<number>;
+    doc1.getWords().forEach((word) => set1.add(word));
+
+    for (const word of doc2.getWords()) {
+      if (set1.has(word)) {
+        intersection++;
+      }
+    }
+
+    const union = doc1.size() + doc2.size() - intersection;
+    return union === 0 ? 0 : intersection / union;
+  }
+
+  class DocPair {
+    constructor(public doc1: number, public doc2: number) {}
+
+    public equals(o: Object): boolean {
+      if (o instanceof DocPair) {
+        const p = o as DocPair;
+        return this.doc1 === p.doc1 && this.doc2 === p.doc2;
+      }
+      return false;
+    }
+  }
+
+  class Doc {
+    constructor(private docId: number, private words: number[]) {}
+
+    public getWords(): number[] {
+      return this.words;
+    }
+
+    public getId(): number {
+      return this.docId;
+    }
+
+    public size(): number {
+      return this.words === null ? 0 : this.words.length;
+    }
+  }
+  ```
+
+- 도서의 풀이 2(최적화)
+
+  ```ts
+  function computeSimilarities(documents: Map<number, Doc>): Map<DocPair, number> {
+    const wordToDocs = groupWords(documents);
+    const similarities = computeIntersections(wordToDocs);
+    adjustToSimilarities(documents, similarities);
+    return similarities;
+  }
+
+  function groupWords(documents: Map<number, Doc>): Map<number, number[]> {
+    const wordToDocs: Map<number, number[]> = new Map();
+
+    for (const doc of documents.values()) {
+      const words = doc.getWords();
+      for (const word of words) {
+        if (!wordToDocs.has(word)) {
+          wordToDocs.set(word, [doc.getId()]);
+        } else {
+          wordToDocs.get(word)!.push(doc.getId());
+        }
+      }
+    }
+    return wordToDocs;
+  }
+
+  function computeIntersections(wordToDocs: Map<number, number[]>): Map<DocPair, number> {
+    const similarities: Map<DocPair, number> = new Map();
+    const words: Set<number> = new Set(wordToDocs.keys());
+    for (const word of words) {
+      const docs = wordToDocs.get(word) || [];
+      docs.sort((a, b) => a - b);
+      for (let i = 0; i < docs.length; i++) {
+        for (let j = i + 1; j < docs.length; j++) {
+          increment(similarities, docs[i], docs[j]);
+        }
+      }
+    }
+    return similarities;
+  }
+
+  function increment(similarities: Map<DocPair, number>, doc1: number, doc2: number): void {
+    let updated = false;
+    for (const [pair, count] of similarities) {
+      if (pair.equals(new DocPair(doc1, doc2))) {
+        similarities.set(pair, count + 1);
+        updated = true;
+        break;
+      }
+    }
+    if (!updated) {
+      similarities.set(new DocPair(doc1, doc2), 1);
+    }
+  }
+
+  function adjustToSimilarities(documents: Map<number, Doc>, similarities: Map<DocPair, number>): void {
+    for (const entry of similarities.entries()) {
+      const pair = entry[0];
+      const intersection = entry[1];
+      const doc1 = documents.get(pair.doc1)!;
+      const doc2 = documents.get(pair.doc2)!;
+      const union = doc1.size() + doc2.size() - intersection;
+      similarities.set(pair, intersection / union);
+    }
+  }
+
+  class DocPair {
+    constructor(public doc1: number, public doc2: number) {}
+
+    public equals(o: Object): boolean {
+      if (o instanceof DocPair) {
+        const p = o as DocPair;
+        return this.doc1 === p.doc1 && this.doc2 === p.doc2;
+      }
+      return false;
+    }
+  }
+
+  class Doc {
+    constructor(private docId: number, private words: number[]) {}
+
+    public getWords(): number[] {
+      return this.words;
+    }
+
+    public getId(): number {
+      return this.docId;
+    }
+
+    public size(): number {
+      return this.words === null ? 0 : this.words.length;
+    }
+  }
+  ```
+
+- 도서의 풀이 3(또다른 최적화)
+
+  ```ts
+  class Elem {
+    constructor(public word: number, public document: number) {}
+
+    public compareTo(e: Elem): number {
+      if (this.word === e.word) {
+        return this.document - e.document;
+      }
+      return this.word - e.word;
+    }
+  }
+
+  function computeSimilarities(documents: Map<number, Doc>): Map<DocPair, number> {
+    const elements = sortWords(documents);
+    const similarities = computeIntersections(elements);
+    adjustToSimilarities(documents, similarities);
+    return similarities;
+  }
+
+  function sortWords(docs: Map<number, Doc>): Elem[] {
+    const elements: Elem[] = [];
+    for (const doc of docs.values()) {
+      const words = doc.getWords();
+      for (const word of words) {
+        elements.push(new Elem(word, doc.getId()));
+      }
+    }
+    elements.sort((a, b) => a.compareTo(b));
+    return elements;
+  }
+
+  function increment(similarities: Map<DocPair, number>, doc1: number, doc2: number): void {
+    let updated = false;
+    for (const [pair, count] of similarities) {
+      if (pair.equals(new DocPair(doc1, doc2))) {
+        similarities.set(pair, count + 1);
+        updated = true;
+        break;
+      }
+    }
+    if (!updated) {
+      similarities.set(new DocPair(doc1, doc2), 1);
+    }
+  }
+
+  function computeIntersections(elements: Elem[]): Map<DocPair, number> {
+    const similarities: Map<DocPair, number> = new Map();
+
+    for (let i = 0; i < elements.length; i++) {
+      const left = elements[i];
+      for (let j = i + 1; j < elements.length; j++) {
+        const right = elements[j];
+        if (left.word !== right.word) {
+          break;
+        }
+        increment(similarities, left.document, right.document);
+      }
+    }
+    return similarities;
+  }
+
+  function adjustToSimilarities(documents: Map<number, Doc>, similarities: Map<DocPair, number>): void {
+    for (const entry of similarities.entries()) {
+      const pair = entry[0];
+      const intersection = entry[1];
+      const doc1 = documents.get(pair.doc1)!;
+      const doc2 = documents.get(pair.doc2)!;
+      const union = doc1.size() + doc2.size() - intersection;
+      similarities.set(pair, intersection / union);
+    }
+  }
+
+  class DocPair {
+    constructor(public doc1: number, public doc2: number) {}
+
+    public equals(o: Object): boolean {
+      if (o instanceof DocPair) {
+        const p = o as DocPair;
+        return this.doc1 === p.doc1 && this.doc2 === p.doc2;
+      }
+      return false;
+    }
+  }
+
+  class Doc {
+    constructor(private docId: number, private words: number[]) {}
+
+    public getWords(): number[] {
+      return this.words;
+    }
+
+    public getId(): number {
+      return this.docId;
+    }
+
+    public size(): number {
+      return this.words === null ? 0 : this.words.length;
+    }
   }
   ```
