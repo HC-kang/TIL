@@ -80,3 +80,55 @@
 ---
 
 출처: [Postman blog - A guide to the different types of APIs](https://blog.postman.com/different-types-of-apis/)
+
+---
+
+## RESTful?
+
+- 주요 용어
+  - 자원(Resource): 사용자가 접근 가능한 문서, 이미지, 데이터 등의 모든 것을 의미함.
+  - 컬렉션(Collection): 서버에 존재하는 자원의 집합을 의미함.
+  - URL(Uniform Resource Locator): 자원의 위치를 나타내는 문자열.
+
+1. JSON을 사용한다
+   1. XML은 파싱이 어렵고, 여타 프레임워크에서 지원이 부족하다.
+   2. 반면에 JSON은 PHP, Python 등 다른 언어에서도 지원이 잘 되어있다.
+2. 엔드포인트에 동사가 아닌 명사를 사용한다.
+   1. GET, POST, PUT, DELETE 등의 HTTP 메소드가 이미 정의되어 동사로 사용되므로, 엔드포인트에 동사를 사용할 필요가 없다.
+   2. 즉 `GET /getPosts`, `POST /createPost` 등의 형식이 아닌, `GET /posts`, `POST /posts` 등의 형식을 사용한다.
+3. 복수형 단어를 사용한다.
+   1. API는 기본적으로 사용자가 접근 가능한 리소스의 집합으로 볼 수 있다.
+   2. 즉 `GET /posts`, `GET /posts/1` 등의 형식을 사용해서, posts라는 collection에 접근하고, posts의 id가 1인 리소스에 접근하는 것이다.
+4. 상태코드를 사용한다.
+   1. 상태코드를 사용하면, 클라이언트가 서버의 상태를 쉽게 파악할 수 있다.
+
+      | 상태코드 | 설명 | 예시 |
+      | --- | --- | --- |
+      | 100 - 199 | 정보 | 102 processing |
+      | 200 - 299 | 성공 | 200 OK |
+      | 300 - 399 | 리다이렉션 | 301 moved permanently |
+      | 400 - 499 | 클라이언트 에러 | 400 bad request |
+      | 500 - 599 | 서버 에러 | 500 internal server error |
+
+5. 중첩을 통해 관계를 표현한다.
+   1. 예를 들어, `GET /posts/1/comments`는 id가 1인 post의 댓글을 가져오는 것이다.
+   2. 이렇게 중첩을 통해 관계를 표현하면, 클라이언트가 서버의 구조를 쉽게 파악할 수 있다.
+6. 요청된 데이터를 조회할 때, 필터, 정렬, 페이지네이션을 사용한다.
+   1. 필터: `GET /posts?author=1`은 id가 1인 작성자의 post를 가져오는 것이다.
+   2. 정렬: `GET /posts?sort=created_at`은 작성일자를 기준으로 post를 정렬하는 것이다.
+   3. 페이지네이션: `GET /posts?page=1&limit=10`은 1페이지에 10개의 post를 가져오는 것이다.
+7. 보안을 위해 SSL을 사용한다.
+   1. SSL을 사용하면, 클라이언트와 서버 간의 통신이 암호화되므로, 중간에 데이터를 가로채더라도 데이터를 볼 수 없다.
+8. 버저닝을 통해 API를 관리한다.
+   1. 버저닝을 통해, API의 변경사항을 관리할 수 있다.
+   2. `GET /v1/posts`, `GET /v2.0/posts`, `GET /2.0/posts` 등
+9. 정확한 API 문서를 작성하고, 제공한다.
+   1. 아래의 요소를 포함하는 것이 좋다.
+    - 관련된 엔드포인트의 목록
+    - 엔드포인트에 대한 요청의 예제
+    - 몇가지 언어로의 기본적인 구현 예제
+    - 각 에러에 대한 설명
+
+---
+
+출처: [REST API Best Practices – REST Endpoint Design Examples](https://www.freecodecamp.org/news/rest-api-best-practices-rest-endpoint-design-examples/)
