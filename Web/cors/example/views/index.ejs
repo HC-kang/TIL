@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<json>
+
+  <head>
+    <title>Test page for CORS</title>
+    <style>
+      .container {
+        width: 600px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .container > div {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+    </style>
+    <script>
+      async function sendRequest(url, method = 'GET') {
+        console.log('Sending request to ' + url);
+        const response = await fetch(url, { method });
+        console.log(response);
+      }
+      async function sendRequestWithHeader(url, method = 'GET') {
+        console.log('Sending request to ' + url);
+        const response = await fetch(url, { method, headers: { 'X-Test': 'test' } });
+        console.log(response);
+      }
+    </script>
+  </head>
+
+  <body>
+    <h1>Test page for CORS</h1>
+    <div class="container">
+      <p>GET</p>
+      <p id="urlToRequest1">http://localhost:3000/json</p>
+      <div>
+        <p>✅</p>
+        <button onclick="sendRequest(document.getElementById('urlToRequest1').textContent)">
+          Request
+        </button>
+      </div>
+    </div>
+    <hr />
+    <div class="container">
+      <p>GET</p>
+      <p id="urlToRequest2">http://localhost:3001/json</p>
+      <div>
+        <p>❌</p>
+        <button onclick="sendRequest(document.getElementById('urlToRequest2').textContent)">
+          Request
+        </button>
+      </div>
+    </div>
+    <div class="container">
+      <p>GET</p>
+      <p id="urlToRequest3">http://localhost:3001/json-cors</p>
+      <div>
+        <p>✅</p>
+        <button onclick="sendRequest(document.getElementById('urlToRequest3').textContent)">
+          Request
+        </button>
+      </div>
+    </div>
+    <hr />
+    <div class="container">
+      <p>GET + HEADER</p>
+      <p id="urlToRequest4">http://localhost:3001/json</p>
+      <div>
+        <p>❌</p>
+        <button onclick="sendRequestWithHeader(document.getElementById('urlToRequest4').textContent)">
+          Request
+        </button>
+      </div>
+    </div>
+    <div class="container">
+      <p>GET + HEADER</p>
+      <p id="urlToRequest5">http://localhost:3001/json-header</p>
+      <div>
+        <p>✅</p>
+        <button onclick="sendRequestWithHeader(document.getElementById('urlToRequest5').textContent)">
+          Request
+        </button>
+      </div>
+    </div>
+    <hr />
+    <div class="container">
+      <p>DELETE</p>
+      <p id="urlToRequest6">http://localhost:3001/json</p>
+      <div>
+        <p>❌</p>
+        <button onclick="sendRequest(document.getElementById('urlToRequest6').textContent, 'DELETE')">
+          Request
+        </button>
+      </div>
+    </div>
+    <div class="container">
+      <p>DELETE</p>
+      <p id="urlToRequest7">http://localhost:3001/json-cors</p>
+      <div>
+        <p>✅</p>
+        <button onclick="sendRequest(document.getElementById('urlToRequest7').textContent, 'DELETE')">
+          Request
+        </button>
+      </div>
+    </div>
+  </body>
+</json>
