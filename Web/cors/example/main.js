@@ -6,10 +6,12 @@ const app = express();
 app.set('view engine', 'ejs');
 
 app.get('/', (req, res) => {
-  const data = { message: 'Hello, World!' };
-  res.render('index', data);
+  res.render('index');
 });
 
+/**
+ * /json 엔드포인트
+ */
 app.options('/json', (req, res) => {
   res.set({
     'Content-Type': 'text/json; charset=utf-8',
@@ -21,27 +23,16 @@ app.options('/json', (req, res) => {
 });
 app.get('/json', (req, res) => {
   const jsonFilePath = path.join(__dirname, 'public/sample.json');
-  res.set('Content-Type', 'text/json; charset=utf-8');
   res.sendFile(jsonFilePath);
 });
 app.delete('/json', (req, res) => {
   const jsonFilePath = path.join(__dirname, 'public/sample.json');
-  res.set({
-    'Content-Type': 'text/json; charset=utf-8',
-  })
   res.sendFile(jsonFilePath);
 });
 
-app.get('/json-cors', (req, res) => {
-  const jsonFilePath = path.join(__dirname, 'public/sample.json');
-  res.set({
-    'Content-Type': 'text/json; charset=utf-8',
-    'Access-Control-Allow-Origin': 'http://localhost:3000',
-  })
-  res.sendFile(jsonFilePath);
-});
-
-// 커스텀 헤더가 추가되어 options 메서드가 필요함
+/**
+ * /json-header 엔드포인트
+ */
 app.options('/json-header', (req, res) => {
   res.set({
     'Content-Type': 'text/json; charset=utf-8',
@@ -52,31 +43,38 @@ app.options('/json-header', (req, res) => {
 });
 app.get('/json-header', (req, res) => {
   const jsonFilePath = path.join(__dirname, 'public/sample.json');
-  res.set({
-    'Content-Type': 'text/json; charset=utf-8',
-    'Access-Control-Allow-Origin': 'http://localhost:3000',
-  });
   res.sendFile(jsonFilePath);
 });
 
-// method가 변경되어 options 메서드가 필요함
+/**
+ * /json-cors 엔드포인트
+ */
 app.options('/json-cors', (req, res) => {
   res.set({
     'Content-Type': 'text/json; charset=utf-8',
     'Access-Control-Allow-Origin': 'http://localhost:3000',
     'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Test',
   });
   res.sendStatus(204);
 });
-app.delete('/json-cors', (req, res) => {
+app.get('/json-cors', (req, res) => {
   const jsonFilePath = path.join(__dirname, 'public/sample.json');
   res.set({
     'Content-Type': 'text/json; charset=utf-8',
     'Access-Control-Allow-Origin': 'http://localhost:3000',
-  });
+  })
+  res.sendFile(jsonFilePath);
+});
+app.delete('/json-cors', (req, res) => {
+  const jsonFilePath = path.join(__dirname, 'public/sample.json');
+  res.set({
+    'Access-Control-Allow-Origin': 'http://localhost:3000',
+  })
   res.sendFile(jsonFilePath);
 });
 
+// 별도 출처를 사용하기 위해 3000, 3001 포트를 사용
 app.listen(3000, () => {
   console.log('Server is running on port 3000');
 });
