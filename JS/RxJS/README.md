@@ -31,12 +31,128 @@
 
 ### 1. Observable
 
+- 시간을 축으로 연속된 데이터를 저장하는 컬렉션 객체
+- 스트림이라고도 한다.
+- 네이밍 컨벤션으로 맨 뒤에 `$`를 붙인다.
+
 ### 2. Operator
+
+- Observable을 생성, 변환, 필터링, 결합, 분리 등 조작하는 함수
+- 오퍼레이터는 항상 새로운 Observable 인스턴스를 반환한다.
 
 ### 3. Observer
 
+- Observable을 통해 전달된 데이터를 소비하는 객체.
+- Observable의 `subscribe` 메서드를 통해 등록한다.
+- `next`, `error`, `complete` 메서드를 구현한다.
+  - 이는 각각 다음 데이터, 에러 상태, 완료를 의미한다.
+
 ### 4. Subscription
 
+- Observable.prototype.subscribe의 리턴값
+- 자원의 해제를 위해 사용한다.
+
 ## Observable
+
+- Observable을 생성하는 세 가지 방법
+  - `new Observable()`
+
+    ```js
+    const { Observable } = rxjs;
+    const numbers$ = new Observable(function subscribe(observer) {
+      observer.next(1);
+      observer.next(2);
+      observer.next(3);
+    });
+    numbers$.subscribe(x => console.log(x));
+    ```
+
+  - `Observable.create()`
+
+    ```js
+    const { Observable } = rxjs;
+    const numbers$ = Observable.create(function subscribe(observer) {
+      observer.next(1);
+      observer.next(2);
+      observer.next(3);
+    });
+    numbers$.subscribe(x => console.log(x));
+    ```
+
+  - rxjs의 생성 함수 사용
+    - of
+    - range
+    - fromEvent
+    - from
+    - interval
+
+    ```js
+    const { of } = rxjs;
+    const numbers$ = of(1, 2, 3);
+    numbers$.subscribe(x => console.log(x));
+    ```
+
+- Observable 구현 시 고려해야 할 것들
+  - 에러 처리
+  - 완료 처리
+  - 구독 해제
+
+- 특별한 용도의 Observable
+  - empty: 데이터를 발행하지 않고 완료만 발생시키는 Observable
+
+    ```js
+    // 구현
+    Observable.create(function subscribe(observer) {
+      observer.complete();
+    });
+
+    // 사용
+    of(1, -2, -3).pipe(
+        map(number => number < 0 ? empty() : number)
+    )
+    .subscribe({
+        next: v => console.log(v),
+        error: e => console.error(e),
+        complete: () => console.log('complete')
+    })
+    ```
+
+  - throwError: 에러만 발생시키는 Observable
+
+    ```js
+    // 구현
+    Observable.create(function subscribe(observer) {
+      observer.error(new Error('error'));
+    });
+
+    // 사용
+    of(1, -2, -3).pipe(
+        map(number => number < 0 ? throwError('error') : number)
+    )
+    .subscribe({
+        next: v => console.log(v),
+        error: e => console.error(e),
+        complete: () => console.log('complete')
+    })
+    ```
+
+  - never: 아무것도 발행하지 않는 Observable
+
+    ```js
+    // 구현
+    Observable.create(function subscribe(observer) {
+      // 아무것도 하지 않는다.
+    });
+
+    // 사용
+    of(1, -2, -3).pipe(
+        map(number => number < 0 ? never() : number)
+    )
+    .subscribe({
+        next: v => console.log(v),
+        error: e => console.error(e),
+        complete: () => console.log('complete')
+    })
+    ```
 
 ## Operator
