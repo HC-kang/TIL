@@ -86,7 +86,7 @@
 ## RESTful?
 
 - 주요 용어
-  - 자원(Resource): 사용자가 접근 가능한 문서, 이미지, 데이터 등의 모든 것을 의미함.
+  - 자원, 문서(Resource, Document): 사용자가 접근 가능한 문서, 이미지, 데이터 등의 모든 것을 의미함.
   - 컬렉션(Collection): 서버에 존재하는 자원의 집합을 의미함.
   - URL(Uniform Resource Locator): 자원의 위치를 나타내는 문자열.
 
@@ -96,9 +96,12 @@
 2. 엔드포인트에 동사가 아닌 명사를 사용한다.
    1. GET, POST, PUT, DELETE 등의 HTTP 메소드가 이미 정의되어 동사로 사용되므로, 엔드포인트에 동사를 사용할 필요가 없다.
    2. 즉 `GET /getPosts`, `POST /createPost` 등의 형식이 아닌, `GET /posts`, `POST /posts` 등의 형식을 사용한다.
-3. 복수형 단어를 사용한다.
+   3. 다만, http 메소드로 표현 할 수 없는 동사는 사용할 수 있다.
+      1. 예를 들어, `PUT /posts/1/move`는 id가 1인 post를 이동시키는 것이다.
+3. 컬렉션에는 복수형 명사를, 리소스에는 단수형 명사를 사용한다.
    1. API는 기본적으로 사용자가 접근 가능한 리소스의 집합으로 볼 수 있다.
-   2. 즉 `GET /posts`, `GET /posts/1` 등의 형식을 사용해서, posts라는 collection에 접근하고, posts의 id가 1인 리소스에 접근하는 것이다.
+   2. 예를 들어, `GET /leagues/seattle/teams/trebuchet/players`는 시애틀 팀의 트레뷰셋 팀의 선수들을 가져오는 것이다.
+      1. 여기에서 `leagues`, `teams`는 컬렉션, `seattle`, `trebuchet`은 도큐먼트이다.
 4. 상태코드를 사용한다.
    1. 상태코드를 사용하면, 클라이언트가 서버의 상태를 쉽게 파악할 수 있다.
 
@@ -128,6 +131,135 @@
     - 엔드포인트에 대한 요청의 예제
     - 몇가지 언어로의 기본적인 구현 예제
     - 각 에러에 대한 설명
+
+### 구체적인 예시
+
+- `POST /store/{store-id}/products`
+  - 나쁜 예시
+
+    ```request
+    Content-Type: application/json
+    {
+      "name": "Product `""
+    }
+    ```
+
+    ```response
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    {
+      "result": { "id": 1 }
+    }
+    ```
+
+  - 좋은 예시
+
+    ```request
+    Content-Type: application/json
+    {
+      "name": "Product 1"
+    }
+    ```
+
+    ```response
+    HTTP/1.1 201 Created
+    Location: /store/1/products/1
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Location: /store/1/products/1
+    {
+      "id": 1,
+      "name": "Product 1"
+    }
+    ```
+
+- `GET /store/{store-id}/products`
+  - 나쁜 예시
+
+    ```response
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    {
+      "result": [{
+        "id": 1,
+        "name": "Product 1"
+      }]
+    }
+    ```
+
+  - 좋은 예시
+
+    ```response
+    HTTP/1.1 200 OK
+    Content-Type: application/vnd.store.product+json
+    [{
+      "id": 1,
+      "name": "Product 1",
+      "links": [{
+        "self": "/store/1/products/1"
+      }]
+    }]
+    ```
+
+- `GET /store/{store-id}/products/{product-id}/comments`
+  - 나쁜 예시
+
+    ```response
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    {
+      "result": [{
+        "id": 1,
+        "product_id": 1,
+        "text": "Comment 1"
+      }]
+    }
+    ```
+  
+  - 좋은 예시
+
+    ```response
+    HTTP/1.1 200 OK
+    Content-Type: application/vnd.store.product.comment+json
+    [{
+      "id": 1,
+      "store_id": 1,
+      "product_id": 1,
+      "text": "Comment 1",
+      "links": [{
+        "self": "/store/1/products/1/comments/1",
+        "product": "/store/1/products/1"
+        "store": "/store/1",
+      }]
+    }]
+    ```
+
+### 고민해볼 케이스
+
+- 파일 속성확인 / 다운로드
+  - `GET /files/{file-id}`
+    - 케이스 1
+      - `GET /files/{file-id}/properties` 별도 사용
+    - 케이스 2
+      - `GET /files/{file-id}?properties=true` 쿼리스트링 사용
+    - 케이스 3 (최적)
+      - `GET /files/{file-id}` 엔드포인트 사용
+        - `Accept: application/json` 헤더를 통해 JSON을 요청
+        - `Accept: application/octet-stream` 헤더를 통해 파일을 요청 혹은
+        - `Accept: image/png` 헤더를 통해 이미지를 요청
+
+- GET 요청시 데이터 변경이 필요한 경우?
+  - HTTP 스펙상 GET 메서드는 세이프 메서드이므로, 데이터 변경이 불가능함.
+  - 따라서 정석은 GET 요청시 데이터 변경이 필요한 경우 PUT, POST, PATCH 등의 메서드를 함께 사용해서 리퀘스트를 두 번 보내는 것.
+  - 혹은 쿼리스트링을 통해 데이터 변경을 요청하는 것: `GET /mails/{mail-id}?preview=true`, 정석은 아니지만, 일반적으로 많이 사용됨.
+
+- 다수의 변경이 생기는 경우?
+
+- HTTP 캐싱
+  - 계산되는 정보의 경우?
+  - 사용자마다 다른 정보를 제공하는 경우?: Role, Permission 등
+  - 
 
 ---
 
