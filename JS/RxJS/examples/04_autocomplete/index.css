@@ -32,3 +32,18 @@
     margin: 0px;
     padding: 0px;
 }
+
+#loading {
+    position: absolute;
+    z-index:2;
+    top: 3px;
+    right: 0;
+    animation: spin 2s linear infinite;
+    display: none;
+}
+
+/* Define the keyframes for the spin animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

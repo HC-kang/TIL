@@ -1,5 +1,5 @@
 const { fromEvent } = rxjs;
-const { map, mergeMap, filter, debounceTime, distinctUntilChanged } =
+const { tap, map, mergeMap, filter, debounceTime, distinctUntilChanged } =
   rxjs.operators;
 const { ajax } = rxjs.ajax;
 
@@ -8,7 +8,9 @@ const users$ = fromEvent(document.getElementById('search'), 'keyup').pipe(
   map((e) => e.target.value),
   filter((q) => q.trim().length > 0),
   distinctUntilChanged(),
-  mergeMap((q) => ajax.getJSON(`https://api.github.com/search/users?q=${q}`))
+  tap(showLoading),
+  mergeMap((q) => ajax.getJSON(`https://api.github.com/search/users?q=${q}`)),
+  tap(hideLoading)
 );
 users$.subscribe((value) => drawLayer(value.items));
 
@@ -25,4 +27,14 @@ function drawLayer(items) {
     `;
     })
     .join('');
+}
+
+const loading = document.getElementById('loading');
+
+function showLoading() {
+  loading.style.display = 'block';
+}
+
+function hideLoading() {
+  loading.style.display = 'none';
 }
