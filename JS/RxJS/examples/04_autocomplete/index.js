@@ -3,18 +3,30 @@ const { tap, map, mergeMap, filter, debounceTime, distinctUntilChanged } =
   rxjs.operators;
 const { ajax } = rxjs.ajax;
 
-const users$ = fromEvent(document.getElementById('search'), 'keyup').pipe(
+const search = document.getElementById('search');
+const layer = document.getElementById('suggestLayer');
+const loading = document.getElementById('loading');
+
+const keyup$ = fromEvent(search, 'keyup').pipe(
   debounceTime(300),
-  map((e) => e.target.value),
-  filter((q) => q.trim().length > 0),
-  distinctUntilChanged(),
+  map((event) => event.target.value),
+  distinctUntilChanged()
+);
+
+const user$ = keyup$.pipe(
+  filter((query) => query.trim().length > 0),
   tap(showLoading),
-  mergeMap((q) => ajax.getJSON(`https://api.github.com/search/users?q=${q}`)),
+  mergeMap((query) => ajax.getJSON(`https://api.github.com/search/users?q=${query}`)),
   tap(hideLoading)
 );
-users$.subscribe((value) => drawLayer(value.items));
 
-const layer = document.getElementById('suggestLayer');
+const reset$ = keyup$.pipe(
+  filter((query) => query.trim().length === 0),
+  tap((value) => (layer.innerHTML = ''))
+);
+
+user$.subscribe((value) => drawLayer(value.items));
+reset$.subscribe();
 
 function drawLayer(items) {
   layer.innerHTML = items
@@ -28,8 +40,6 @@ function drawLayer(items) {
     })
     .join('');
 }
-
-const loading = document.getElementById('loading');
 
 function showLoading() {
   loading.style.display = 'block';
