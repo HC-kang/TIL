@@ -1,6 +1,18 @@
 const { fromEvent } = rxjs;
-const { partition, tap, map, mergeMap, filter, debounceTime, distinctUntilChanged } =
-  rxjs.operators;
+const {
+  finalize,
+  retry,
+  catchError,
+  switchMap,
+  switchAll,
+  partition,
+  tap,
+  map,
+  mergeMap,
+  filter,
+  debounceTime,
+  distinctUntilChanged,
+} = rxjs.operators;
 const { ajax } = rxjs.ajax;
 
 const search = document.getElementById('search');
@@ -13,21 +25,41 @@ const keyup$ = fromEvent(search, 'keyup').pipe(
   distinctUntilChanged()
 );
 
-let [ user$, reset$ ] = keyup$.pipe(
-  partition(query => query.trim().length > 0)
-)
+let [user$, reset$] = keyup$.pipe(
+  partition((query) => query.trim().length > 0)
+);
 
 user$ = user$.pipe(
   tap(showLoading),
-  mergeMap((query) => ajax.getJSON(`https://api.github.com/search/users?q=${query}`)),
-  tap(hideLoading)
+  // mergeMap((query) => ajax.getJSON(`https://api.github.com/search/users?q=${query}`)),
+
+  // map((query) => ajax.getJSON(`https://api.github.com/search/users?q=${query}`)),
+  // switchAll(),
+
+  switchMap((query) =>
+    ajax.getJSON(`https://api.github.com/search/users?q=${query}`)
+  ),
+  tap(hideLoading),
+  // catchError((error, orgObservable) => {
+  //   console.log('error and resume', error.message);
+  //   return orgObservable;
+  // })
+  retry(2),
+  finalize(hideLoading),
 );
 
 reset$ = reset$.pipe(
-  tap((_) => (layer.innerHTML = ''))
+  tap((_) => (layer.innerHTML = '')),
+  tap(hideLoading),
 );
 
-user$.subscribe((value) => drawLayer(value.items));
+user$.subscribe(
+  (value) => drawLayer(value.items),
+  (error) => {
+    console.error(error);
+    alert(error.message);
+  }
+);
 reset$.subscribe();
 
 function drawLayer(items) {
