@@ -1,5 +1,5 @@
 const { fromEvent } = rxjs;
-const { tap, map, mergeMap, filter, debounceTime, distinctUntilChanged } =
+const { partition, tap, map, mergeMap, filter, debounceTime, distinctUntilChanged } =
   rxjs.operators;
 const { ajax } = rxjs.ajax;
 
@@ -13,16 +13,18 @@ const keyup$ = fromEvent(search, 'keyup').pipe(
   distinctUntilChanged()
 );
 
-const user$ = keyup$.pipe(
-  filter((query) => query.trim().length > 0),
+let [ user$, reset$ ] = keyup$.pipe(
+  partition(query => query.trim().length > 0)
+)
+
+user$ = user$.pipe(
   tap(showLoading),
   mergeMap((query) => ajax.getJSON(`https://api.github.com/search/users?q=${query}`)),
   tap(hideLoading)
 );
 
-const reset$ = keyup$.pipe(
-  filter((query) => query.trim().length === 0),
-  tap((value) => (layer.innerHTML = ''))
+reset$ = reset$.pipe(
+  tap((_) => (layer.innerHTML = ''))
 );
 
 user$.subscribe((value) => drawLayer(value.items));
