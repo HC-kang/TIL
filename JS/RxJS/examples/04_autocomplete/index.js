@@ -1,5 +1,6 @@
 const { fromEvent, Subject } = rxjs;
 const {
+  multicast,
   finalize,
   retry,
   catchError,
@@ -19,20 +20,19 @@ const search = document.getElementById('search');
 const layer = document.getElementById('suggestLayer');
 const loading = document.getElementById('loading');
 
-const subject = new Subject();
-
 const keyup$ = fromEvent(search, 'keyup').pipe(
   debounceTime(300),
   map((event) => event.target.value),
   distinctUntilChanged(),
   tap((value) => console.log('keyup: ', value)),
+  multicast(new Subject())
 );
 
 let [user$, reset$] = keyup$.pipe(
   partition((query) => query.trim().length > 0)
 );
 
-user$ = subject.pipe(
+user$ = keyup$.pipe(
   tap(showLoading),
   // mergeMap((query) => ajax.getJSON(`https://api.github.com/search/users?q=${query}`)),
 
@@ -52,7 +52,7 @@ user$ = subject.pipe(
   finalize(hideLoading)
 );
 
-reset$ = subject.pipe(
+reset$ = keyup$.pipe(
   tap((_) => (layer.innerHTML = '')),
   tap((value) => console.log('reset: ', value)),
   tap(hideLoading)
@@ -67,7 +67,7 @@ user$.subscribe(
 );
 reset$.subscribe();
 
-keyup$.subscribe(subject);
+keyup$.connect();
 
 function drawLayer(items) {
   layer.innerHTML = items
