@@ -1,5 +1,6 @@
 const { fromEvent, Subject } = rxjs;
 const {
+  share,
   publish,
   multicast,
   finalize,
@@ -27,7 +28,8 @@ const keyup$ = fromEvent(search, 'keyup').pipe(
   distinctUntilChanged(),
   tap((value) => console.log('keyup: ', value)),
   // multicast(new Subject())
-  publish(),
+  // publish(),
+  share(),
 );
 
 let [user$, reset$] = keyup$.pipe(
@@ -44,20 +46,19 @@ user$ = user$.pipe(
   switchMap((query) =>
     ajax.getJSON(`https://api.github.com/search/users?q=${query}`)
   ),
-  tap((value) => console.log('user: ', value)),
   tap(hideLoading),
   // catchError((error, orgObservable) => {
   //   console.log('error and resume', error.message);
   //   return orgObservable;
   // })
   retry(2),
-  finalize(hideLoading)
+  finalize(hideLoading),
+  tap((value) => console.log('user: ', value)),
 );
 
 reset$ = reset$.pipe(
   tap((_) => (layer.innerHTML = '')),
   tap((value) => console.log('reset: ', value)),
-  tap(hideLoading)
 );
 
 user$.subscribe(
