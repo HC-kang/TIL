@@ -4,6 +4,7 @@ const PANEL_COUNT = container.querySelectorAll('.panel').length;
 
 const SUPPORT_TOUCH = 'ontouchstart' in window;
 const THRESHOLD = 30;
+const DEFAULT_DURATION = 300;
 const EVENTS = {
   start: SUPPORT_TOUCH ? 'touchstart' : 'mousedown',
   move: SUPPORT_TOUCH ? 'touchmove' : 'mousemove',
@@ -20,9 +21,33 @@ function toPos(obs) {
   );
 }
 
-const { fromEvent, merge } = rxjs;
-const { scan, share, withLatestFrom, startWith, map, first, takeUntil, switchMap } =
-  rxjs.operators;
+function animation(from, to, duration) {
+  return defer(() => {
+    const scheduler = animationFrameScheduler;
+    const start = scheduler.now();
+    const intervalStream = interval(0, scheduler).pipe(
+      map(() => (scheduler.now() - start) / duration),
+      takeWhile((rate) => rate < 1)
+    );
+    return concat(intervalStream, of(1)).pipe(
+      map((rate) => from + (to - from) * rate),
+    );
+  });
+}
+
+const { fromEvent, merge, animationFrameScheduler, interval, of, concat, defer } = rxjs;
+const {
+  takeWhile,
+  tap,
+  scan,
+  share,
+  withLatestFrom,
+  startWith,
+  map,
+  first,
+  takeUntil,
+  switchMap,
+} = rxjs.operators;
 
 const startStream = fromEvent(view, EVENTS.start).pipe(toPos);
 const moveStream = fromEvent(view, EVENTS.move).pipe(toPos);
@@ -85,14 +110,11 @@ const carouselStream = merge(dragStream, dropStream).pipe(
       index: 0,
       size: 0,
     }
-  )
+  ),
+  switchMap(({ from, to }) => from === to ? of(to) : animation(from, to, DEFAULT_DURATION)),
 );
 
-carouselStream.subscribe((store) => {
-  console.log('carousel', store);
-  translateX(store.to);
+carouselStream.subscribe((pos) => {
+  console.log('carousel stream', pos);
+  translateX(pos);
 });
-// dragStream.subscribe((distance) => console.log('distance', distance));
-// sizeStream.subscribe((width) => console.log('width', width));
-// dropStream.subscribe((arr) => console.log('drop', arr));
-
