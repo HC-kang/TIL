@@ -38,7 +38,7 @@
     - `GET /index.html HTTP/1.0`
     - `Accept: text/html` || `Accept: application/json`등
   - 응답
-    - `HTTP/1.1 200 OK`
+    - `HTTP/1.0 200 OK`
     - `Cache-Control: no-cache`
     - `Content-Type: text/html` || `Content-Type: application/json`등
 
@@ -90,6 +90,19 @@
 
 ## CORS 문제와 해결
 
+- Origin
+  - URI 스키마, 호스트, 포트로 구성
+  - `http://example.com:8080`
+- CORS(Cross-Origin Resource Sharing): 다른 출처의 리소스를 요청하는 것
+- SOP(Same-Origin Policy): 동일 출처 정책 / 항상 허용
+- 단순 요청
+  - 메서드: GET, HEAD, POST
+  - 헤더: Accept, Accept-Language, Content-Language, Content-Type, Connection, User-Agent
+  - Content-Type: application/x-www-form-urlencoded, multipart/form-data, text/plain
+- 프리플라이트 요청
+  - 단순 요청 조건을 만족하지 않는 경우
+  - OPTIONS 메서드를 사용하여 사전 요청을 보내고, 서버의 허용 여부(메서드, 헤더 등)를 확인
+
 ## HTTP 압축
 
 ### 종단간 압축
@@ -124,20 +137,16 @@
 
 ### 조건부 헤더
 
--
+- `Last-Modified` 헤더를 사용한 조건부 요청
+  - `If-Modified-Since`: 지정된 날짜 이후에 리소스가 수정되었을 때만 요청을 처리
+  - `If-Unmodified-Since`: 지정된 날짜 이후에 리소스가 수정되지 않았을 때만 요청을 처리
+
+- `ETag` 헤더를 사용한 조건부 요청
+  - `If-Match`: 지정된 ETag와 일치할 때만 요청을 처리
+  - `If-None-Match`: 지정된 ETag와 일치하지 않을 때만 요청을 처리
 
 [참고 - rfc7232](https://datatracker.ietf.org/doc/html/rfc7232)
-
-## (+)HTTP 협상
-
-- 클라이언트가 보내는 특정 HTTP 헤더(`Accept`...)를 이용하는 방법
-- 서버에서 전달되는 상태코드(`300 Multiple Choices`, `406 Not Acceptable`)를 이용하는 방법
-
-### 서버 주도 콘텐츠 협상
-
--
-
-### 에이전트 주도 협상
+[참고 - http.dev](https://http.dev/conditional-requests)
 
 ## HTTP 캐싱
 
@@ -159,6 +168,7 @@
   - `'Pragma': 'no-cache'`: HTTP/1.0과 하위호환성을 위해서만 사용
 
 [참고 - rfc7234](https://datatracker.ietf.org/doc/html/rfc7234)
+[참고 - Understanding The Vary Header](https://www.smashingmagazine.com/2017/11/understanding-vary-header/)
 
 ## 주요 상태코드
 
