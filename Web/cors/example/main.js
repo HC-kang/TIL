@@ -16,7 +16,7 @@ app.options('/json', (req, res) => {
   res.set({
     'Content-Type': 'text/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   });
   res.sendStatus(204);
@@ -26,6 +26,9 @@ app.get('/json', (req, res) => {
   res.sendFile(jsonFilePath);
 });
 app.delete('/json', (req, res) => {
+  res.set({
+    'Access-Control-Allow-Origin': '*',
+  });
   const jsonFilePath = path.join(__dirname, 'public/sample.json');
   res.sendFile(jsonFilePath);
 });
@@ -43,6 +46,11 @@ app.options('/json-header', (req, res) => {
 });
 app.get('/json-header', (req, res) => {
   const jsonFilePath = path.join(__dirname, 'public/sample.json');
+  res.set({
+    'Content-Type': 'text/json; charset=utf-8',
+    'Access-Control-Allow-Origin': 'http://localhost:3000',
+    'Access-Control-Allow-Headers': 'X-Test',
+  });
   res.sendFile(jsonFilePath);
 });
 
