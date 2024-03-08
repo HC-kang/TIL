@@ -432,4 +432,155 @@
 
 ##### 2.6.2 모듈
 
+- 클래식 모듈
+  - 최소 한 번 이상 실행되는 외부 함수.
+  - 모듈 인스턴스 내부로 숨겨진 데이터를 가진다.
+  - 이러한 숨겨진 데이터를 사용하는 함수가 있는 인스턴스를 반환한다.
+  - 본질적으로 '함수'이고, 함수를 호출하면 '모듈 인스턴스'를 반환하기에 '모듈 팩토리'라고도 부른다.
+  - 예시
+
+    ```js
+    function Publication(title, author, pubDate) {
+      var publicAPI = {
+        print() {
+          console.log(`
+            Title: ${title}
+            By: ${author}
+            Date: ${pubDate}
+          `);
+        }
+      };
+
+      return publicAPI;
+    }
+
+    function Book(bookDetails) {
+      var pub = Publication(
+        bookDetails.title,
+        bookDetails.author,
+        bookDetails.pubDate,
+      );
+
+      var publicAPI = {
+        print() {
+          pub.print();
+          console.log(`
+            Publisher: ${bookDetails.publisher}
+            ISBN: ${bookDetails.ISBN}
+          `);
+        }
+      };
+
+      return publicAPI;
+    }
+
+    function BlogPost(blogDetails) {
+      var pub = Publication(
+        blogDetails.title,
+        blogDetails.author,
+        blogDetails.pubDate,
+      );
+
+      var publicAPI = {
+        print() {
+          pub.print();
+          console.log(`
+            URL: ${blogDetails.url}
+          `);
+        }
+      };
+
+      return publicAPI;
+    }
+
+    var YDKJSY = Book({
+      title: 'You Don\'t Know JS Yet',
+      author: 'Kyle Simpson',
+      pubDate: '2020-01-28',
+      publisher: 'O\'Reilly',
+      ISBN: '123-456-789'
+    });
+
+    YDKJSY.print();
+
+    var forAgainstLet = BlogPost({
+      title: 'For and Against Let',
+      author: 'Kyle Simpson',
+      pubDate: '2020-01-28',
+      url: 'https://davidwalsh.name/for-and-against-let'
+    });
+
+    forAgainstLet.print();
+    ```
+
+- ES모듈
+  - ES6에서 추가된 모듈
+  - `export`와 `import` 키워드를 사용하여 모듈을 정의하고 사용
+  - 클래식 모듈과의 차이점
+    1. ES모듈에는 모듈을 정의하는 래핑 함수가 없다. 즉, ES모듈은 항상 파일 기반이다.
+    2. ES모듈은 모듈 API와 직접 상호작용하지 않는다. export 키워드를 사용하여 변수나 메서드를 public으로 정의한다.
+    3. 별도로 인스턴스화 하지 않아도, import 구문을 사용하는 것 자체로 인스턴스를 생성한다.
+      - 이로인해 본질적으로 싱글턴이라고 할 수 있다.
+      - 만약 여러 인스턴스가 필요한 경우, 모듈 스타일의 팩토리 함수를 작성해야 한다.
+  - 예시
+
+    ```js
+    // publication.js
+    function printDetails(title, author, pubDate) {
+      console.log(`
+        Title: ${title}
+        By: ${author}
+        Date: ${pubDate}
+      `);
+    }
+
+    export function create(title, author, pubDate) {
+      var publicAPI = {
+        print() {
+          printDetails(title, author, pubDate);
+        }
+      };
+
+      return publicAPI;
+    }
+    ```
+
+    ```js
+    //blogpost.js
+    import { create as createPub } from './publication.js';
+
+    function printDetails(pub, URL) {
+      pub.print();
+      console.log(URL);
+    }
+
+    export function create(title, author, pubDate, URL) {
+      var pub = createPub(title, author, pubDate);
+
+      var publicAPI = {
+        print() {
+          printDetails(pub, URL);
+        }
+      };
+
+      return publicAPI;
+    }
+    ```
+
+    ```js
+    // main.js
+    import { create as newBlogPost } from './blogpost.js';
+
+    var forAgainstLet = newBlogPost(
+      'For and Against Let',
+      'Kyle Simpson',
+      '2020-01-28',
+      'https://davidwalsh.name/for-and-against-let'
+    );
+
+    forAgainstLet.print();
+    ```
+
 #### 2.7 더 깊은 토끼굴로
+
+- 생략
