@@ -584,3 +584,178 @@
 #### 2.7 더 깊은 토끼굴로
 
 - 생략
+
+### Chapter 3: 자바스크립트 뿌리 파헤치기
+
+#### 3.1 이터레이션
+
+- 이터레이터 패턴
+  - 데이터를 덩어리(chunk)단위로, 표준화된 방법을 사용해 처리하는 패턴.
+  - `이터레이터`라는 약속된 인터페이스(데이터 구조)를 정의하여 사용함.
+  - 이터레이터는 `next()` 메서드를 지원한다.
+  - `next()` 메서드는 호출될 때마다, 이터레이터가 가리키는 데이터 구조의 다음 값을 반환한다.
+  - 또한 반복작업 시 사전에 총 몇 번 반복할지 알 수 없는 경우를 위해, 더이상 데이터가 없는 경우에는 특정한 값이나 에러를 반환하여 반복이 종료되었다는 신호를 보낸다.
+
+- JS의 이터레이터 패턴
+  - ES6에서 추가된 이터레이터 패턴
+  - `next()` 메서드에서 `iterator result`객체를 반ƒ환한다.
+  - `iterator result` 객체는 `value`와 `done` 프로퍼티를 가진다.
+    - `value`: 이터레이터가 가리키는 값
+    - `done`
+      - 이터레이터가 더 이상 가리킬 값이 없는 경우 `true`
+      - 아직 더 이상 가리킬 값이 있는 경우 `false`
+
+##### 3.1.1 이터레이터 소비하기
+
+- 위에서 언급한 이터레이터를 직접 구현하는것은 번거롭기에, JS에서는 이를 사용하기위한 새로운 문법과 API를 정의했다.
+  - `for...of` 루프
+  - `Array.from()`
+  - `...` 연산자
+  - `Map`, `Set`, `WeakMap`, `WeakSet` 등의 내장 객체
+  - `String`, `TypedArray`, `NodeList` 등의 내장 객체
+  - `Symbol.iterator` 프로퍼티
+  - `Generator` 함수
+
+  ```js
+  // 처리할 데이터의 이터레이터
+  var it = /* ... */;
+
+  // 이터레이터 리절트 객체를 순화
+  for (let val of it) {
+    console.log(`Iterator value: ${val}`);
+  }
+  ```
+
+##### 3.1.2 이터러블
+
+- 이터레이터 소비 프로토콜: 이터러블을 소비하는 기술적인 방법.
+  - 이터러블을 사용해 `이터레이터 인스턴스`를 생성
+  - `이터레이터 인스턴스`를 소비해 연산을 마무리.
+    - `이터레이터 인스턴스`를 여러 개 생성하여 이터러블을 여러 번 소비 할 수 있음.
+
+- 이터러블: 순회 가능한 값.
+  - 예시: 문자열, 배열, 맵, 셋, 노드리스트 등
+  - 문자열, 배열의 경우 `...` 연산자를 사용하여 이터러블을 소비할 수 있다.
+  - 맵의 경우 `entries()`, `keys()`, `values()` 메서드를 사용하여 이터러블을 소비할 수 있다.
+  - 이외에도 이터레이션 프로토콜을 준수하는 객체를 직접 만든다면, 위와 같이 `...` 연산자나 `for...of` 루프를 사용하여 이터러블을 소비할 수 있다.
+
+#### 3.2 클로저
+
+- 모든 개발자는 부지불식간에 클로저를 사용하고 있다.
+- 클로저는 종종 말로 표현하기 어려운, 추상적인 무언가로 표현되는데, 이는 틀린 개념이다.
+- 클로저
+  - 정의: 함수가 정의된 스코프가 아닌 다른 스코프에서 실행되더라도, 스코프 밖의 변수를 기억하고 이에 계속해서 접근 할 수 있는 경우를 말한다.
+  - 특징
+    - 클로저는 함수의 특징이다.
+    - 클로저를 확인하려면, 함수가 정의된 스코프가 아닌 다른 스코프에서 실행해야 한다.
+
+      ```js
+      function greeting(msg) {
+        return function who(name) {
+          console.log(`${msg}, ${name}!`);
+        }
+      }
+
+      var hello = greeting('Hello');
+      var howdy = greeting('Howdy');
+
+      hello('Kyle'); // Hello, Kyle!
+      hello('Sarah'); // Hello, Sarah!
+      howdy('Grant'); // Howdy, Grant!
+      ```
+
+        - `greeting` 함수과 `who` 함수는 `greeting` 함수가 종료된 이후에도 사라지지 않는다.
+        - 이는 해당 함수들이 `hello`, `howdy` 변수에 의해 참조되고 있기 때문이다.
+        - 또한 이 클로저에서 `msg` 변수는 스냅샷된 값이 아니라 실제로 참조된 값으로, 업데이트된 값을 다룰 수 있다.
+
+          ```js
+          function counter(step = 1) {
+            var count = 0;
+            return function increaseCount() {
+              count += step;
+              return count;
+            };
+          }
+
+          var incBy1 = counter(1);
+          var incBy3 = counter(3);
+
+          console.log(incBy1()); // 1
+          console.log(incBy1()); // 2
+
+          console.log(incBy3()); // 3
+          console.log(incBy3()); // 6
+          ```
+
+  - 좀 더 실제적인 예시
+  
+    ```js
+    function getSomeData(url) {
+      ajax(url, function onResponse(resp) {
+        console.log(`Response (from ${url}): ${resp}`);
+      });
+    }
+
+    getSomeData('https://some.url/wherever');
+    ```
+  
+  - 함수가 아닌 외부 스코프를 사용한 클로저 예시
+
+    ```js
+    for (let [idx, btn] of buttons.entries()) {
+      btn.addEventListener('click', function onClick() {
+        console.log(`Clicked button ${idx}`);
+      });
+    }
+    ```
+
+    - 이 코드의 경우, 버튼의 수 만큼 클로저(onClick)가 생성된다.
+    - 각각의 클로저는 `idx` 변수를 기억하고 있다. 따라서, 이벤트가 발생할 때마다 `idx` 변수를 참조하여 클릭된 버튼의 인덱스를 출력한다.
+
+#### 3.3 this 키워드
+
+- `this` 키워드에 대한 대표적인 오해
+  - `this`는 자기 자신(함수)를 가리킨다.
+  - `this`는 메서드가 속한 인스턴스를 가리킨다.
+
+- `this`에 대한 올바른 개념
+  - 함수는 정의되는 시점에 클로저를 통해 특정 스코프에 부착된다.
+  - 이러한 스코프 말고도, 함수가 접근 가능한 범위를 표현하는 것이 `this` 키워드이다.
+  - 이는 실행 컨텍스트의 개념으로 설명된다.
+    - 이러한 실행 컨텍스트는 함수가 정의되거나 호출되는 위치와 관계없이, `함수가 호출되는 방식`에 따라 결정된다.
+  - 즉, 함수가 접근 가능한 범위는 스코프와 `this` 키워드에 의해 결정된다.
+    - 스코프: 함수가 정의되는 시점에 결정되는 정적인 범위.
+    - `this`: 함수가 호출되는 방식으로 결정되는 동적인 범위.
+    - 다시말하면, **두 개념 모두 함수에서 사용 가능한 객체임**을 의미한다.
+      - 스코프: 동일한 함수에서 공유하는, JS엔진 내부에 숨겨진 객체
+      - `this`(실행 컨텍스트): 함수에서 사용할 수 있는 객체
+
+- 구체적인 예시
+
+  ```js
+  function classroom(teacher) {
+    return function study() {
+      console.log(`${teacher} says to study ${this.topic}`); // <--- this 키워드가 포함되어 있음.
+    };
+  }
+
+  var assignment = classroom('Kyle');
+
+  assignment(); // Kyle says to study undefined   <--- this 키워드가 undefined를 가리키고 있음.
+
+  var homework = {
+    topic: 'JS',
+    assignment: assignment
+  };
+
+  homework.assignment(); // Kyle says to study JS   <--- this 키워드가 homework 객체를 가리키고 있음.
+
+  var otherHomework = {
+    topic: 'Math'
+  };
+
+  assignment.call(otherHomework); // Kyle says to study Math   <--- this 키워드가 otherHomework 객체를 가리키고 있음.
+  ```
+
+    - 위 예시와 같이, `assignment()` 함수는 `this`를 사용하기 위해 실행 컨텍스트를 필요로 한다.
+    - 또한, 실행 컨텍스트는 함수가 호출되는 방식에 따라 결정된다.
