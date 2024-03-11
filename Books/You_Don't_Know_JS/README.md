@@ -823,3 +823,195 @@
 
 - 생략
 
+### Chapter 4: 더 큰 그림
+
+#### 4.1 첫 번째 기둥: 스코프와 클로저
+
+- 스코프
+  - 변수의 유효범위
+  - 스코프를 한정짓는 것은 모든 언어의 근본적인 특징임.
+  - 스코프는 중첩이 가능하며, 이런 경우 내부 스코프는 외부 스코프에 접근할 수 있지만, 외부 스코프는 내부 스코프에 접근할 수 없다.
+  - 이런 방식을 렉시컬 스코프라고 함.
+  - 렉시컬 스코프는 개발자가 코드를 작성하는 시점에 결정된다.
+  - 스코프에 대한 JS만의 독특한 특징
+    - 호이스팅: 특정 스코프 내에서 선언된 변수가 마치 그 스코프의 최상단에 선언된 것처럼 동작하는 것.
+      - `let`, `const` 키워드를 사용해도 호이스팅은 발생한다. 다만 TDZ에 의해 사용이 통제된다.
+    - var 키워드로 선언된 변수는 선언된 위치의 블록과 관계없이 함수 전체에서 유효하다.
+
+- 클로저
+  - 클로저는 함수를 일급 객체로 다루는 언어에서 렉시컬 스코프 모델을 사용하면 자연스럽게 발생할 수 밖에 없는 현상이다.
+  - 특정 스코프에서 정의된 함수가 다른 스코프에서 실행될 때, 이 함수는 자신이 정의된 스코프를 기억하고 이에 (당연히)접근할 수 있다(있어야 한다).
+  - 이러한 클로저는 모듈 패턴은 물론 주요 디자인 패턴의 핵심이고 다수의 기능을 구현하는데 사용된다.
+
+#### 4.2 두 번째 기둥: 프로토타입
+
+- JS는 클래스를 사전 정의하지 않고도 직접적/명시적으로 객체를 만들 수 있는 몇 안되는 언어 중 하나이다.
+- 과거 ES6(ES2015) 이전에는 클래스가 아닌, 프로토타입 상속 패터을 사용하여 클래스를 구현하였다.
+  - 현재 클래스가 가독성과 표현력을 높이기 위해 추가되었으나, 이는 프로토타입을 사용한 상속 패턴일 뿐이며 프로토타입은 더 많은 사용법이 있다.
+    - 작동 위임(behavior delegation) 패턴 등
+
+#### 4.3 세 번째 기둥: 타입과 타입 강제 변환
+
+- 물론 TS와 같이 정적 타입을 활용하는 것이 생산성이 높은것은 사실이다.
+- 그러나 본질적으로 JS의 타입의 동작 패턴을 이해하는 것이, 그 기본을 다지는 데에 도움이 된다.
+  - `===` 만으로 타입과 비교를 해결 할 수는 없다.
+
+#### 4.4 JS의 본질 따르기
+
+- 이 도서에 기재된 사실과, 저자의 의견을 구분하자.
+
+#### 4.5 학습 순서
+
+- 1권: 시작하기
+- 2권: 스코프와 클로저
+- 3권: 객체와 클래스
+- 4권: 타입과 문법
+- 5권: 동기와 비동기
+- 6권: ES6와 미래
+
+- [참고 링크 - 저자 깃허브](https://github.com/getify/You-Dont-Know-JS)
+
+### Appendix A: 더 멀리 나가기
+
+#### A.1 값 vs 참조
+
+- JS에서 값을 할당하고 전달 할 때의 동작은 오로지 값의 타입으로 결정된다.
+  - 원시 타입: 값이 복사된다.
+
+    ```js
+    var myName = 'Kyle';
+    var yourName = myName;
+    myName = 'Frank'; // <-- 복사된 값을 변경한다.
+
+    console.log(myName); // Frank
+    console.log(yourName); // Kyle <-- 복사된 값은 변경되지 않는다.
+    ```
+
+  - 객체 타입: 참조가 복사된다.
+
+    ```js
+    var myAddress = {
+      street: '123 JS Blvd',
+      city: 'Austin',
+      state: 'TX'
+    };
+    
+    var yourAddress = myAddress;
+
+    myAddress.street = '456 TS Blvd'; // <-- 참조된 객체를 변경한다.
+
+    console.log(yourAddress.street); // 456 TS Blvd <-- 참조된 객체는 함께 변경된다.
+    ```
+
+#### A.2 다양한 형태의 함수
+
+- JS에는 수많은 함수 형태가 존재한다.
+  - 함수 선언문: `function some() { ... }`
+  - 함수 표현식: `var some = function() { ... }`
+  - 화살표 함수: `var some = () => { ... }`
+  - 객체 메서드: `var obj = { some() { ... } }`
+  - 클래스 메서드: `class Some { some() { ... } }`
+  - 제너레이터 함수: `function* some() { ... }`
+  - 비동기 함수: `async function some() { ... }`
+  - IIFE: `(function() { ... })()`
+  - ...
+- 익명함수인 경우에도 변수에 할당되는 경우 스스로 이름을 추론하기도 한다.
+  - 그러나 이런 경우에는 someFunction.name으로 정보를 가져올 수는 있으나, 이를 통해 함수를 호출할 수는 없다.
+    - 이런 경우 재귀나 이벤트 해제 등에 문제가 발생할 수 있다.
+    
+#### A.3 강제 조건부 비교
+
+- 예시
+
+  ```js
+  var x = 1;
+
+  if (x) {
+    // some code
+  }
+
+  while (x) {
+    // some code
+    x = false;
+  }
+  ```
+
+- 흔히 생각하는 모델
+
+  ```js
+  // 정상 동작하는 경우
+  var x = 1;
+
+  if (x == true) {
+    // 코드가 동작합니다
+  }
+
+  while (x == true) {
+    // 코드가 동작합니다
+    x = false;
+  }
+
+  // 정상 동작하지 않는 경우
+  var x = 'Hello!';
+
+  if (x) {
+    // 이렇다면 동작하지만
+  }
+
+  while (x == true) {
+    // 이렇다면 동작하지 않습니다.
+    x = false;
+  }
+  ```
+
+- 실제 작동하는 모델
+
+  ```js
+  var x = 'Hello';
+
+  if (Boolean(x) == true) {
+    // some code
+  }
+
+  while (Boolean(x) == true) {
+    // some code
+    x = false;
+  }
+  ```
+
+#### A.4 프로토타입 클래스
+
+- Object.create()를 사용한 예시
+
+  ```js
+  var Classroom = {
+    welcome() {
+      console.log('Welcome to the classroom!');
+    }
+  }
+
+  var mathClass = Object.create(Classroom);
+  mathClass.welcome(); // Welcome to the classroom!
+  ```
+
+  - 위 예시에서, `mathClass` 객체는 `Classroom` 객체를 상속받았다.
+  - 정확한 동작을 설명하면 `mathClass` 객체는 welcome() 메서드를 가지고 있지 않지만, `Classroom` 객체를 상속받았기 때문에 `Classroom` 객체에 welcome() 메서드를 사용을 위임한다.
+
+- Object.prototype 프로퍼티를 사용한 예시
+
+  ```js
+  function Classroom() {
+    // ...
+  }
+
+  Classroom.prototype.welcome = function() {
+    console.log('Welcome to the classroom!');
+  }
+
+  var mathClass = new Classroom();
+
+  mathClass.welcome(); // Welcome to the classroom!
+  ```
+
+  - 위 예시에서, `mathClass` 객체는 `Classroom` 함수를 생성자로 사용하여 생성되었다.
+  - `mathClass` 객체는 `welcome()` 메서드를 가지고 있지 않지만, `Classroom` 함수의 프로토타입 객체에 welcome() 메서드를 사용을 위임한다.
