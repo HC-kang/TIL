@@ -759,3 +759,67 @@
 
     - 위 예시와 같이, `assignment()` 함수는 `this`를 사용하기 위해 실행 컨텍스트를 필요로 한다.
     - 또한, 실행 컨텍스트는 함수가 호출되는 방식에 따라 결정된다.
+
+#### 3.4 프로토타입
+
+- 프로토타입은 객체의 프로퍼티에 접근할 때 나타나는 특징임.
+  - 두 객체를 연결하는 링크
+  - 이러한 일련의 링크를 `프로토타입 체인`이라고 함.
+  - 이러한 체인을 바탕으로, A - B 두 객체간의 상속을 구현하고, 두 객체가 협력하게 할 수 있음.
+
+- 예시
+
+  ```js
+  var homework = {
+    topic: 'JS'
+  };
+  ```
+
+  - 위 객체에서 `homework` 객체에는 `topic` 프로퍼티만 존재하는 것으로 보임.
+  - 그러나 이는 실제로 Object.prototype 객체의 프로퍼티를 상속받은 것이고, 이 연결을 통해 `toString()`이나 `valueOf()`와 같은 메서드를 사용할 수 있음.
+
+##### 3.4.1 객체 연결 장치
+
+- 이러한 연결 장치를 직접 정의하고싶을때에는 `Object.create()` 메서드를 사용한다.
+
+  ```js
+  var homework = {
+    topic: 'JS'
+  };
+
+  var otherHomework = Object.create(homework);
+
+  otherHomework.topic; // JS
+  ```
+
+- 이러한 연결 체인은 해당하는 프로퍼티를 찾을 때까지 계속해서 상위 객체로 이동한다.
+- 또한, 경우에 따라 하위 객체가 상위 객체의 프로퍼티를 가리기도 한다.
+
+##### 3.4.2 this 다시보기
+
+- 함수 호출 시 this가 동적으로 컨텍스트를 가져오는 이유는, 프로토타입 체인을 통해 위임한 객체의 메서드를 호출 할 때 this를 사용자의 의도대로 동작하게 하기 위함이다.
+
+  ```js
+  var homework = {
+    study() {
+      console.log(`Please study ${this.topic}`);
+    }
+  };
+
+  var jsHomework = Object.create(homework);
+  jsHomework.topic = 'JS';
+  jsHomework.study(); // Please study JS
+
+  var mathHomework = Object.create(homework);
+  mathHomework.topic = 'Math';
+  mathHomework.study(); // Please study Math
+  ```
+
+  - 위의 두 변수(`jsHomework`, `mathHomework`)는 `homework` 객체를 상속받았고, study() 메서드를 호출할 때 `homework` 객체의 `study()`에 역할을 위임한다.
+  - 그러나 `this` 키워드는 `jsHomework`, `mathHomework` 객체를 가리키고 있기 때문에, `this.topic`은 각각의 객체의 `topic` 프로퍼티를 가리킨다.
+    - 대부분의 다른 언어에서, this 키워드는 상속해준 클래스를 가리키지만, JS에서는 상속받은 객체를 가리킨다. 이를 통해 각 객체의 개별적 프로퍼티를 사용할 수 있다.
+
+#### 3.5 '왜?'라고 질문하기
+
+- 생략
+
