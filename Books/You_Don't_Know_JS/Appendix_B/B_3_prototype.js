@@ -20,7 +20,9 @@ var reel = {
 
 var slotMachine = {
   reels: [
-    // TODO
+    Object.create(reel),
+    Object.create(reel),
+    Object.create(reel)
   ],
   spin() {
     this.reels.forEach(function spinReel(reel) {
@@ -28,7 +30,12 @@ var slotMachine = {
     });
   },
   display() {
-    // TODO
+    this.reels.forEach(function displayReel(reel) {
+      const beforePos = (reel.position - 1 + reel.symbols.length) % reel.symbols.length;
+      const afterPos = (reel.position + 1) % reel.symbols.length;
+      
+      console.log(`${reel.symbols[beforePos]} | ${reel.symbols[reel.position]} | ${reel.symbols[afterPos]}`)
+    });
   }
 };
 
