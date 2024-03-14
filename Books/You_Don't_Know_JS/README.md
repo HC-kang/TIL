@@ -1026,3 +1026,210 @@
 
 #### B.4 모범 답안
 
+## Part 2: 스코프와 클로저
+
+### Chapter 1: 스코프
+
+- 우리는 변수를 자주 다루지만, JS 엔진이 변수를 어떻게 조직하고 관리하는지에 대해서는 자세히 알지 못한다.
+- 스코프의 개념을 알아가면서, JS가 변수를 어떻게 체계적으로 관리하는지 알 수 있다.
+
+#### 1.1 책에 대하여
+
+- JS는 흔히 스크립트 언어로 알려져있지만, 실제로는 실행 전 별도의 파싱, 컴파일 과정이 필요하다.
+- 이 과정에서 변수와 함수, 블록의 위치 등이 분석되고 이를 통해 스코프가 결정된다.
+- 앞으로 이러한 스코프가 어떻게 동작하는지 알아볼 것이다.
+
+#### 1.2 컴파일 vs 인터프리트
+
+- 컴파일레이션
+  - 사람이 읽을 수있는 형식으로 작성된 코드를 기계가 이해할 수 있는 형식으로 변환하는 과정.
+  - 전체 코드를 분석하고, 최적화하고, 실행 가능한 코드로 변환한다.
+- 인터프레테이션
+  - 개발자가 작성한 코드를 기계가 해석할 수 있는 형식으로 변환하는 과정.
+  - 코드를 한 줄씩 읽고 해석하며 실행한다.
+
+- 컴파일과 인터프리트는 코드를 해석한다는 점에서 공통점이 있으나, 해석하는 방식에서 차이가 있음.
+- 따라서 이 둘은 대체로 상호 배타적인 모델임.
+
+- 실제로 JS엔진은 프로그램을 처리 할 때, 컴파일과 인터프리트를 혼합하여 사용한다.
+
+#### 1.3 코드 컴파일
+
+- 스코프는 주로 컴파일 과정에서 결정된다.
+- 따라서 스코프를 알기 위해서는 컴파일 과정과 실제 코드 실행이 어떻게 연관되어있는지 알아야 함.
+
+- 고전 컴파일러 이론에서 컴파일은 아래 주요 세가지 과정을 거친다.
+  - 1단계: 토크나이징 / 렉싱
+    - 문자열을 최소한의 의미 단위인 토큰으로 쪼개는 것.
+    - `var a = 2;`라는 코드를 토크나이징하면 `var`, `a`, `=`, `2`, `;`로 쪼개진다.
+    - 차이점
+      - 토크나이징: 토큰을 무상태(stateless) 방식으로 쪼개는 것
+      - 렉싱: 토큰을 상태(stateful)유지 방식으로 쪼개는 것
+  - 2단계: 파싱
+    - 토큰의 배열을 AST(Abstract Syntax Tree)로 변환하는 것.
+      - AST의 특징
+        - 프로그램의 문법 구조를 반영한다.
+        - 중첩 원소로 구성된 트리 구조를 가진다.
+    - `var a = 2;`라는 코드를 파싱하면 아래와 같은 AST가 생성된다.
+      - `VariableDeclaration`
+        - `Identifier ("a")`
+        - `AssignmentExpression`
+          - `NumericLiteral (2)`
+  - 3단계: 코드 생성
+    - AST를 컴퓨터가 실행 가능한 코드(기계어)로 변환하는 것.
+    - 이 과정에서 실제로 메모리가 확보되며 변수 a가 생성되고, 2라는 값이 할당된다.
+
+##### 1.3.1 필수 두 단계
+
+- 프로그램의 처리는 최소한 `파싱`, `컴파일` 두 단계를 거침.
+- 이 과정에서 `구문 오류`, `초기 오류`, `호이스팅`을 확인할 수 있음.
+
+- 예시
+  - 구문 오류
+
+    ```js
+    var greeting = 'Hello, world!';
+
+    console.log(greeting);
+    greeting = . 'Hello, world!'; // <-- 구문 오류
+    // SyntaxError: Unexpected token .
+    ```
+
+    - 이 예시의 경우, 구문 오류(`.`)가 발생하여 컴파일러가 이를 감지하고 오류를 반환한다.
+    - 만약 JS가 스크립트 언어라면, `console.log`가 정상적으로 실행되어야 하지만, 이는 컴파일러가 구문 오류를 감지하고 오류를 반환하기 때문에 실행되지 않는다.
+  
+  - 초기 오류
+
+    ```js
+    console.log('Hello, world!'); 
+
+    saySomething('Hello, world!', 'Hi');
+    // Uncaught SyntaxError: Duplicate parameter name not allowed in this context
+
+    function saySomething(greeting, greeting) { // <-- 초기 오류(greeting 매개변수가 중복) use strict 모드에서만 발생
+      'use strict';
+      console.log(greeting);
+    }
+    ```
+
+    - 이 경우에도 console.log가 실행되지 않고, 초기 오류가 발생하여 컴파일러가 오류를 반환한다.
+    - JS는 코드를 실행하기 전에, greeting 매개변수가 중복되었다는 것을 감지하고 오류를 반환한다.
+    - 즉, 이는 JS엔진은 코드를 실행하기 전에 코드 전체를 분석하고 오류를 반환한다는 것을 의미한다.
+
+  - 호이스팅
+
+    ```js
+    function saySomething() {
+      var greeting = 'Hello, world!';
+      {
+        greeting = 'Howdy!'; // <-- 호이스팅으로 인해 오류 발생
+        let greeting = 'Hi';
+        console.log(greeting);
+      }
+    }
+
+    saySomething(); // ReferenceError: Cannot access 'greeting' before initialization
+    ```
+
+    - 이 경우, saySomething() 함수 내의 블록 스코프에서 let 키워드로 선언된 greeting 변수가 호이스팅되어 오류가 발생한다.
+    - JS가 스크립트 언어라면 greeting 변수가 let 키워드로 선언되었다는 내용을 알 수 없다.
+    - 따라서 이는 컴파일러가 코드를 실행하기 전에 코드 전체를 분석하고 오류를 반환한다는 것을 의미한다.
+
+#### 1.4 컴파일러체
+
+- JS엔진이 어떻게 변수를 식별하는지, 그리고 스코프를 어떻게 결정하는지 알아보자.
+
+- 예시로 사용할 프로그램 코드
+
+  ```js
+  var students = [
+    { id: 14, name: 'Kyle' },
+    { id: 73, name: 'Suzy' },
+    { id: 112, name: 'Frank' },
+    { id: 6, name: 'Sarah' }
+  ];
+  
+  function getStudentName(studentID) {
+    for (let student of students) {
+      if (student.id == studentId) {
+        return student.name;
+      }
+    }
+  }
+
+  var nextStudent = getStudentName(73);
+
+  console.log(nextStudent); // Suzy
+  ```
+
+- 선언을 제외하고, 프로그램 내 모든 변수와 식별자는 할당의 타겟이나 소스 둘 중 하나의 역할을 한다.
+  - 타겟: 값이 할당되는 위치. LHS(Left-Hand Side)
+  - 소스: 값이 찾아지는 위치. RHS(Right-Hand Side)
+
+- 즉, JS엔진은 변수가 등장할 때 마다 매 변수가 타겟인지 소스인지를 판단한다.
+
+##### 1.4.1 할당의 타깃
+
+- `students = [ //...`는 명백히 할당 연산이고, `students`는 할당의 타깃이다.
+
+> 참고로, `var students`는 컴파일 과정에서 이미 선언으로 분리되어 처리되므로, 런타임 컨텍스트에는 영향을 받지 않는다.
+
+- 또한 `nextStudent = getStudentName(73);`도 명백히 할당 연산이고, `nextStudent`는 할당의 타깃이다.
+
+- 이후로도 숨어있는 할당 연산이 세 개 있다.
+  - `for (let student of students) { ...`에서 `student`는 할당의 타깃이다.
+  - `getStudentName(73);`에서도 할당이 발생하며, `studentId`에 73이라는 값이 할당된다.
+  - 마지막으로 `function getStudentName(studentID) { ...`도 할당이 발생한다.
+    - function 키워드로 선언한 함수는 타겟 참조의 특수한 케이스이다.
+
+##### 1.4.2 값의 소스
+
+- `students = [ //...`에서 `[ //...`는 변수가 아니라 단순 값이므로 고려하지 않는다.
+- `for (let student of students) { ...`에서 `students`는 값의 소스이다.
+- `if (student.id == studentId) { ...`에서 `student`와 `studentId`는 값의 소스이다.
+- `getStudentName(73);`에서 `getStudentName`은 함수 참조값에 대한 소스 참조이다.
+- `console.log(nextStudent);`에서 `console`, `nextStudent` 역시 소스 참조이다.
+- 그러나 `.id, .name, .log`등은 참조가 아니라 객체의 프로퍼티이다.
+
+- 타깃과 소스를 이렇게 명확하게 구분해야 하는 이유는 추후 2장에서 다시 다뤄질 것이다.
+
+#### 1.5 런타임에 스코프 변경하기
+
+- 스코프는 컴파일 과정에서 결정되고, 런타임 환경에는 영향을 받지 않는다.
+- 그러나, 런타임 환경(비 엄격 모드)에서 스코프를 변경할 수 있는 방법이 있다.
+  - `eval()`
+  - `with`
+
+- 예시
+  - `eval()`
+
+    ```js
+    function badIdea() {
+      eval('var oops = "Ugh";');
+      console.log(oops);
+    }
+    badIdea(); // Ugh
+    ```
+
+    - 이 코드에서 `eval()`이 없었다면 `badIdea()` 함수는 `ReferenceError: oops is not defined`를 반환했을 것이다.
+    - 그러나 `eval()`을 사용하여 런타임에 스코프를 변경하였기 때문에 `badIdea()` 함수는 `Ugh`를 반환한다.
+    - 이 과정에서 컴파일 과정에서 최적화된 스코프를 수정하므로, 성능에 영향을 미칠 수 있다.
+
+  - `with`
+
+    ```js
+    var badIdea = { oops: 'Ugh' };
+
+    with (badIdea) {
+      console.log(oops); // Ugh
+    }
+    ```
+
+    - 이 경우에 `with` 이후 블록은 `badIdea` 객체를 자체의 스코프로 사용한다.
+    - 이는 `eval()`과 마찬가지로 성능에 영향을 미칠 수 있다.
+
+#### 1.6 렉시컬 스코프
+
+- 지금까지 JS에서 스코프는 컴파일 타임에서 결정된다는 것을 증명했음.
+- 이러한 스코프를 `렉시컬 스코프`라고 한다.
+- 렉시컬 스코프는 함수나 블록, 변수 선언의 스코프는 전적으로 코드가 작성된 위치에 의해 결정된다.
