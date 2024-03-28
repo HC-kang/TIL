@@ -1517,16 +1517,79 @@
 
 ###### DOM 전역 변수
 
-- 
+- 앞서서 브라우저가 전역 스코프 처리의 관점에서 가장 순수하다고 이야기했지만, 사실 브라우저도 완전히 순수한 환경은 아님.
+- 예를 들어, DOM 요소에 id속성을 부여하면 전역 변수가 자동으로 생기고, 이를 통해 DOM 요소에 접근할 수 있다.
+
+  ```html
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+  </head>
+
+  <body>
+    <ul id="my-todo-list">
+      <li id="first">hello</li>
+    </ul>
+  </body>
+  <script src="./test.js"></script>
+
+  </html>
+  ```
+
+  ```js
+  console.log(first);
+
+  console.log(window['my-todo-list']);
+  ```
+
+- 가능하다면 이처럼 자동으로 생성되는 전역 변수를 사용하지 않는 것이 좋다.
 
 ##### 4.2.2 웹 워커
 
-##### 4.2.3 개발자 도구와 콘솔. REPL.
+- 브라우저에서 별도의 스레드에서 스크립트를 실행할 수 있게 해주는 기능이다.
+- 레이스 컨디션을 피하기 위해, 웹 워커는 전역 스코프를 공유하지 않는다.
+  - 예를 들어, 웹 워커에서는 DOM에 직접 접근할 수 없다.
+- window 객체가 없기 때문에, 웹 워커에서는 self 객체를 사용한다.
+
+##### 4.2.3 개발자 도구와 콘솔. REPL
+
+- 개발자 도구인 REPL은 JS 환경의 완벽한 재현보다는 개발자 경험(DX)를 향상시키는 데에 중점을 둔다.
+- 따라서 REPL에서는 JS의 작동방식에서 약간의 차이가 있을 수 있다.
+  - 예시
+    - 전역스코프의 작동방식
+    - 호이스팅
+    - 가장 바깥 스코프에서 블록 스코프 선언을 할 때
 
 ##### 4.2.4 ES 모듈
 
+- import 키워드를 사용하여 모듈을 불러와 실행하는것은 실제 파일을 단독 실행하는것과 동일하게 실행됨.
+- 다만, 전체 애플리케이션 관점에서는 동작이 다른 것을 확인 할 수 있음.
+  - 일반적인 전역 스코프가 아닌 모듈 전역 스코프를 사용하게 된다.
+  - 이는 모듈이 다른 모듈과 격리되어 있음을 의미한다.
+  - 그렇다고해서 전역 스코프에 접근할 수 없는 것은 아니다.
+
 ##### 4.2.5 Node.js
+
+- Node.js에서는 global 객체를 통해 전역 스코프를 제공한다.
 
 #### 4.3 globalThis
 
+- 이러한 여러 가지 호스팅 상황별 전역 객체를 통일하기 위해, globalThis라는 전역 객체가 도입되었다.
+- 혹은 아래와 같은 형태의 폴리필을 통해 globalThis를 사용 할 수 있다.
+
+  ```js
+  const theGlobalScopeObject =
+    (typeof globalThis !== 'undefined') ? globalThis :
+    (typeof global !== 'undefined') ? global :
+    (typeof window !== 'undefined') ? window :
+    (typeof self !== 'undefined') ? self :
+    (new Function('return this'))();
+  ```
+
 #### 정리
+
+- 생략
