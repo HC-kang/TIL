@@ -1593,3 +1593,123 @@
 #### 정리
 
 - 생략
+
+### Chapter 5: 변수의 비밀 생명주기
+
+- 이전까지 변수의 스코프에 대해 알아보았음.
+- 그러나 이것만으로는 변수가 프로그램에 어떻게 영향을 미치는지에 대한 전체적인 이해를 얻을 수 없다.
+- 따라서 동일 스코프 내에서도 어떤 절차를 거쳐 변수가 생성되고 소멸되는지에 대해 알아보자.
+
+#### 5.1 변수 사용 가능 시점
+
+- JS에서는, 다른 언어들과는 다르게 변수가 선언 또는 생성되기 이전에도 변수를 사용 할 수 있다.
+  - 우리는 이전에 JS가 컴파일언어라고 주장하는 저자의 주장을 통해 이를 알 수 있다.
+- 예시1
+
+  ```js
+  greeting(); // Hello, world!
+
+  function greeting() {
+    console.log('Hello, world!');
+  }
+  ```
+
+  - 이 예시에서 변수(함수) greeting은 선언되기 이전에 사용되었지만, 문제없이 작동한다.
+
+- 이전 내용 복습
+  - 1장에서 우리는, 모든 식별자는 컴파일 타임에 먼저 각자의 스코프에 등록된다는 것을 알아보았음.
+  - 또한, 이 식별자들은 자신이 속한 스코프가 생성될 때, 해당 스코프의 시작 부분에서 생성된다는 것을 배웠음.(호이스팅)
+  - 그러나 `var` 키워드로 선언된 변수도 호이스팅 되지만 할당되기 전에는 `undefined`로 초기화되어 사용할 수 없는데, 함수의 경우에는 사용이 가능한 이유는 무엇일까?
+    - 이는 `함수 호이스팅`이라는 별도의 개념이 존재하기 때문이다.
+    - 함수 선언문으로 선언된 함수는 초기화 단계에서 함수 참조값으로 초기화되기 때문에, 선언 이전의 위치에서도 사용이 가능하다.
+
+- 예시2
+
+  ```js
+  greeting(); // TypeError: greeting is not a function
+
+  var greeting = function() {
+    console.log('Hello, world!');
+  }
+  ```
+
+  - 함수 표현식으로 선언된 greeting은 호이스팅 되지만, 초기화 단계에서 `undefined`로 초기화되기 때문에 사용이 불가능하다.
+  - 이러한 이유로 `ReferenceError: Cannot access 'greeting' before initialization`가 아닌 `TypeError: greeting is not a function`이 발생한다.
+
+##### 5.1.1 선언문과 표현식에서의 호이스팅 차이
+
+- 위에서 알아보았듯, `함수 호이스팅`은 `함수 선언문`에서만 발생함
+  - 다만 함수 표현식의 경우에도 변수에 대한 호이스팅은 발생한다.
+
+##### 5.1.2 변수 호이스팅
+
+- 예시
+
+  ```js
+  greeting = 'Hello, world!';
+  console.log(greeting); // Hello, world!
+
+  var greeting = 'Howdy!';
+  ```
+
+  - 변수가 아직 선언되지 않았음에도 불구하고, 변수에 값을 할당하고 사용할 수 있다.
+  - 이는 변수가 호이스팅되어 최상단에서 선언되고, 초기화 단계에서 `undefined`로 초기화되기 때문이다.
+
+#### 5.2 호이스팅: 비유일 뿐입니다
+
+- 사실 엄밀히 따지면 이러한 호이스팅은 일종의 비유일뿐이라고 할 수 있음.
+- 비유로 인해 '변경되었다고 가정된' 코드
+
+  ```js
+  var greeting;
+  greeting = 'Hello, world!';
+  console.log(greeting); // Hello, world!
+
+  greeting = 'Howdy!';
+  ```
+
+- 사실 호이스팅은 위와 같은 '재정렬' 매커니즘이 아님.
+  - 실제로는 코드를 미리 파싱해서 변수 선언을 찾아내고, 이를 스코프 매니저에 등록할 뿐, 코드 실행 순서를 변경하지는 않음.
+
+#### 5.3 중복 선언 처리하기
+
+- 예시
+
+  ```js
+  var studentName = 'Suzy';
+  console.log(studentName); // Suzy
+
+  var studentName;
+  console.log(studentName); // Suzy
+  ```
+
+  - 이 경우에도, studentName이 두 번째 선언되며 undefined가 된다고 착각 할 수 있지만 아님.
+  - '변경되었다고 가정한' 코드
+
+    ```js
+    var studentName;
+    var studentName; // 의미 없는 작업 - 컴파일 과정에서 컴파일러는 스코프 매니저에 이미 등록된 변수는 무시함.
+
+    studentName = 'Suzy';
+    console.log(studentName); // Suzy
+
+    console.log(studentName); // Suzy
+    ```
+
+  - 물론 아래와 같이 명시적으로 undefined로 재할당 한 경우는 다르다.
+
+    ```js
+    var studentName = 'Suzy';
+    console.log(studentName); // Suzy
+
+    studentName = undefined;
+    console.log(studentName); // undefined
+    ```
+
+##### 5.3.1 const 재선언
+
+##### 5.3.2 반복문
+
+#### 5.4 초기화되지 않은 변수와 TDZ
+
+#### 5.5 정리
