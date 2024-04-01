@@ -1708,8 +1708,101 @@
 
 ##### 5.3.1 const 재선언
 
+- `const` 키워드는 `let`, `var`와 달리 재선언이 불가능하고, 선언시 초기화가 필수이다.
+  - 따라서 아래와 같은 코드는 에러를 발생시킨다.
+
+    ```js
+    const empty; // SyntaxError
+
+    const studentName = 'Suzy';
+    console.log(studentName); // Suzy
+
+    studentName = 'Frank'; // TypeError
+    ```
+
+    - 위 두 가지 에러의 차이점은 생각보다 크다.
+      - `SyntaxError`는 코드를 해석하는 과정에서 발생하는 에러로, 코드를 실행하기 전에 발생한다.
+      - `TypeError`는 코드를 실행하는 과정에서 발생하는 에러로, 코드를 실행하는 도중에 발생한다.
+
 ##### 5.3.2 반복문
+
+- 반복문도 마찬가지로, 매 이터레이션마다 새로운 스코프를 생성한다.
+
+  ```js
+  // var를 사용한 경우. i는 전역변수로 선언되며, 매 이터레이션마다 재할당되고 종료 이후에도 유지된다.
+  for (var i = 0; i < 3; i++) {
+    var value = i * 2;
+    console.log(value);
+  }
+  console.log(i); // 3
+  console.log(value); // 4 (마지막 이터레이션에서 할당된 값
+
+  // let을 사용한 경우. i는 블록 스코프로 선언되며, 매 이터레이션마다 새로운 스코프가 생성된다.
+  for (let i = 0; i < 3; i++) {
+    let value = i * 2;
+    console.log(value);
+  }
+
+  console.log(i); // ReferenceError: i is not defined
+  console.log(value); // ReferenceError: value is not defined
+
+  // const를 사용한 경우. i는 블록 스코프로 선언되며, 재할당이 불가능하다.
+  for (const i = 0; i < 3; i++) { // TypeError: Assignment to constant variable.
+    const value = i * 2;
+    console.log(value);
+  }
+
+  console.log(i); // ReferenceError: i is not defined
+  console.log(value); // ReferenceError: value is not defined
+  ```
 
 #### 5.4 초기화되지 않은 변수와 TDZ
 
+- 앞서 호이스팅에 대해 알아 볼 때, `let`, `const` 키워드도 호이스팅이 발생한다고 하였음.
+- 그러나 `let`, `const` 키워드로 선언된 변수는 호이스팅이 발생하지만, 초기화되지 않은 변수에 접근하려고 할 때 `ReferenceError`가 발생한다.
+
+  ```js
+  // 초기화 시도. 실패함.
+  studentName = 'Suzy'; // ReferenceError: Cannot access 'studentName' before initialization
+
+  console.log(studentName);
+
+  let studentName;
+  ```
+
+- TDZ(Temporal Dead Zone)
+  - `let`, `const` 키워드로 선언된 변수는 호이스팅이 발생하지만, 초기화되지 않은 변수에 접근하려고 할 때 `ReferenceError`가 발생한다.
+  - 이러한 현상을 TDZ라고 한다.
+  - TDZ는 변수가 선언된 위치부터 초기화되기 전까지의 시간대를 의미한다.
+    - 위치가 아니라 시간대로 표현한 이유는 아래의 예시처럼 위치에 의해서 결정되지 않는 사례가 있기 때문이다.
+
+      ```js
+      askQuestion(); // ReferenceError: Cannot access 'askQuestion' before initialization
+
+      let studentName = 'Suzy';
+
+      function askQuestion() {
+        console.log(studentName); // 분명 studentName에 대한 접근은 초기화 이후에 명시되어 있지만, 함수가 호출되는 시점이 초기화 이전이기 때문에 ReferenceError가 발생한다.
+      }
+      ```
+
+- 호이스팅에 대한 오해
+  - 호이스팅은 변수 선언을 맨 위로 끌어올리는 것이고, 맨 위에서 초기화되는것은 별개로 보는것이 맞다.
+  - 아래의 예시로, `let`, `const` 키워드로 선언된 변수는 최상단으로 호이스팅 되지만 초기화되지 않는다는 점을 알 수 있다.
+
+    ```js
+    var studentName = 'Suzy';
+
+    {
+      console.log(studentName); // ReferenceError: Cannot access 'studentName' before initialization
+      let studentName = 'Frank';
+
+      console.log(studentName); // Frank
+    }
+    ```
+
+    - `let`으로 선언된 studentName이 블록 스코프의 최상단으로 호이스팅 되었지만 초기화되지 않아 `ReferenceError`가 발생한다.
+
 #### 5.5 정리
+
+- 호이스팅은 일반적으로 JS엔진의 코드 실행 과정에서 일어나는 코드의 재배치로 알려져 있지만, 사실은 컴파일 과정에서 변수 선언을 스코프 매니저에 등록하면서 발생하는 현상이다.
