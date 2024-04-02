@@ -1880,7 +1880,7 @@
   - 예시(올바른 방법)
 
     ```js
-    function hideTheCache() { // 이러한 함수가 불필요하다고 생각되는 경우, 함수 표현식으로 즉시 호출하는 방법도 있다.
+    function (hideTheCache() { // 이러한 함수가 불필요하다고 생각되는 경우, 함수 표현식으로 즉시 호출하는 방법도 있다.
       // cache 변수를 숨기기 위해, 함수 스코프 내에 숨겨진 스코프를 생성한다.
       var cache = {};
 
@@ -1893,7 +1893,7 @@
         }
         return cache[x];
       }
-    }();
+    })();
 
     factorial(6); // 720
     cache; // ReferenceError: cache is not defined
@@ -1902,14 +1902,199 @@
 
 ##### 6.2.1 함수 표현식 즉시 호출하기
 
+- 위의 세 번째 코드에서 `hideTheCache`라는 함수는 괄호로 싸여있고, 뒤에 `()`가 붙어있다.
+- 이는 함수 표현식을 즉시 호출하는 방법(IIFE; Immediately Invoked Function Expression)이다.
+- 이러한 IIFE로도 스코프를 조작 할 수 있으나, 이또한 함수이므로 사용에 주의해야 한다.
+  - 조작된 스코프 내에서 return, break, continue 등의 키워드를 사용할 수 없다.
+
 #### 6.3 블록으로 스코프 지정
+
+- `let`, `const` 키워드를 사용할 때 스코프를 조작 할 수 있다.
+
+  ```js
+  {
+    // 아직은 블록으로 고려되고있음.
+
+    // ...
+
+    // 변수가 선언되었으므로, 이제 스코프로 취급됨.
+    let thisIsNowAScope = true;
+
+    for (let i = 0; i < 5; i++) {
+      // 이곳도 i가 선언되어 사용되므로 스코프로 취급됨.
+      if (i % 2 === 0) {
+        // 여기는 스코프가 아닌, 블록임.
+        console.log(i);
+      }
+    }
+  }
+
+- 또 다른 예시
+
+  ```js
+  if (somethingHappened) {
+    // 이곳은 블록이지만, 스코프는 아님.
+
+    {
+      // 이곳은 블록이고, 명시적으로 스코프로 취급됨.
+      let msg = somethingHappened.message();
+      notifyOthers(msg);
+    }
+
+    // ...
+    recoverFromSomething();
+  }
+  ```
+
+- 보다 실제에 가까운 예시
+
+  ```js
+  function sortNameByLength(name) {
+    var buckets = [];
+
+    for (let firstName of names) {
+      if (buckets[firstName.length] === null) {
+        buckets[firstName.length] = [];
+      }
+      buckets[firstName.length].push(firstName);
+    }
+
+    // 스코프를 좁히는 블록
+    {
+      let sortedNames = [];
+      for (let bucket of buckets) {
+        if (bucket) {
+          bucket.sort();
+
+          sortedNames = [
+            ...sortedNames,
+            ...bucket
+          ];
+        }
+      }
+
+      return sortedNames;
+    }
+  }
+
+  sortNameByLength([
+    'Sally',
+    'Suzy',
+    'Frank',
+    'John',
+    'Jennifer',
+    'Scott',
+  ]);
+  ```
 
 ##### 6.3.1 var 와 let
 
+- 저자는 `var` 키워드를 필요에 따라 사용하는 것이 좋다고 주장한다.
+- 특히 앞의 예시와 같이, 함수 전체에서 사용되는 변수는 의미론적으로도 `var` 키워드를 사용하는 것이 좋다고 주장한다.
+
 ##### 6.3.2 let의 위치
+
+- 생략
 
 ##### 6.3.3 catch와 스코프
 
+- `catch` 절에서 선언된 변수는 `catch` 절 내에서만 유효하다.
+
+  ```js
+  try {
+    // ...
+  } catch (err) {
+    console.log(err);
+  }
+
+  console.log(err); // ReferenceError: err is not defined
+  ```
+
+- 또한 불필요하다면 `catch` 절의 오류 객체를 생략 할 수 있다.(`ES2019`)
+
+  ```js
+  try {
+    // ...
+  } catch {
+    console.log('An error occurred');
+  }
+  ```
+
 #### 6.4 블록 내 함수 선언
 
+- 블록 내 함수선언(FiB; Function in Block)은 블록 내에서 함수를 선언하는 것을 의미한다.
+- 이게 뭐가 문제인가, 라고 생각할 수 있지만, 이는 호이스팅과 관련된 문제를 일으킬 수 있다.
+
+  ```js
+  if (false) {
+    function ask() {
+      console.log('Does this run?');
+    }
+  }
+  ask();
+  ```
+
+  - 이 코드에서 예상가능한 결과는 아래의 세 가지이다.
+    1. ask 식별자가 블록 내에서 선언되었으므로, 외부에서 호출 할 수 없어 ReferenceError가 발생한다.
+    2. ask 식별자가 존재하긴 하지만, if 구문이 실행되지 않아 초기화되지 않았으므로, TypeError가 발생한다.
+    3. 문제없이 호출되어 'Does this run?'이 출력된다.
+  - 결론적으로는 V8엔진을 사용하는 브라우저, Node.js에서 모두 2번의 결과가 실행된다.
+
+- 이러한 코드가 문제가 되는 대부분의 사례는 아래와 같은 경우이다.
+
+  ```js
+  if (typeof Array.isArray != 'undefined') {
+    function isArray(a) {
+      return Array.isArray(a);
+    }
+  }
+  else {
+    function isArray(a) {
+      return Object.prototype.toString.call(a) === '[object Array]';
+    }
+  }
+  ```
+
+  - 이러한 코드는 브라우저등 환경에 따라 결과가 달라져 문제가 발생할 수 있다.
+  - 또한 디버깅 과정에서도 문제가 될 수 있다.
+
+- 특히 아래와 같은 경우는 정말 이해 할 수 없는 동작을 한다.
+
+  ```js
+  if (true) {
+    function ask() {
+      console.log('me?')
+    }
+  }
+
+  if (true) {
+    function ask() {
+      console.log('or me?')
+    }
+  }
+
+  for (let i = 0; i < 1; i++) {
+    function ask() {
+      console.log('maybe me?')
+    }
+  }
+  let a = true;
+  while(a) {
+    function ask() {
+      console.log('or maybe me?')
+    }
+    a = false;
+  }
+
+  ask(); // or maybe me?
+
+  function ask() {
+    console.log('definitely me!')
+  }
+  ```
+
+  - 결론적으로 `FiB`는 사용하지 않는 것이 좋다.
+
 #### 6.5 정리
+
+- 생략
