@@ -2175,11 +2175,190 @@
 - 이는 사실이 아니며, 클로저는 라이브 링크이다. 따라서 직접적인 조작이 가능하다.  
   ![그림 7-1 클로저 시각화](images/7-1-클로저-시각화.png)
 
+- 클로저를 감싼 변수를 업데이트 하는 예시
+
+  ```js
+  function makeCounter() {
+    var count = 0;
+
+    return function getCurrent() {
+      count = count + 1;
+      return count;
+    };
+  }
+
+  var hits = makeCounter();
+
+  console.log(hits()); // 1
+  console.log(hits()); // 2
+  ```
+
+    - 위 예시에서 변수 `count`는 내부 함수 getCurrent에 의해 참조되며, 이로인해 GC의 대상이 되지 않는다.
+
+- 꼭 함수 스코프가 아니더라도, 함수를 스코프로 감싸서 클로저를 만들 수 있다.
+
+  ```js
+  var hits;
+  { // 블록 스코프 생성
+    let count = 0;
+    // 논외이지만, 스코프 안에서 함수를 사용하므로 함수 표현식을 사용한다. FiB는 사용하지 않는 것이 좋다.
+    hits = function getCurrent() {
+      count = count + 1;
+      return count;
+    };
+  }
+
+  console.log(hits()); // 1
+  console.log(hits()); // 2
+  ```
+
+- 결론적으로 클로저는 라이브 링크이며, 특정 시점에 대한 스냅샷이 아니다.
+- 따라서 아래와 같은 코드는 예상대로 작동하지 않는다.
+
+  ```js
+  var keeps = [];
+
+  for (var i = 0; i < 3; i++) {
+    keeps[i] = function() {
+      return i;
+    };
+  }
+
+  console.log(keeps[0]()); // 3
+  console.log(keeps[1]()); // 3
+  console.log(keeps[2]()); // 3
+  ```
+
+- 작동하게 하려면 아래와 같이 수정해야 한다.
+
+  ```js
+  var keeps = [];
+
+  for (let i = 0; i < 3; i++) { // 변수 i를 선언하는 키워드를 let으로 변경
+
+    keeps[i] = function() {
+      return i;
+    };
+  }
+
+  console.log(keeps[0]()); // 3
+  console.log(keeps[1]()); // 3
+  console.log(keeps[2]()); // 3
+  ```
+
 ##### 7.1.4 쉽게 관찰할 수 있는 클로저: Ajax와 이벤트
+
+- 이러한 클로저는 Ajax 등 콜백을 다룰 때 흔히 사용된다.
+
+  ```js
+  function lookupStudentRecord(studentID) {
+    ajax(
+      `https://some.api/student/${studentID}`,
+      function onRecord(record) {
+        console.log(
+          `${record.studentName} (${studentID})`
+        );
+      }
+    );
+  }
+
+  lookupStudentRecord(73);
+  ```
+
+- 또 하나의 흔한 사례는 이벤트 핸들러이다.
+
+  ```js
+  function listenForClicks(btn, label) { // label은 onClick 함수에서 참조되어 클로저가 된다. 따라서 사용자가 한참 뒤에 클릭을 하더라도 label은 계속해서 유지된다.
+    btn.addEventListener('click', function onClick() {
+      console.log(
+        `${label} clicked`
+      );
+    });
+  }
+
+  var submitBtn = document.getElementById('submit-btn');
+
+  listenForClicks(submitBtn, 'Checkout');
+  ```
 
 ##### 7.1.5 보이지 않으면 어떡하죠?
 
+> 아무도 없는 숲에서 나무 한 그루가 쓰러졌지만, 그 누구도 소리를 듣지 못했다면 소리는 난 것인가?
+
+- 함수와, 그 함수를 감싼 스코프가 있다면 클로저는 존재 할 수 있다.
+  - 그러나 외부 스코프의 변수를 함수가 참조하지 않는다면(관측하지 않는다면) 클로저는 존재하지 않을 수도 있다.
+
+- 예시 1
+
+  ```js
+  function say(myName) {
+    var greeting = 'Hello';
+    output();
+
+    function output() {
+      console.log(
+        `${greeting}, ${myName}`
+      );
+    }
+  }
+
+  say('Kyle'); // Hello, Kyle
+  ```
+
+    - 위 경우에서, 출력은 정상적으로 작동한다.
+    - 하지만 이 경우는 클로저가 아니라 단순 렉시컬 스코프의 변수를 참조한 것이다.
+      - 클로저를 사용하려면 별도의 스코프에서 내부 함수를 호출해야 한다.
+
+- 예시 2
+
+  ```js
+  var students = [
+    { id: 14, name: 'Kyle' },
+    { id: 73, name: 'Suzy' },
+    { id: 112, name: 'Frank' },
+    { id: 6, name: 'Sarah' },
+  ];
+  
+  function getFirstStudent() {
+    return function firstStudent() {
+      return students[0].name;
+    };
+  }
+
+  var student = getFirstStudent();
+
+  console.log(student()); // Kyle
+  ```
+
+  - 위 경우에는 비록 내부함수가 외부 스코프에서 호출되었지만, 함수를 감싼 스코프가 전역 스코프이다.
+  - 따라서 클로저가 아닌, 단순 전역 스코프 참조이다.
+
+- 예시 3
+
+  ```js
+  function lookupStudent(studentID) {
+    return function nobody() {
+      var msg = 'No student';
+      console.log(msg);
+    };
+  }
+
+  var student = lookupStudent(112);
+  student(); // No student
+  ```
+
+  - 위의 경우에도 클로저가 존재하지 않는다.
+  - 내부함수 nobody를 감싼 외부 스코프에 studentID가 존재하고, 이에 대한 호출도 외부 스코프에서 이루어졌다.
+  - 하지만, studentID가 내부 함수에서 참조되지 않았다.
+    - 따라서 곧 GC의 대상이 되고, 외부에서 참조할 수 없다.
+
+##### 7.1.6 관찰 가능성 관점에서 클로저의 정의
+
+- `함수가 외부 스코프의 변수를 사용`하면서, `그 변수에 접근 가능하지 않은 다른 스코프에서 실행 될 때` 발생하는 현상.
+
 #### 7.2 클로저 생명주기와 가비지 컬렉션
+
+- 
 
 ##### 7.2.1 변수 혹은 스코프
 
