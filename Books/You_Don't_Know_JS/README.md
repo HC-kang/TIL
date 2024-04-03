@@ -2098,3 +2098,93 @@
 #### 6.5 정리
 
 - 생략
+
+### Chapter 7: 클로저 사용법
+
+- 이 장의 목적은 스코프를 단순히 이해하는 것이 아니라, 이를 사용해서 더 효과적인 코드를 작성하는 방법을 배우는 것이다.
+
+#### 7.1 클로저 관찰하기
+
+- 클로저는 람다 대수에서 유래한다. 하지만 이런것은 여기에서 중요하지 않다.
+- 클로저는 함수에서 발생하는 현상이다.
+  - 함수를 일급 객체로 취급하고, 렉시컬 스코프를 사용하는 언어에서 발생한다.
+  - 발생하는 상황은, 함수가 정의된 스코프 이외의 스코프에서 호출되는 경우이다.
+
+- 예시
+
+  ```js
+  function lookupStudent(studentID) {
+    // 클로저로 숨겨진 데이터
+    var students = [
+      { id: 14, name: 'Kyle' },
+      { id: 73, name: 'Suzy' },
+      { id: 112, name: 'Frank' },
+      { id: 6, name: 'Sarah' },
+    ];
+
+    return function greetStudent(greeting) {
+      // 내부 함수에서 students와 studentID에 접근하며, 이 참조로 인해 두 변수는 GC의 대상이 되지 않는다.
+      var student = students.find(student => student.id == studentID); // 이곳에도 클로저가 존재한다.(studentID)
+      return `${greeting}, ${student.name}!`;
+    };
+  }
+
+  var chosenStudents = [
+    lookupStudent(6),
+    lookupStudent(73),
+  ];
+
+  // 함수의 이름에 접근한다.
+  console.log(chosenStudents[0].name); // greetStudent
+
+  console.log(chosenStudents[0]('Hello')); // Hello, Sarah!
+
+  console.log(chosenStudents[1]('Howdy')); // Howdy, Suzy!
+  ```
+
+##### 7.1.1 화살표 함수의 스코프
+
+- 위 예시 중, 숨겨진 스코프가 하나 있다.
+  - `var student = students.find(student => student.id == studentID);`
+    - 작은 화살표 함수지만 여기서도 스코프가 생성된다.
+
+##### 7.1.2 추가되는 클로저
+
+- 클로저를 설명할 때 가장 많이 사용되는 예시
+
+  ```js
+  function adder(num1) {
+    return function addTo(num2) {
+      return num1 + num2;
+    };
+  }
+
+  var addTo10 = adder(10);
+  var addTo42 = adder(42);
+
+  console.log(addTo10(3)); // 13
+  console.log(addTo42(3)); // 45
+  ```
+
+    - 위의 예제에서 `addTo10`과 `addTo42`는 각각 `adder` 함수의 클로저이고 각자의 `num1`을 기억한다.
+    - 이 둘은 독립적으로 동작하며, 서로의 `num1`에 영향을 미치지 않는다.
+
+##### 7.1.3 스냅숏이 아닌 라이브 링크
+
+- 많은 사람들이 착각하는 것 중 하나는 클로저가 스냅숏(사진)이라고 생각하는 것이다.
+- 이는 사실이 아니며, 클로저는 라이브 링크이다. 따라서 직접적인 조작이 가능하다.  
+  ![그림 7-1 클로저 시각화](images/7-1-클로저-시각화.png)
+
+##### 7.1.4 쉽게 관찰할 수 있는 클로저: Ajax와 이벤트
+
+##### 7.1.5 보이지 않으면 어떡하죠?
+
+#### 7.2 클로저 생명주기와 가비지 컬렉션
+
+##### 7.2.1 변수 혹은 스코프
+
+#### 7.3 다른 관점
+
+#### 7.4 클로저를 사용하는 이유
+
+#### 7.5 정리

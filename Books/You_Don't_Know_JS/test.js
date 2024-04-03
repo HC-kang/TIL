@@ -1,30 +1,11 @@
-if (true) {
-  function ask() {
-    console.log('me?')
-  }
+function adder(num1) {
+  return function addTo(num2) {
+    return num1 + num2;
+  };
 }
 
-if (true) {
-  function ask() {
-    console.log('or me?')
-  }
-}
+var addTo10 = adder(10);
+var addTo42 = adder(42);
 
-for (let i = 0; i < 1; i++) {
-  function ask() {
-    console.log('maybe me?')
-  }
-}
-let a = true;
-while(a) {
-  function ask() {
-    console.log('or maybe me?')
-  }
-  a = false;
-}
-
-ask();
-
-function ask() {
-  console.log('definitely me!')
-}
+console.log(addTo10(3)); // 13
+console.log(addTo42(3)); // 45
