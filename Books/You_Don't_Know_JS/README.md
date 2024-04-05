@@ -2358,12 +2358,205 @@
 
 #### 7.2 클로저 생명주기와 가비지 컬렉션
 
-- 
+- 가비지 컬렉션(GC; Garbage Collection)은 메모리 관리를 위해 사용되는 기술임.
+- GC는 참조를 기반으로 가비지 여부를 판단한다.
+  - 클로저가 변수를 참조하고 있다면, 해당 변수는 GC의 대상이 되지 않고 유지된다.
+  - 즉, 계속 메모리를 차지하고있을 것이다.
+- 따라서 클로저가 더이상 필요없어진다면 해당 클로저를 null로 설정하여 GC의 대상이 되도록 해야한다.
+- 예시
+
+  ```js
+  function manageBtnClickEvents(btn) {
+    var clickHandlers = [];
+
+    return function listener(cb) {
+      if (cb) {
+        let clickHandler = function onClick(evt) {
+          console.log('clicked');
+          cb(evt);
+        };
+        clickHandlers.push(clickHandler);
+        btn.addEventListener('click', clickHandler);
+      }
+      // cb가 없는 경우 클로저를 제거하기 위한 분기
+      else [
+        for (let handler of clickHandlers) {
+          btn.removeEventListener('click', handler);
+        }
+        clickHandlers = [];
+      ]
+    };
+  }
+
+  var onSubmit = manageBtnClickEvents(mySubmitBtn);
+
+  onSubmit(function checkout(evt) {
+    // checkout 처리 로직
+  });
+
+  onSubmit(function trackAction(evt) {
+    // 트래킹 처리 로직
+  });
+
+  onSubmit(); // 클로저 제거
+  ```
 
 ##### 7.2.1 변수 혹은 스코프
 
+- 클로저가 발생하는 경우, 내부 함수에서 참조된 변수만 기억될까, 혹은 스코프 전체가 기억될까?
+  - 개념적으로 클로저는 변수를 기준으로 작동함. 따라서 스코프 전체를 기억하지는 않음.
+
+- 예시 1
+
+  ```js
+  function manageStudentGrades(studentRecords) {
+    // studentRecords는 일회성 참조이므로 클로저가 되지 않는다.
+    var grades = studentRecords.map(getGrade);
+
+    return addGrade;
+
+    function getGrade(record) { // 스코프 내에서만 사용되므로 클로저가 되지 않는다.
+      return record.grade;
+    }
+
+    function sortAndTrimGradeList() { // 내부에 grades 외의 참조는 없다.
+      grades.sort(function desc(g1, g2) {
+        return g2 - g1;
+      });
+
+      grades = grades.slice(0, 3);
+    }
+
+    function addGrade(newGrade) {
+      grades.push(newGrade); // grades를 참조한다.
+      sortAndTrimGradeList(); // sortAndTrimGradeList를 참조한다.
+      return grades;
+    }
+  }
+
+  var addNextGrade = manageStudentGrades([
+    { id: 14, name: 'Kyle', grade: 88 },
+    { id: 73, name: 'Suzy', grade: 91 },
+    { id: 112, name: 'Frank', grade: 75 },
+    { id: 6, name: 'Sarah', grade: 95 },
+  ]);
+
+  console.log(addNextGrade(100)); // [ 100, 95, 91, 88, 75 ]
+  console.log(addNextGrade(99)); // [ 100, 95, 91, 88, 75, 68 ]
+  ```
+
+    - 위의 예시를 통해 클로저는 스코프가 아닌 변수를 기준으로 작동함을 알 수 있다.
+    - 물론 `eval` 등의 키워드로 스코프 전체를 남도록 할 수는 있으나, 이는 최적화 할 수 없는 `eval` 키워드의 특징으로 인한 것으로, 안티패턴이다.
+
+- 예시 2
+
+  ```js
+  function manageStudentGrades(studentRecords) {
+    var grades = studentRecords.map(getGrade);
+
+    studentRecords = null; // 명시적으로 studentRecords를 null로 설정하여 GC의 대상이 되도록 한다.
+
+    return addGrade;
+    // ... 이하 생략
+  }
+  ```
+
 #### 7.3 다른 관점
+
+- 클로저를 시각화하는 또다른 관점
+  ![alt text](image.png)
+  - JS에서는 함수또한 참조로 전달된다.
+  - 따라서 클로저도 스코프 체인을 그대로 유지하고있고, 이에 접근하기 위한 참조만 외부 스코프에 전달된다고 볼수 있다.
 
 #### 7.4 클로저를 사용하는 이유
 
+- 클로저를 사용하지 않은 예시
+
+  ```js
+  var APIendpoints = {
+    studentIds: "https://some.api/register-students",
+  };
+
+  var data = {
+    studentIDs: [ 14, 73, 112, 6 ],
+  };
+
+  function makeRequest(evt) {
+    var btn = evt.target; // evt.target으로 클릭된 버튼을 참조한다.
+    var recordKind = btn.dataset.kind;
+    ajax(
+      APIendpoints[recordKind],
+      data[recordKind],
+    );
+  }
+
+  btn.addEventListener('click', makeRequest);
+  ```
+
+    - 위 예시의 경우, 클로저가 사용되지 않았다.
+    - 따라서, `makeRequest` 함수는 매번 btn 요소를 직접 확인해야 한다.
+
+- 클로저를 사용한 예시
+
+  ```js
+  var APIendpoints = {
+    studentIds: "https://some.api/register-students",
+  };
+
+  var data = {
+    studentIDs: [ 14, 73, 112, 6 ],
+  };
+
+  function setupButtonHandler(btn) {
+    var recordKind = btn.dataset.kind;
+
+    btn.addEventListener(
+      'click',
+      function makeRequest(evt) {
+        ajax(
+          APIendpoints[recordKind],
+          data[recordKind],
+        );
+      }
+    )
+  }
+
+  setupButtonHandler(btn);
+  ```
+
+    - 위 예시의 경우, 클로저를 사용하여 `recordKind`를 기억하고 있으므로, `makeRequest` 함수는 매번 `recordKind`를 확인할 필요가 없다.
+
+- 좀 더 개선된 코드
+
+  ```js
+  function setupButtonHandler(btn) {
+    var recordKind = btn.dataset.kind;
+    var requestURL = APIendpoints[recordKind];
+    var requestData = data[recordKind];
+
+    btn.addEventListener(
+      'click',
+      function makeRequest(evt) {
+        ajax(
+          requestURL,
+          requestData,
+        );
+      }
+    )
+  }
+
+  // 이하 생략
+  ```
+
+    - 위와 같은 형태로 클로저를 적용하는 기법으로 `부분 적용`과 `커링`이 있다.
+
 #### 7.5 정리
+
+- 클로저를 정의하는 두 가지 관점
+  - 관찰 관점: 함수가 다른 스코프로 전달되거나 호출될 때에도 외부 변수를 기억하는 함수 인스턴스
+  - 구현 관점: 클로저는 다른 스코프에서 참조가 전달되고 호출되는 동안 함수 인스턴스와 해당 스코프 환경을 제자리에 보존함
+
+- 클로저를 사용했을 때의 이점
+  - 함수 인스턴스가 매번 계산할 필요 없이 이전에 결정된 정보를 기억하여 효율성을 높일 수 있다.
+  - 함수 인스턴스 아에 변수를 캡슐화하여, 변수의 사용성을 보장하면서 가독성을 개선하고 스코프의 노출도 제한 할 수 있다.
+  - 또한 매 호출마다 정보를 전달 할 필요가 없으므로 함수를 다루기가 편해진다.
