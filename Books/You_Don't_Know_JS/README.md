@@ -2560,3 +2560,269 @@
   - 함수 인스턴스가 매번 계산할 필요 없이 이전에 결정된 정보를 기억하여 효율성을 높일 수 있다.
   - 함수 인스턴스 아에 변수를 캡슐화하여, 변수의 사용성을 보장하면서 가독성을 개선하고 스코프의 노출도 제한 할 수 있다.
   - 또한 매 호출마다 정보를 전달 할 필요가 없으므로 함수를 다루기가 편해진다.
+
+### Chapter 8: 모듈 패턴
+
+- 모듈은 본질적으로 렉시컬 스코프와 클로저를 기반으로 한 패턴이다.
+
+#### 8.1 캡슐화와 최소 노출의 원칙(POLE)
+
+- 캡슐화
+  - 정보(데이터)와 동작(함수)를 한데 묶어서 공통의 목적을 달성하는 것
+    - 꼭 하나의 객체를 만들어야 하는 것은 아니고, 같은 목적을 공유하는 요소들을 하나의 파일 안에 두는 것 또한 캡슐화의 한 형태이다.
+    - 최근 프론트엔드 개발에서는 하나의 컴포넌트로 묶어서 개발하는 것도 캡슐화의 한 형태이다.
+  - 캡슐화의 또 다른 목표는 데이터와 함수의 가시성을 제한하는 것이다.
+    - 이는 최소 노출의 원칙(POLE)과 연관이 있다.
+    - 이러한 방식의 주 목적은 비슷하 코드를 그룹화해 가독성을 높이고, 공개가 불필요한 세부사항은 숨기는 것이다.
+
+#### 8.2 모듈이란
+
+- 모듈화의 목적
+  - 느슨한 결합을 통한 유지보수성 향상
+  - 비공개 구현과 내부 상태를 숨기고, 공개 API를 제공하여 사용자가 쉽게 사용할 수 있도록 함
+
+##### 8.2.1 네임스페이스(무상태 그룹화)
+
+- `네임스페이스`
+  - 무상태 함수를 모아놓은 것.
+  - 클래스나 객체를 만들지 않고, 함수를 그룹화하는 방법
+
+- 에시
+
+  ```js
+  var Utils = {
+    cancelEvt(evt) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      evt.stopImmediatePropagation();
+    },
+    wait(ms) {
+      return new Promise(function c(res) {
+        setTimeout(res, ms);
+      });
+    },
+    isValidEmail(email) {
+      return /[^@]+@[^@]+\.[a-z]+/i.test(email);
+    }
+  }
+  ```
+
+  - 이러한 Utils는 네임스페이스로, 무상태 함수를 그룹화한 것이다.
+  - 별도로 저장되는 상태가 전혀 없고, 단지 비슷한 유틸성 함수들을 그룹화한 것이다.
+
+##### 8.2.2 데이터 구조(상태 유지 그룹화)
+
+- `네임스페이스`와 달리 상태를 가진 함수를 묶는다고 하여 모두 캡슗화는 아니다.
+  - 데이터를 모두 공개하며 가시성을 제한하지 않는다면 이는 POLE 관점에서 캡슐화가 아니다.
+  - 이러한 개념은 `데이터 구조`로 볼 수 있다.
+
+- 예시(모듈이 아닌 단순한 데이터 구조)
+
+  ```js
+  var Student = {
+    records: [
+      { id: 14, name: 'Kyle', grade: 88 },
+      { id: 73, name: 'Suzy', grade: 91 },
+      { id: 112, name: 'Frank', grade: 75 },
+      { id: 6, name: 'Sarah', grade: 95 },
+    ],
+    getName(studentID) {
+      var student = this.records.find(
+        student => student.id == studentID
+      );
+      return student.name;
+    }
+  };
+
+  console.log(Student.getName(73)); // Suzy
+  console.log(Student.records[2].name); // Frank, 외부에서 직접 데이터에 접근이 가능하다.
+  ```
+
+    - 위 예시에서 Student는 동작과 상태를 모두 가지고 있어 일종의 캡슐화가 되어있다고 볼 수도 있다.
+    - 그러나 데이터에 대한 접근을 제한하지 않았으므로, POLE 관점에서는 캡슐화가 아니다.
+    - 따라서 이러한 객체는 모듈이 아니라, `데이터 구조`의 인스턴스로 볼 수 있다.
+
+##### 8.2.3 모듈(상태를 가진 접근 제어)
+
+- `모듈`
+  - `데이터 구조`와 다르게 상태에 대한 접근을 제한한다.
+
+- 예시 1(싱글턴)
+
+  ```js
+  var Student = (function defineStudent() {
+    var records = [
+      { id: 14, name: 'Kyle', grade: 88 },
+      { id: 73, name: 'Suzy', grade: 91 },
+      { id: 112, name: 'Frank', grade: 75 },
+      { id: 6, name: 'Sarah', grade: 95 },
+    ];
+
+    var publicAPI = {
+      getName
+    };
+
+    return publicAPI
+
+    // ****************
+
+    function getName(studentID) {
+      var student = records.find(
+        student => student.id == studentID
+      );
+      return student.name;
+    }
+  })(); // IIFE를 사용하여 모듈을 하나만 생성한다.
+
+  console.log(Student.getName(73)); // Suzy
+  console.log(Student.records?.[2]?.name); // undefined, 외부에서 직접 데이터에 접근이 불가능하다.
+  console.log(Student.getName(112)); // Frank
+  ```
+
+    - 위 경우에는 `records`를 외부에서 직접 접근할 수 없다.
+      - 클로저를 사용하여 `records`를 숨겼기 때문이다.
+    - 오직 노출된 `getName()` 함수를 통해서만 `records`에 접근할 수 있다.
+    - 위의 예시에서는 IIFE를 사용하여 모듈을 하나만 생성했다.
+
+- 예시 2(모듈 팩토리)
+
+  ```js
+  function defineStudent() {
+    var records = [
+      { id: 14, name: 'Kyle', grade: 88 },
+      { id: 73, name: 'Suzy', grade: 91 },
+      { id: 112, name: 'Frank', grade: 75 },
+      { id: 6, name: 'Sarah', grade: 95 },
+    ];
+
+    var publicAPI = {
+      getName,
+      setName,
+    };
+
+    return publicAPI;
+
+    // ****************
+
+    function getName(studentID) {
+      var student = records.find(
+        student => student.id == studentID
+      );
+      return student.name;
+    }
+
+    function setName(studentID, name) {
+      var student = records.find(
+        student => student.id == studentID
+      );
+      student.name = name;
+    }
+  }
+
+  var fullTime1 = defineStudent();
+  var fullTime2 = defineStudent();
+  console.log(fullTime1.getName(73)); // Suzy
+  fullTime1.setName(73, 'Susan');
+
+  console.log(fullTime1.getName(73)); // Susan
+  console.log(fullTime2.getName(73)); // Suzy
+  ```
+
+    - 위의 예시에서는 `defineStudent` 함수를 사용하여 모듈을 생성하는 팩토리 함수를 만들었다.
+    - 이러한 방식을 사용하면, 여러 개의 모듈 인스턴스를 생성할 수 있다.
+      - 생성된 인스턴스는 서로 독립적으로 상태를 유지한다.
+
+- 클래식 모듈이 되기 위한 조건
+  - 적어도 한 번 이상 실행되는 `모듈 팩토리 함수`가 외부 스코프에 존재해야 한다.
+  - 모듈의 내부에는 해당 모듈의 상태를 나타내는 정보가 있어야 하며, 이 정보에 대한 접근은 통제되어야 한다.
+  - 하나 이상의 함수를 공개 API로 노출해야 하고, 이 함수는 모듈의 숨겨진 상태에 접근할 수 있어야 한다.
+
+#### 8.3 Node.js의 CommonJS 모듈
+
+- 방금 전 까지, 위에서는 클래식 모듈에 대해 다루었다.
+- 이번에는 Node.js의 `CommonJS` 모듈에 대해 다룬다.
+  - `CommonJS`는 클래식 모듈과 달리 파일 단위로 모듈을 정의한다.
+
+- 예시
+
+  ```js
+  module.exports.getName = getName;
+
+  // ****************
+
+  var records = [
+    { id: 14, name: 'Kyle', grade: 88 },
+    { id: 73, name: 'Suzy', grade: 91 },
+    { id: 112, name: 'Frank', grade: 75 },
+    { id: 6, name: 'Sarah', grade: 95 },
+  ];
+  
+  function getName(studentID) {
+    var student = records.find(
+      student => student.id == studentID
+    );
+    return student.name;
+  }
+  ```
+
+    - 위 코드의 records, getName은 파일에서 최상위 스코프에 있지만, 전역 스코프는 아님.
+      - 4장에서 설명한 것 처럼 파일이 import 되는 시점에서 전역이 아닌 별도의 모듈 스코프로 취급된다.
+    - 따라서 records 등 모든 코드는 기본적으로 외부에서 접근할 수 없다.
+      - 공개가 필요한 함수들은 빈 객체인 `module.exports`에 할당하여 공개한다.
+      - 과거 코드에서는 `exports`를 사용하는 경우도 있었지만, 이는 `module.exports`의 별칭일 뿐이다. 명확성을 위해서는 `module.exports`를 사용하는 것이 좋다.
+      - 또한 `module.exports = { ...getName }`과 같이 객체를 변경하는데, 이는 좋지 못한 방법이다.
+        - 이는 `module.exports`가 새로운 객체를 참조하게 하는데, 특히 모듈이 순환 참조되는 경우 초기 객체 `{}`가 교체되면서 문제가 발생할 수 있다.
+        - 따라서 참조 유지를 위해 `Object.assign(module.exports, { ... })`을 사용하는 것이 좋다.
+
+#### 8.4 최신 ES 모듈
+
+- `ES 모듈`은 `CommonJS`와 유사하다.
+  - 파일 기반이고, 모듈 인스턴스는 싱글턴이며, 모든 것은 기본적으로 비공개이다.
+- 둘의 차이점은
+  - `ES 모듈`은 기본적으로 `'use strict'` 모드이다.
+  - `ES 모듈`은 `module.exports` 대신 `export`, `require` 대신 `import`를 사용한다.
+
+- 예시
+
+  ```js
+  export { getName }; // 이 부분만 module.exports.getName = getName 에서 변경되었다.
+
+  // ****************
+
+  var records = [
+    { id: 14, name: 'Kyle', grade: 88 },
+    { id: 73, name: 'Suzy', grade: 91 },
+    { id: 112, name: 'Frank', grade: 75 },
+    { id: 6, name: 'Sarah', grade: 95 },
+  ];
+
+  function getName(studentID) {
+    var student = records.find(
+      student => student.id == studentID
+    );
+    return student.name;
+  }
+  ```
+
+  - 코드상의 큰 변화는 없다.
+    - 단순히 `module.exports`를 `export`로 변경되었다.
+    - 위 코드에는 없지만, 다른 모듈 사용 시 `require`를 `import`로 변경해야 한다.
+  - 이외에도 여러 다른 방식으로 함수를 공개할 수 있다.
+    - 위 예시처럼 `export` 키워드를 별도로 사용 할 수 있다.
+    - `export function getName(studentID) { ... }`와 같이 함수를 선언과 동시에 공개할 수도 있다.
+    - `export default` 키워드를 사용하여 기본 함수를 공개할 수도 있다.
+      - 이런 `default` 키워드가 사용된 것을 `기본 내보내기`라고 한다.
+        - `default` 키워드는 모듈에서 단 하나만 사용할 수 있다.
+        - import 시에는 `import getName from './module'`와 같이 사용한다.
+      - `default` 키워드가 사용되지 않은 것을 `기명 내보내기`라고 한다.
+        - `기명 내보내기`는 `import { getName } from './module'`와 같이 사용한다.
+
+#### 정리
+
+- 클래식 모듈(브라우저, Node.js)
+  - 클로저를 사용하여 상태를 캡슐화하고, 공개 API를 제공한다.
+- CommonJS 모듈(Node.js)
+  - 파일 단위로 모듈을 정의하고, `module.exports`를 사용하여 공개 API를 제공한다.
+- ES 모듈(브라우저, Node.js)
+  - 파일 단위로 모듈을 정의하고, `export`를 사용하여 공개 API를 제공한다.
+  - `default` 키워드를 사용하여 기본 함수를 공개할 수 있다.
