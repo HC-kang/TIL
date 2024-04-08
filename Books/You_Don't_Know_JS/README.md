@@ -2826,3 +2826,158 @@
 - ES 모듈(브라우저, Node.js)
   - 파일 단위로 모듈을 정의하고, `export`를 사용하여 공개 API를 제공한다.
   - `default` 키워드를 사용하여 기본 함수를 공개할 수 있다.
+
+### Appendix A: 한 걸음 더
+
+#### A.1 암시적 스코프
+
+- 종종 스코프는 명확하지 않는 곳에 생성되기도 한다.
+- 이러한 스코프를 `암시적 스코프`라고 한다.
+- 암시적 스코프의 예시
+  - 매개변수 스코프
+  - 함수명 스코프
+
+##### A.1.1 매개변수 스코프
+
+- 2.2절에서 함수의 매개변수는 함수 스코프에서 지역으로 생성된 변수와 동일하다고 설명했다.
+- 그러나 사실, 항상 그러한 것은 아니다. 아래와 같은 경우 다르게 동작한다.
+  - 기본값이 있는 매개변수
+  - ...rest 매개변수
+  - 비구조화 매개변수
+- 예시(일반적인 매개변수, 지역 변수와 동일함.)
+
+  ```js
+  // 외부 전역 스코프
+  function getStudentName(studentID) {
+    // 함수 스코프
+  }
+  ```
+
+- 예시(기본값이 있는 매개변수, TDZ 에러 발생)
+
+  ```js
+  function getStudentName(studentId = maxID, maxID) {
+    // ...
+  }
+  ```
+    - 위의 경우, `maxID`는 `studentId`의 기본값으로 사용되는데, 이는 `studentId`가 초기화되기 전에 사용되므로 TDZ 에러가 발생한다.
+    - 아래와 같이 순서를 바꾸면 에러가 사라진다.
+
+      ```js
+      function getStudentName(maxID, studentId = maxID) {
+        // ...
+      }
+      ```
+    
+    - 보다 복잡하게, 매개변부로 함수 표현식이 오는 경우도 있다.
+      - 이런 경우에는 매개변수 자체에 대한 클로저가 생기는 경우도 있다.
+    
+      ```js
+      function whatsTheDealHere(id, defaultID = () => id) {
+        id = 5; // id가 변경되었다.
+        console.log(defaultID());
+      }
+
+      whatsTheDealHere(10); // 5
+      ```
+
+      ```js
+      function whatsTheDealHere(id, defaultID = () => id) {
+        var id = 5; // 함수 스코프의 지역변수를 생성했다.
+        console.log(defaultID());
+      }
+
+      whatsTheDealHere(10); // 10, 여전히 id는 전역의 10을 참조한다.
+      ```
+
+    - 더욱 복잡해진 사례는 아래같은 경우도 있다.
+
+      ```js
+      function whatsTheDealHere(id, defaultID = () => id) {
+        var id;
+
+        console.log(`local var id: ${id}`);
+        console.log(`param id(closer): ${defaultID()}`);
+
+        console.log("reassigning id");
+        id = 5;
+
+        console.log(`local var id: ${id}`);
+        console.log(`param id(closer): ${defaultID()}`);
+      }
+
+      whatsTheDealHere(3);
+      // local var id: 3  <-- HERE, not undefined
+      // param id(closer): 3
+      // reassigning id
+      // local var id: 5
+      // param id(closer): 3
+      ```
+
+- 결론
+  - 지역 변수로 매개변수를 섀도잉하지 말자.
+  - 매개변수에서는 다른 매개변수를 참조하지 말자.
+
+##### A.1.2 함수 이름 스코프
+
+- 3.3절에서 함수 표현식의 이름이 함수 스코프 자체에 추가된다고 설명했다.
+- 그러나 사실은 암시적 스코프를 만들며, 이는 외부와 내부 스코프 사이에 중첩되어있다.
+  - 예시
+
+    ```js
+    var askQuestion = function ofTheTeacher() {
+      let ofTheTeacher = 'hello'; // 만약 내부 스코프에 추가된다면, 에러가 발생했어야 한다.
+    }
+    ```
+
+#### A.2 익명 함수 vs 기명 함수
+
+##### A.2.1 명시적 혹은 추론된 이름
+
+##### A.2.2 이름이 없다면?
+
+##### A.2.3 나는 누구일까요?
+
+##### A.2.4 이름은 설명입니다
+
+##### A.2.5 화살표 함수
+
+##### A.2.6 IIFE 변형
+
+#### A.3 호이스팅: 함수와 변수
+
+##### A.3.1 함수 호이스팅
+
+##### A.3.2 변수 호이스팅
+
+#### A.4 var에 대한 변론
+
+##### A.4.1 var를 버리지 마세요
+
+##### A.4.2 혼란스러운 const
+
+##### A.4.3 var와 let
+
+#### A.5 TDZ
+
+##### A.5.1 모든 일이 시작된 곳, const
+
+##### A.5.2 곁다리 let
+
+#### A.6 동기 콜백도 여전히 클로저일까?
+
+##### A.6.1 콜백이란
+
+##### A.6.2 동기 콜백
+
+##### A.6.3 동기 클로저
+
+##### A.6.4 클로저 지연
+
+#### A.7 클래식 모듈 변형
+
+##### A.7.1 내 API는 어디에 있나요?
+
+##### A.7.2 AMD
+
+##### A.7.3 UMD
