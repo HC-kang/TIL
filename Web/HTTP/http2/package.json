@@ -1,0 +1,12 @@
+{
+  "name": "http2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "generate-cert": "sh ./generate-cert.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

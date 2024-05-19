@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8443:8443/udp"
+    depends_on:
+      - nodejs
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/cert:/etc/nginx/cert
+    networks:
+      - http3-net
+
+  nodejs:
+    build:
+      context: ./nodejs
+    ports:
+      - "3000:3000"
+    networks:
+      - http3-net
+
+networks:
+  http3-net:
+    driver: bridge
