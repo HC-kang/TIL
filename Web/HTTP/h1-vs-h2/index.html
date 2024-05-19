@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HTTP 1 vs 2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        h1, h3 {
+            margin: 0.5em 0;
+        }
+
+        .image-row {
+            font-size: 0;
+        }
+
+        img {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            display: inline-block;
+        }
+
+        table {
+            text-align: center;
+            margin: auto;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        #image-http-1,
+        #image-http-2 {
+            width: 512px;
+            height: 512px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .result {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+    </style>
+    <script>
+        const imageWidth = 512;
+        const tileWidth = 16;
+        const maxTiles = (imageWidth / tileWidth) * (imageWidth / tileWidth);
+
+        let loadedH1 = 0, loadedH2 = 0;
+        let startTimeH1 = 0, endTimeH1 = 0;
+        let startTimeH2 = 0, endTimeH2 = 0;
+
+        const firstLoad = () => {
+            startTimeH1 = performance.now();
+            document.querySelectorAll("#image-http-1 .demo-image").forEach(reloadImage1);
+            startTimeH2 = performance.now();
+            document.querySelectorAll("#image-http-2 .demo-image").forEach(reloadImage2);
+        };
+
+        const reloadImage1 = (el) => {
+            const oldSrc = el.getAttribute("src").split("?")[0];
+            const t = performance.now();
+            el.setAttribute("alt", t);
+            el.setAttribute("src", "");
+            el.setAttribute("src", `${oldSrc}?t=${t}`);
+            el.onload = (evt) => {
+                const el = evt.target;
+                const t1 = performance.now();
+                const tf = t1 - parseFloat(el.alt);
+
+                el.setAttribute("title", `${tf.toFixed(2)} ms`);
+
+                loadedH1++;
+                if (loadedH1 >= maxTiles) {
+                    endTimeH1 = performance.now();
+                    finishLoading1();
+                }
+            };
+        };
+
+        const finishLoading1 = () => {
+            const totalTimeH1 = endTimeH1 - startTimeH1;
+            document.getElementById("info1").textContent = `${totalTimeH1.toFixed(2)} ms`;
+        };
+
+        const reloadImage2 = (el) => {
+            const oldSrc = el.getAttribute("src").split("?")[0];
+            const t = performance.now();
+            el.setAttribute("alt", t);
+            el.setAttribute("src", "");
+            el.setAttribute("src", `${oldSrc}?t=${t}`);
+            el.onload = (evt) => {
+                const el = evt.target;
+                const t1 = performance.now();
+                const tf = t1 - parseFloat(el.alt);
+
+                el.setAttribute("title", `${tf.toFixed(2)} ms`);
+
+                loadedH2++;
+                if (loadedH2 >= maxTiles) {
+                    endTimeH2 = performance.now();
+                    finishLoading2();
+                }
+            };
+        };
+
+        const finishLoading2 = () => {
+            const totalTimeH2 = endTimeH2 - startTimeH2;
+            document.getElementById("info2").textContent = `${totalTimeH2.toFixed(2)} ms`;
+            updateFactor();
+        };
+
+        const updateFactor = () => {
+            if (loadedH1 >= maxTiles && loadedH2 >= maxTiles) {
+                const totalTimeH1 = endTimeH1 - startTimeH1;
+                const totalTimeH2 = endTimeH2 - startTimeH2;
+                const h1vsh2 = (totalTimeH1 / totalTimeH2).toFixed(2) + "x";
+                document.getElementById("infoX").textContent = `1 vs 2: ${h1vsh2}`;
+            }
+        };
+
+        const createImageRow = (idParent, host, begin, end) => {
+            const parent = document.getElementById(idParent);
+            const fragment = document.createDocumentFragment();
+            for (let i = begin; i < end; i++) {
+                const img = document.createElement("img");
+                img.className = "demo-image";
+                img.src = `${host}/img/tile-${i}.png?t=${new Date().getTime()}`;
+                fragment.appendChild(img);
+            }
+            parent.appendChild(fragment);
+        };
+
+        const createImage = (idParent, host, lenImg, lenTile) => {
+            const col = lenImg / lenTile;
+            for (let i = 0, begin = 0, end = col; i < col; i++, begin += col, end += col) {
+                createImageRow(idParent, host, begin, end);
+            }
+        };
+
+        const createImages = () => {
+            createImage('image-http-1', 'https://localhost:3001', imageWidth, tileWidth);
+            createImage('image-http-2', 'https://localhost:3002', imageWidth, tileWidth);
+        };
+
+        window.onload = () => {
+            createImages();
+            firstLoad();
+        };
+    </script>
+</head>
+
+<body>
+
+    <table>
+        <tr>
+            <td>
+                <h1>HTTP 1.1</h1>
+            </td>
+            <td>
+                <h1>HTTP 2</h1>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="image-http-1"></div>
+            </td>
+            <td>
+                <div id="image-http-2"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <h3 id="info1" class="result">&nbsp;</h3>
+            </td>
+            <td>
+                <h3 id="info2" class="result">&nbsp;</h3>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <h3 id="infoX" class="result">&nbsp;</h3>
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>
