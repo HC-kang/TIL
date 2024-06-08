@@ -1,0 +1,137 @@
+Statistical profiling result from isolate-0x110008000-70726-v8.log, (465 ticks, 453 unaccounted, 0 excluded).
+
+ [Shared libraries]:
+   ticks  total  nonlib   name
+      3    0.6%          /usr/local/bin/node
+
+ [JavaScript]:
+   ticks  total  nonlib   name
+      1    0.2%    0.2%  JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1    0.2%    0.2%  Builtin: StringPrototypeLastIndexOf
+      1    0.2%    0.2%  Builtin: StrictEqual_Baseline
+      1    0.2%    0.2%  Builtin: LoadGlobalIC_NoFeedback
+      1    0.2%    0.2%  Builtin: IsTraceCategoryEnabled
+      1    0.2%    0.2%  Builtin: FunctionPrototypeCall
+      1    0.2%    0.2%  Builtin: FastCreateDataProperty
+      1    0.2%    0.2%  Builtin: ArrayPrototypeValues
+      1    0.2%    0.2%  Builtin: ArrayPrototypeJoin
+
+ [C++]:
+   ticks  total  nonlib   name
+
+ [Summary]:
+   ticks  total  nonlib   name
+      9    1.9%    1.9%  JavaScript
+      0    0.0%    0.0%  C++
+      1    0.2%    0.2%  GC
+      3    0.6%          Shared libraries
+    453   97.4%          Unaccounted
+
+ [C++ entry points]:
+   ticks    cpp   total   name
+
+ [Bottom up (heavy) profile]:
+  Note: percentage shows a share of a particular caller in the total
+  amount of its parent calls.
+  Callers occupying less than 1.0% are not shown.
+
+   ticks parent  name
+    453   97.4%  UNKNOWN
+    273   60.3%    JS: ~inspectorWaitForDebugger node:inspector:186:34
+    273  100.0%      JS: ~Ba /Applications/Visual Studio Code.app/Contents/Resources/app/extensions/ms-vscode.js-debug/src/bootloader.js:8:6834
+    273  100.0%        JS: ~<anonymous> /Applications/Visual Studio Code.app/Contents/Resources/app/extensions/ms-vscode.js-debug/src/bootloader.js:8:6167
+    273  100.0%          JS: ~<anonymous> /Applications/Visual Studio Code.app/Contents/Resources/app/extensions/ms-vscode.js-debug/src/bootloader.js:1:15
+    273  100.0%            JS: ~<anonymous> /Applications/Visual Studio Code.app/Contents/Resources/app/extensions/ms-vscode.js-debug/src/bootloader.js:1:1
+     62   13.7%    JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+     56   90.3%      JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      6   10.7%        JS: ~<anonymous> node:internal/child_process:1:1
+      6  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      6  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      6   10.7%        JS: ~<anonymous> node:https:1:1
+      6  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      6  100.0%            JS: ^compileForPublicLoader node:internal/bootstrap/realm:331:25
+      5    8.9%        JS: ~<anonymous> node:internal/streams/duplex:1:1
+      5  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      5  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      5    8.9%        JS: ~<anonymous> node:crypto:1:1
+      5  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      5  100.0%            JS: ^compileForPublicLoader node:internal/bootstrap/realm:331:25
+      4    7.1%        JS: ~<anonymous> node:tls:1:1
+      4  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      4  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      4    7.1%        JS: ~<anonymous> node:module:1:1
+      4  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      4  100.0%            JS: ^compileForPublicLoader node:internal/bootstrap/realm:331:25
+      3    5.4%        JS: ~<anonymous> node:internal/streams/operators:1:1
+      3  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      3  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      3    5.4%        JS: ~<anonymous> node:_http_server:1:1
+      3  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      3  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      2    3.6%        JS: ~<anonymous> node:worker_threads:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      2  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      2    3.6%        JS: ~<anonymous> node:stream:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      2  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      2    3.6%        JS: ~<anonymous> node:net:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      2  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      2    3.6%        JS: ~<anonymous> node:internal/crypto/hkdf:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      2  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      2    3.6%        JS: ~<anonymous> node:child_process:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      2  100.0%            JS: ~compileForPublicLoader node:internal/bootstrap/realm:331:25
+      1    1.8%        JS: ~<anonymous> node:tty:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    1.8%        JS: ~<anonymous> node:internal/worker:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    1.8%        JS: ~<anonymous> node:internal/streams/readable:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    1.8%        JS: ~<anonymous> node:internal/streams/pipeline:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    1.8%        JS: ~<anonymous> node:internal/streams/compose:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    1.8%        JS: ~<anonymous> node:internal/crypto/util:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    1.8%        JS: ~<anonymous> node:internal/crypto/pbkdf2:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    1.8%        JS: ~<anonymous> node:dgram:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    1.8%        JS: ~<anonymous> node:_tls_wrap:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    1.8%        JS: ~<anonymous> node:_http_common:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      4    6.5%      JS: ^compileForPublicLoader node:internal/bootstrap/realm:331:25
+      2   50.0%        JS: ~loadBuiltinModule node:internal/modules/helpers:88:27
+      2  100.0%          JS: ~Module._load node:internal/modules/cjs/loader:977:24
+      2  100.0%            JS: ~Module.require node:internal/modules/cjs/loader:1263:36
+      2   50.0%        JS: ^loadBuiltinModule node:internal/modules/helpers:88:27
+      2  100.0%          JS: ^Module._load node:internal/modules/cjs/loader:977:24
+      2  100.0%            JS: ^Module.require node:internal/modules/cjs/loader:1263:36
+      2    3.2%      JS: ~compileForPublicLoader node:internal/bootstrap/realm:331:25
+      2  100.0%        JS: ~loadBuiltinModule node:internal/modules/helpers:88:27
+      2  100.0%          JS: ~Module._load node:internal/modules/cjs/loader:977:24
+      2  100.0%            JS: ~Module.require node:internal/modules/cjs/loader:1263:36
+      7    1.5%    JS: ~normalizeString node:path:66:25
+      7  100.0%      JS: ~resolve node:path:1095:10
+      7  100.0%        JS: ~patchProcessObject node:internal/process/pre_execution:217:28
+      7  100.0%          JS: ~prepareExecution node:internal/process/pre_execution:95:26
+      7  100.0%            JS: ~prepareMainThreadExecution node:internal/process/pre_execution:51:36
+      6    1.3%    JS: ~wrapSafe node:internal/modules/cjs/loader:1317:18
+      6  100.0%      JS: ~Module._compile node:internal/modules/cjs/loader:1374:37
+      6  100.0%        JS: ~Module._extensions..js node:internal/modules/cjs/loader:1467:37
+      6  100.0%          JS: ~Module.load node:internal/modules/cjs/loader:1236:33
+      6  100.0%            JS: ~Module._load node:internal/modules/cjs/loader:977:24
+
