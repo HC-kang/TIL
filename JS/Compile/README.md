@@ -162,25 +162,90 @@ console.log(add(2, 3));
 파싱은 분할된 토큰을 가지고 `추상 구문 트리(AST)`를 구성하는 과정입니다.
 AST는 이름 그대로, 트리 구조로 코드의 구조를 표현합니다.
 
-```AST
-Program
-├── FunctionDeclaration (add)
-│   ├── Identifier (a)
-│   ├── Identifier (b)
-│   └── BlockStatement
-│       └── ReturnStatement
-│           └── BinaryExpression (+)
-│               ├── Identifier (a)
-│               └── Identifier (b)
-└── ExpressionStatement
-    └── CallExpression
-        ├── MemberExpression
-        │   ├── Identifier (console)
-        │   └── Identifier (log)
-        └── Arguments
-            ├── CallExpression (add)
-            │   ├── Literal (2)
-            │   └── Literal (3)
+```json
+{
+  "type": "File",
+  "program": {
+    "type": "Program",
+    "body": [
+      {
+        "type": "FunctionDeclaration",
+        "id": {
+          "type": "Identifier",
+          "name": "add"
+        },
+        "params": [
+          {
+            "type": "Identifier",
+            "name": "a"
+          },
+          {
+            "type": "Identifier",
+            "name": "b"
+          }
+        ],
+        "body": {
+          "type": "BlockStatement",
+          "body": [
+            {
+              "type": "ReturnStatement",
+              "argument": {
+                "type": "BinaryExpression",
+                "operator": "+",
+                "left": {
+                  "type": "Identifier",
+                  "name": "a"
+                },
+                "right": {
+                  "type": "Identifier",
+                  "name": "b"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "ExpressionStatement",
+        "expression": {
+          "type": "CallExpression",
+          "callee": {
+            "type": "MemberExpression",
+            "object": {
+              "type": "Identifier",
+              "name": "console"
+            },
+            "property": {
+              "type": "Identifier",
+              "name": "log"
+            },
+            "computed": false
+          },
+          "arguments": [
+            {
+              "type": "CallExpression",
+              "callee": {
+                "type": "Identifier",
+                "name": "add"
+              },
+              "arguments": [
+                {
+                  "type": "NumericLiteral",
+                  "value": 2
+                },
+                {
+                  "type": "NumericLiteral",
+                  "value": 3
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "sourceType": "script"
+  }
+}
 ```
 
 #### 컴파일(Compilation)과 최적화(Optimization)
