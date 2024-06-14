@@ -32,7 +32,7 @@ app.get('/disk-io', (req, res) => {
 app.get('/cpu', (req, res) => {
   const start = Date.now();
 
-  for (let i = 0; i < 1e6; i++) {
+  for (let i = 0; i < 1e5; i++) {
     crypto.createHash('sha256').update('test').digest('hex');
   }
 
