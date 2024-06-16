@@ -1,0 +1,9 @@
+Running 1m test @ http://3.36.78.116:3000/cpu
+  5 threads and 5 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.15s   411.90ms   1.98s    74.30%
+    Req/Sec     0.50      0.52     2.00     99.21%
+  253 requests in 1.00m, 65.72KB read
+  Socket errors: connect 0, read 0, write 0, timeout 4
+Requests/sec:      4.21
+Transfer/sec:      1.09KB
