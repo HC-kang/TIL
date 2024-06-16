@@ -205,3 +205,47 @@ CPU 성능은 의외로 `Native`에서 가장 좋지 않았습니다. 이는 아
 1. 버전의 일관성이 부족했습니다. 사용한 Node.js 버전부터 운영체제의 버전까지 미묘하게 달라, 꽤나 영향을 끼쳤을 수 있습니다.
 2. 디스크 I/O 성능에서 호스트 모드와 브릿지 모드의 성능 차이의 원인을 전혀 모르겠습니다.
 3. 테스트의 자동화가 부족했습니다. 실제로 수동으로 테스트를 진행하다보니, 예상치 못한 변수(네트워크 변경 등)가 발생해서 테스트를 여러 번 다시 시작해야 했습니다.
+
+## 추가 보완사항
+
+0. wrk 스크립트에 host ip 기입
+1. 노드 버전 맞추기
+2. 운영체제 OS, 이미지 맞추기 - Node:18에 도커 설치해서 이미지 빌드 후 동일한 이미지로 활용
+3. disk-io 엔드포인트 개선
+  - 현재는 요청당 한번 쓰고 읽기
+  - 요청 수를 줄이고, IO 시간 늘리기
+
+---
+
+## 파트 2
+
+### 1. 외부 컨테이너 생성
+
+```bash
+docker build -t outer-container .
+```
+
+```bash
+docker run --name outer-container --privileged \
+  # -v /home/ubuntu/shared/:/usr/src/app/shared \ # 호스트와 공유는 필요없을듯
+  -p 3000:3000 \
+  outer-container
+```
+
+### 2. 내부 컨테이너 생성
+
+```bash
+docker build -t inner-container .
+```
+
+```bash
+docker run --name inner-container --privileged \
+  -v /usr/src/app/shared:/usr/src/app/shared \
+  -w /usr/src/app \
+  -p 3000:3000 \
+  inner-container
+  node app.js
+```
+
+
+docker run --rm -v /usr/src/app/shared:/usr/src/app/shared -w /usr/src/app -p 3000:3000 node:18 node app.js

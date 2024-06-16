@@ -1,6 +1,8 @@
-FROM node:alpine
+FROM docker:27.0.0-rc.1-dind
 
-WORKDIR /app
+RUN apk add --no-cache nodejs npm
+
+WORKDIR /usr/src/app
 
 COPY package*.json ./
 
@@ -10,4 +12,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD [ "npm", "start" ]
+CMD ["sh", "-c", "dockerd-entrypoint.sh"]

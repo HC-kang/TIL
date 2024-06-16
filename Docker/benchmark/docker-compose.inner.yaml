@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  outer-container:
+    build: .
+    privileged: true
+    volumes:
+      - docker-data:/var/lib/docker
+    ports:
+      - "3000:3000"
+
+volumes:
+  docker-data:
