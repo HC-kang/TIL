@@ -1,0 +1,742 @@
+--- 1회차 ---
+Count: 3942
+Map loop Time: 21.541ms
+Map loop Memory: 7.638 MB
+Count: 3942
+For in loop Time: 61.750ms
+For in loop Memory: 30.528 MB
+Count: 3942
+Filter loop Time: 12.999ms
+Filter loop Memory: 0.104 MB
+Count: 3942
+Reduce loop Time: 12.249ms
+Reduce loop Memory: 0.006 MB
+Count: 3942
+For of loop Time: 14.597ms
+For of loop Memory: 6.699 MB
+Count: 3942
+ForEach loop Time: 12.567ms
+ForEach loop Memory: 0.007 MB
+Count: 3942
+While loop Time: 9.697ms
+While loop Memory: 0.006 MB
+Count: 3942
+For loop Time: 9.417ms
+For loop Memory: 0.006 MB
+--- 2회차 ---
+Count: 4061
+For loop Time: 10.716ms
+For loop Memory: 0.010 MB
+Count: 4061
+While loop Time: 9.414ms
+While loop Memory: 0.009 MB
+Count: 4061
+For of loop Time: 14.713ms
+For of loop Memory: 6.699 MB
+Count: 4061
+For in loop Time: 61.869ms
+For in loop Memory: 30.528 MB
+Count: 4061
+ForEach loop Time: 13.351ms
+ForEach loop Memory: 0.007 MB
+Count: 4061
+Filter loop Time: 12.911ms
+Filter loop Memory: 0.104 MB
+Count: 4061
+Reduce loop Time: 12.085ms
+Reduce loop Memory: 0.003 MB
+Count: 4061
+Map loop Time: 19.790ms
+Map loop Memory: 7.634 MB
+--- 3회차 ---
+Count: 4006
+Map loop Time: 21.989ms
+Map loop Memory: 7.638 MB
+Count: 4006
+For of loop Time: 14.816ms
+For of loop Memory: 6.699 MB
+Count: 4006
+While loop Time: 9.723ms
+While loop Memory: 0.009 MB
+Count: 4006
+For loop Time: 9.725ms
+For loop Memory: 0.009 MB
+Count: 4006
+For in loop Time: 62.689ms
+For in loop Memory: 30.528 MB
+Count: 4006
+Filter loop Time: 13.149ms
+Filter loop Memory: 0.104 MB
+Count: 4006
+ForEach loop Time: 12.559ms
+ForEach loop Memory: 0.003 MB
+Count: 4006
+Reduce loop Time: 12.336ms
+Reduce loop Memory: 0.003 MB
+--- 4회차 ---
+Count: 3959
+For loop Time: 12.070ms
+For loop Memory: 0.010 MB
+Count: 3959
+For in loop Time: 63.251ms
+For in loop Memory: 30.528 MB
+Count: 3959
+ForEach loop Time: 13.074ms
+ForEach loop Memory: 0.006 MB
+Count: 3959
+While loop Time: 9.708ms
+While loop Memory: 0.009 MB
+Count: 3959
+For of loop Time: 15.398ms
+For of loop Memory: 6.699 MB
+Count: 3959
+Filter loop Time: 14.246ms
+Filter loop Memory: 0.104 MB
+Count: 3959
+Reduce loop Time: 12.860ms
+Reduce loop Memory: 0.003 MB
+Count: 3959
+Map loop Time: 20.422ms
+Map loop Memory: 7.635 MB
+--- 5회차 ---
+Count: 3916
+For loop Time: 10.503ms
+For loop Memory: 0.010 MB
+Count: 3916
+Filter loop Time: 12.834ms
+Filter loop Memory: 0.104 MB
+Count: 3916
+While loop Time: 9.420ms
+While loop Memory: 0.009 MB
+Count: 3916
+For of loop Time: 14.601ms
+For of loop Memory: 6.699 MB
+Count: 3916
+For in loop Time: 61.791ms
+For in loop Memory: 30.528 MB
+Count: 3916
+ForEach loop Time: 12.869ms
+ForEach loop Memory: 0.007 MB
+Count: 3916
+Map loop Time: 19.945ms
+Map loop Memory: 7.634 MB
+Count: 3916
+Reduce loop Time: 11.995ms
+Reduce loop Memory: 0.003 MB
+--- 6회차 ---
+Count: 3927
+Filter loop Time: 16.140ms
+Filter loop Memory: 0.105 MB
+Count: 3927
+For loop Time: 9.524ms
+For loop Memory: 0.009 MB
+Count: 3927
+For in loop Time: 62.178ms
+For in loop Memory: 30.528 MB
+Count: 3927
+While loop Time: 9.523ms
+While loop Memory: 0.009 MB
+Count: 3927
+ForEach loop Time: 13.071ms
+ForEach loop Memory: 0.007 MB
+Count: 3927
+Reduce loop Time: 12.415ms
+Reduce loop Memory: 0.006 MB
+Count: 3927
+For of loop Time: 14.899ms
+For of loop Memory: 6.694 MB
+Count: 3927
+Map loop Time: 20.211ms
+Map loop Memory: 7.635 MB
+--- 7회차 ---
+Count: 3943
+While loop Time: 11.012ms
+While loop Memory: 0.010 MB
+Count: 3943
+Filter loop Time: 12.948ms
+Filter loop Memory: 0.104 MB
+Count: 3943
+For in loop Time: 64.091ms
+For in loop Memory: 30.528 MB
+Count: 3943
+For of loop Time: 15.223ms
+For of loop Memory: 6.699 MB
+Count: 3943
+ForEach loop Time: 12.762ms
+ForEach loop Memory: 0.007 MB
+Count: 3943
+For loop Time: 9.581ms
+For loop Memory: 0.009 MB
+Count: 3943
+Reduce loop Time: 12.413ms
+Reduce loop Memory: 0.003 MB
+Count: 3943
+Map loop Time: 20.316ms
+Map loop Memory: 7.635 MB
+--- 8회차 ---
+Count: 3884
+Filter loop Time: 15.483ms
+Filter loop Memory: 0.105 MB
+Count: 3884
+Map loop Time: 19.736ms
+Map loop Memory: 7.637 MB
+Count: 3884
+For of loop Time: 14.732ms
+For of loop Memory: 6.699 MB
+Count: 3884
+For loop Time: 9.643ms
+For loop Memory: 0.009 MB
+Count: 3884
+While loop Time: 9.562ms
+While loop Memory: 0.009 MB
+Count: 3884
+ForEach loop Time: 12.666ms
+ForEach loop Memory: 0.007 MB
+Count: 3884
+Reduce loop Time: 12.358ms
+Reduce loop Memory: 0.003 MB
+Count: 3884
+For in loop Time: 68.026ms
+For in loop Memory: 30.526 MB
+--- 9회차 ---
+Count: 3935
+For of loop Time: 16.144ms
+For of loop Memory: 6.700 MB
+Count: 3935
+For loop Time: 9.643ms
+For loop Memory: 0.009 MB
+Count: 3935
+For in loop Time: 63.344ms
+For in loop Memory: 30.528 MB
+Count: 3935
+While loop Time: 9.501ms
+While loop Memory: 0.009 MB
+Count: 3935
+ForEach loop Time: 12.622ms
+ForEach loop Memory: 0.007 MB
+Count: 3935
+Map loop Time: 20.161ms
+Map loop Memory: 7.637 MB
+Count: 3935
+Reduce loop Time: 12.500ms
+Reduce loop Memory: 0.003 MB
+Count: 3935
+Filter loop Time: 13.045ms
+Filter loop Memory: 0.101 MB
+--- 10회차 ---
+Count: 3866
+Filter loop Time: 16.171ms
+Filter loop Memory: 0.105 MB
+Count: 3866
+ForEach loop Time: 14.313ms
+ForEach loop Memory: 0.006 MB
+Count: 3866
+Map loop Time: 20.420ms
+Map loop Memory: 7.637 MB
+Count: 3866
+For in loop Time: 63.128ms
+For in loop Memory: 30.528 MB
+Count: 3866
+For of loop Time: 15.378ms
+For of loop Memory: 6.699 MB
+Count: 3866
+While loop Time: 9.437ms
+While loop Memory: 0.009 MB
+Count: 3866
+For loop Time: 9.795ms
+For loop Memory: 0.006 MB
+Count: 3866
+Reduce loop Time: 12.450ms
+Reduce loop Memory: 0.003 MB
+--- 11회차 ---
+Count: 3937
+For loop Time: 11.056ms
+For loop Memory: 0.010 MB
+Count: 3937
+Reduce loop Time: 12.214ms
+Reduce loop Memory: 0.006 MB
+Count: 3937
+While loop Time: 9.803ms
+While loop Memory: 0.009 MB
+Count: 3937
+For of loop Time: 15.287ms
+For of loop Memory: 6.699 MB
+Count: 3937
+Map loop Time: 20.193ms
+Map loop Memory: 7.638 MB
+Count: 3937
+For in loop Time: 62.082ms
+For in loop Memory: 30.528 MB
+Count: 3937
+ForEach loop Time: 12.296ms
+ForEach loop Memory: 0.003 MB
+Count: 3937
+Filter loop Time: 13.068ms
+Filter loop Memory: 0.101 MB
+--- 12회차 ---
+Count: 3877
+For loop Time: 11.409ms
+For loop Memory: 0.010 MB
+Count: 3877
+Filter loop Time: 12.863ms
+Filter loop Memory: 0.104 MB
+Count: 3877
+While loop Time: 9.646ms
+While loop Memory: 0.009 MB
+Count: 3877
+Reduce loop Time: 12.514ms
+Reduce loop Memory: 0.006 MB
+Count: 3877
+Map loop Time: 20.267ms
+Map loop Memory: 7.638 MB
+Count: 3877
+For of loop Time: 15.226ms
+For of loop Memory: 6.699 MB
+Count: 3877
+ForEach loop Time: 12.858ms
+ForEach loop Memory: 0.003 MB
+Count: 3877
+For in loop Time: 61.390ms
+For in loop Memory: 30.526 MB
+--- 13회차 ---
+Count: 3814
+For of loop Time: 16.261ms
+For of loop Memory: 6.700 MB
+Count: 3814
+While loop Time: 9.852ms
+While loop Memory: 0.009 MB
+Count: 3814
+For loop Time: 9.447ms
+For loop Memory: 0.009 MB
+Count: 3814
+Filter loop Time: 13.666ms
+Filter loop Memory: 0.104 MB
+Count: 3814
+Map loop Time: 19.870ms
+Map loop Memory: 7.638 MB
+Count: 3814
+For in loop Time: 63.764ms
+For in loop Memory: 30.528 MB
+Count: 3814
+ForEach loop Time: 12.607ms
+ForEach loop Memory: 0.003 MB
+Count: 3814
+Reduce loop Time: 11.869ms
+Reduce loop Memory: 0.003 MB
+--- 14회차 ---
+Count: 3878
+For in loop Time: 64.377ms
+For in loop Memory: 30.529 MB
+Count: 3878
+ForEach loop Time: 12.548ms
+ForEach loop Memory: 0.006 MB
+Count: 3878
+Filter loop Time: 13.271ms
+Filter loop Memory: 0.104 MB
+Count: 3878
+Reduce loop Time: 12.660ms
+Reduce loop Memory: 0.006 MB
+Count: 3878
+For loop Time: 9.550ms
+For loop Memory: 0.009 MB
+Count: 3878
+For of loop Time: 14.812ms
+For of loop Memory: 6.699 MB
+Count: 3878
+Map loop Time: 19.670ms
+Map loop Memory: 7.634 MB
+Count: 3878
+While loop Time: 9.842ms
+While loop Memory: 0.006 MB
+--- 15회차 ---
+Count: 3922
+For in loop Time: 63.480ms
+For in loop Memory: 30.529 MB
+Count: 3922
+Map loop Time: 19.325ms
+Map loop Memory: 7.637 MB
+Count: 3922
+Filter loop Time: 12.940ms
+Filter loop Memory: 0.104 MB
+Count: 3922
+For of loop Time: 15.406ms
+For of loop Memory: 6.699 MB
+Count: 3922
+While loop Time: 9.486ms
+While loop Memory: 0.009 MB
+Count: 3922
+ForEach loop Time: 12.733ms
+ForEach loop Memory: 0.007 MB
+Count: 3922
+Reduce loop Time: 12.094ms
+Reduce loop Memory: 0.003 MB
+Count: 3922
+For loop Time: 9.781ms
+For loop Memory: 0.006 MB
+--- 16회차 ---
+Count: 3959
+For of loop Time: 17.131ms
+For of loop Memory: 6.700 MB
+Count: 3959
+For in loop Time: 62.732ms
+For in loop Memory: 30.528 MB
+Count: 3959
+Reduce loop Time: 12.095ms
+Reduce loop Memory: 0.006 MB
+Count: 3959
+While loop Time: 9.332ms
+While loop Memory: 0.009 MB
+Count: 3959
+For loop Time: 9.331ms
+For loop Memory: 0.009 MB
+Count: 3959
+ForEach loop Time: 12.873ms
+ForEach loop Memory: 0.007 MB
+Count: 3959
+Filter loop Time: 12.769ms
+Filter loop Memory: 0.101 MB
+Count: 3959
+Map loop Time: 19.775ms
+Map loop Memory: 7.634 MB
+--- 17회차 ---
+Count: 3984
+For in loop Time: 66.592ms
+For in loop Memory: 30.529 MB
+Count: 3984
+Filter loop Time: 13.239ms
+Filter loop Memory: 0.104 MB
+Count: 3984
+ForEach loop Time: 12.592ms
+ForEach loop Memory: 0.006 MB
+Count: 3984
+For loop Time: 9.448ms
+For loop Memory: 0.009 MB
+Count: 3984
+Reduce loop Time: 12.960ms
+Reduce loop Memory: 0.006 MB
+Count: 3984
+While loop Time: 9.760ms
+While loop Memory: 0.009 MB
+Count: 3984
+For of loop Time: 14.957ms
+For of loop Memory: 6.694 MB
+Count: 3984
+Map loop Time: 21.058ms
+Map loop Memory: 7.635 MB
+--- 18회차 ---
+Count: 3906
+For in loop Time: 67.130ms
+For in loop Memory: 30.529 MB
+Count: 3906
+Map loop Time: 20.550ms
+Map loop Memory: 7.637 MB
+Count: 3906
+ForEach loop Time: 12.878ms
+ForEach loop Memory: 0.006 MB
+Count: 3906
+For of loop Time: 15.174ms
+For of loop Memory: 6.699 MB
+Count: 3906
+Reduce loop Time: 12.298ms
+Reduce loop Memory: 0.006 MB
+Count: 3906
+While loop Time: 9.542ms
+While loop Memory: 0.009 MB
+Count: 3906
+For loop Time: 9.842ms
+For loop Memory: 0.006 MB
+Count: 3906
+Filter loop Time: 14.600ms
+Filter loop Memory: 0.101 MB
+--- 19회차 ---
+Count: 3921
+Filter loop Time: 16.344ms
+Filter loop Memory: 0.105 MB
+Count: 3921
+ForEach loop Time: 13.625ms
+ForEach loop Memory: 0.006 MB
+Count: 3921
+While loop Time: 11.365ms
+While loop Memory: 0.009 MB
+Count: 3921
+Reduce loop Time: 12.380ms
+Reduce loop Memory: 0.006 MB
+Count: 3921
+Map loop Time: 22.071ms
+Map loop Memory: 7.638 MB
+Count: 3921
+For loop Time: 9.686ms
+For loop Memory: 0.009 MB
+Count: 3921
+For of loop Time: 15.385ms
+For of loop Memory: 6.694 MB
+Count: 3921
+For in loop Time: 63.652ms
+For in loop Memory: 30.526 MB
+--- 20회차 ---
+Count: 3913
+For in loop Time: 67.504ms
+For in loop Memory: 30.529 MB
+Count: 3913
+For of loop Time: 15.356ms
+For of loop Memory: 6.699 MB
+Count: 3913
+Filter loop Time: 14.215ms
+Filter loop Memory: 0.104 MB
+Count: 3913
+Map loop Time: 20.930ms
+Map loop Memory: 7.637 MB
+Count: 3913
+ForEach loop Time: 13.237ms
+ForEach loop Memory: 0.007 MB
+Count: 3913
+For loop Time: 10.902ms
+For loop Memory: 0.009 MB
+Count: 3913
+While loop Time: 10.901ms
+While loop Memory: 0.006 MB
+Count: 3913
+Reduce loop Time: 12.733ms
+Reduce loop Memory: 0.003 MB
+--- 21회차 ---
+Count: 3921
+For of loop Time: 18.901ms
+For of loop Memory: 6.700 MB
+Count: 3921
+While loop Time: 9.182ms
+While loop Memory: 0.009 MB
+Count: 3921
+For loop Time: 9.700ms
+For loop Memory: 0.009 MB
+Count: 3921
+Reduce loop Time: 13.702ms
+Reduce loop Memory: 0.006 MB
+Count: 3921
+For in loop Time: 63.859ms
+For in loop Memory: 30.528 MB
+Count: 3921
+ForEach loop Time: 14.290ms
+ForEach loop Memory: 0.007 MB
+Count: 3921
+Map loop Time: 20.594ms
+Map loop Memory: 7.635 MB
+Count: 3921
+Filter loop Time: 14.255ms
+Filter loop Memory: 0.101 MB
+--- 22회차 ---
+Count: 3892
+Map loop Time: 22.912ms
+Map loop Memory: 7.638 MB
+Count: 3892
+For of loop Time: 14.516ms
+For of loop Memory: 6.699 MB
+Count: 3892
+For in loop Time: 61.680ms
+For in loop Memory: 30.528 MB
+Count: 3892
+ForEach loop Time: 12.752ms
+ForEach loop Memory: 0.006 MB
+Count: 3892
+Filter loop Time: 13.086ms
+Filter loop Memory: 0.106 MB
+Count: 3892
+While loop Time: 9.550ms
+While loop Memory: 0.009 MB
+Count: 3892
+For loop Time: 9.792ms
+For loop Memory: 0.006 MB
+Count: 3892
+Reduce loop Time: 12.338ms
+Reduce loop Memory: 0.003 MB
+--- 23회차 ---
+Count: 3880
+For loop Time: 10.139ms
+For loop Memory: 0.010 MB
+Count: 3880
+While loop Time: 9.400ms
+While loop Memory: 0.009 MB
+Count: 3880
+Reduce loop Time: 12.085ms
+Reduce loop Memory: 0.006 MB
+Count: 3880
+Filter loop Time: 13.007ms
+Filter loop Memory: 0.104 MB
+Count: 3880
+For in loop Time: 60.782ms
+For in loop Memory: 30.528 MB
+Count: 3880
+ForEach loop Time: 12.755ms
+ForEach loop Memory: 0.007 MB
+Count: 3880
+For of loop Time: 14.578ms
+For of loop Memory: 6.694 MB
+Count: 3880
+Map loop Time: 19.722ms
+Map loop Memory: 7.635 MB
+--- 24회차 ---
+Count: 3901
+ForEach loop Time: 14.429ms
+ForEach loop Memory: 0.007 MB
+Count: 3901
+For of loop Time: 14.719ms
+For of loop Memory: 6.699 MB
+Count: 3901
+For in loop Time: 61.414ms
+For in loop Memory: 30.528 MB
+Count: 3901
+Filter loop Time: 13.059ms
+Filter loop Memory: 0.104 MB
+Count: 3901
+Reduce loop Time: 12.128ms
+Reduce loop Memory: 0.006 MB
+Count: 3901
+While loop Time: 9.475ms
+While loop Memory: 0.009 MB
+Count: 3901
+Map loop Time: 19.687ms
+Map loop Memory: 7.635 MB
+Count: 3901
+For loop Time: 9.667ms
+For loop Memory: 0.006 MB
+--- 25회차 ---
+Count: 3850
+For loop Time: 10.307ms
+For loop Memory: 0.010 MB
+Count: 3850
+ForEach loop Time: 12.738ms
+ForEach loop Memory: 0.006 MB
+Count: 3850
+Reduce loop Time: 12.350ms
+Reduce loop Memory: 0.006 MB
+Count: 3850
+While loop Time: 10.868ms
+While loop Memory: 0.009 MB
+Count: 3850
+Map loop Time: 53.314ms
+Map loop Memory: 7.638 MB
+Count: 3850
+For of loop Time: 16.506ms
+For of loop Memory: 6.699 MB
+Count: 3850
+For in loop Time: 63.160ms
+For in loop Memory: 30.526 MB
+Count: 3850
+Filter loop Time: 13.082ms
+Filter loop Memory: 0.101 MB
+--- 26회차 ---
+Count: 3930
+For of loop Time: 16.559ms
+For of loop Memory: 6.700 MB
+Count: 3930
+For loop Time: 9.351ms
+For loop Memory: 0.009 MB
+Count: 3930
+For in loop Time: 61.892ms
+For in loop Memory: 30.528 MB
+Count: 3930
+Reduce loop Time: 12.241ms
+Reduce loop Memory: 0.006 MB
+Count: 3930
+While loop Time: 9.535ms
+While loop Memory: 0.009 MB
+Count: 3930
+Map loop Time: 20.091ms
+Map loop Memory: 7.637 MB
+Count: 3930
+ForEach loop Time: 12.503ms
+ForEach loop Memory: 0.003 MB
+Count: 3930
+Filter loop Time: 12.876ms
+Filter loop Memory: 0.101 MB
+--- 27회차 ---
+Count: 3879
+For loop Time: 11.623ms
+For loop Memory: 0.010 MB
+Count: 3879
+While loop Time: 9.364ms
+While loop Memory: 0.009 MB
+Count: 3879
+Filter loop Time: 13.495ms
+Filter loop Memory: 0.104 MB
+Count: 3879
+Map loop Time: 20.540ms
+Map loop Memory: 7.637 MB
+Count: 3879
+Reduce loop Time: 12.655ms
+Reduce loop Memory: 0.006 MB
+Count: 3879
+For in loop Time: 61.487ms
+For in loop Memory: 30.528 MB
+Count: 3879
+ForEach loop Time: 12.962ms
+ForEach loop Memory: 0.003 MB
+Count: 3879
+For of loop Time: 14.855ms
+For of loop Memory: 6.694 MB
+--- 28회차 ---
+Count: 3856
+Map loop Time: 21.584ms
+Map loop Memory: 7.638 MB
+Count: 3856
+For in loop Time: 61.635ms
+For in loop Memory: 30.528 MB
+Count: 3856
+For loop Time: 9.445ms
+For loop Memory: 0.009 MB
+Count: 3856
+While loop Time: 9.409ms
+While loop Memory: 0.009 MB
+Count: 3856
+ForEach loop Time: 12.708ms
+ForEach loop Memory: 0.007 MB
+Count: 3856
+Filter loop Time: 13.850ms
+Filter loop Memory: 0.104 MB
+Count: 3856
+For of loop Time: 15.374ms
+For of loop Memory: 6.694 MB
+Count: 3856
+Reduce loop Time: 12.216ms
+Reduce loop Memory: 0.003 MB
+--- 29회차 ---
+Count: 3935
+Filter loop Time: 15.079ms
+Filter loop Memory: 0.105 MB
+Count: 3935
+While loop Time: 9.646ms
+While loop Memory: 0.009 MB
+Count: 3935
+Map loop Time: 20.261ms
+Map loop Memory: 7.637 MB
+Count: 3935
+For in loop Time: 63.372ms
+For in loop Memory: 30.528 MB
+Count: 3935
+Reduce loop Time: 12.766ms
+Reduce loop Memory: 0.006 MB
+Count: 3935
+ForEach loop Time: 13.116ms
+ForEach loop Memory: 0.007 MB
+Count: 3935
+For loop Time: 9.969ms
+For loop Memory: 0.006 MB
+Count: 3935
+For of loop Time: 14.903ms
+For of loop Memory: 6.694 MB
+--- 30회차 ---
+Filter loop Time: 17.857ms
+Filter loop Memory: 0.105 MB
+For loop Time: 10.434ms
+For loop Memory: 0.009 MB
+While loop Time: 9.845ms
+While loop Memory: 0.009 MB
+For in loop Time: 62.552ms
+For in loop Memory: 30.528 MB
+Map loop Time: 19.305ms
+Map loop Memory: 7.638 MB
+For of loop Time: 14.493ms
+For of loop Memory: 6.699 MB
+ForEach loop Time: 12.424ms
+ForEach loop Memory: 0.003 MB
+Reduce loop Time: 11.961ms
+Reduce loop Memory: 0.003 MB
