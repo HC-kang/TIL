@@ -109,7 +109,9 @@ function measurePerformance(loopFunction, label) {
         global.gc();
     }
 
-    // 첫 번째 실행 (워밍업)
+    // 워밍업
+    loopFunction();
+    loopFunction();
     loopFunction();
 
     if (global.gc) {
