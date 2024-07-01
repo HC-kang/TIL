@@ -2,6 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 async function runBenchmark(filePath) {
+  console.log('filePath:', filePath)
   const func = require(filePath);
   const functionName = path.basename(filePath, '.benchmark.js');
   const iterations = 100;
@@ -43,6 +44,7 @@ async function main() {
   const testsDir = path.join(__dirname, 'tests');
   const resultDir = path.join(__dirname, 'results');
   const benchmarkFiles = await findBenchmarkFiles(testsDir);
+  console.log('benchmarkFiles:', benchmarkFiles );
 
   for (const file of benchmarkFiles) {
     const result = await runBenchmark(file);

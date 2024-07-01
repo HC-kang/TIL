@@ -1,0 +1,48 @@
+=== bad case ===
+--- 1회차 ---
+Result: 60000000
+Best case: 202.044667ms
+--- 2회차 ---
+Result: 60000000
+Best case: 201.35600000000002ms
+--- 3회차 ---
+Result: 60000000
+Best case: 204.33704100000006ms
+--- 4회차 ---
+Result: 60000000
+Best case: 203.48229200000003ms
+--- 5회차 ---
+Result: 60000000
+Best case: 203.7812080000001ms
+=== better case ===
+--- 1회차 ---
+Result: 60000000
+Best case: 61.116457999999994ms
+--- 2회차 ---
+Result: 60000000
+Best case: 58.26904200000001ms
+--- 3회차 ---
+Result: 60000000
+Best case: 58.20475000000002ms
+--- 4회차 ---
+Result: 60000000
+Best case: 58.25254199999998ms
+--- 5회차 ---
+Result: 60000000
+Best case: 58.397333ms
+=== best case ===
+--- 1회차 ---
+Result: 60000000
+Best case: 13.323083ms
+--- 2회차 ---
+Result: 60000000
+Best case: 11.345291000000003ms
+--- 3회차 ---
+Result: 60000000
+Best case: 10.824167000000003ms
+--- 4회차 ---
+Result: 60000000
+Best case: 10.561708000000003ms
+--- 5회차 ---
+Result: 60000000
+Best case: 11.023959000000005ms
