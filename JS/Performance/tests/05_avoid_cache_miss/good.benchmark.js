@@ -1,20 +1,17 @@
 const { performance } = require('perf_hooks');
 
-const aa = { state: { center: { point: { x: 10, y: 20 } } } };
-const bb = { state: { center: { point: { x: 10, y: 20 } } } };
-const a = aa.state.center.point.x;
-const b = bb.state.center.point.x;
-const get = (i) => i % 2 ? a : b
+const arr = Array.from({ length: 10_000_000 }).map(() => ({ x: 42, y: 0 }));
+const arr2 = Array.from({ length: 10_000_000 }).map((_, i) => i);
 
 function runTest() {
   const start = performance.now();
   let result = 0
   for (let i = 0; i < 10_000_000; i++) {
-    result = result + get(i);
+    result += arr[arr2[i]].x;
   }
   const end = performance.now();
   console.log(`Result: ${result}`);
-  console.log(`Bad case: ${end - start}ms`);
+  console.log(`Good case: ${end - start}ms`);
 }
 
 console.log('--- 1회차 ---');

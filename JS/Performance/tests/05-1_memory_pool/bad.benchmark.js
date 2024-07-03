@@ -1,29 +1,27 @@
 const { performance } = require('perf_hooks');
 
-const aa = { state: { center: { point: { x: 10, y: 20 } } } };
-const bb = { state: { center: { point: { x: 10, y: 20 } } } };
-const a = aa.state.center.point.x;
-const b = bb.state.center.point.x;
-const get = (i) => i % 2 ? a : b
-
 function runTest() {
   const start = performance.now();
-  let result = 0
-  for (let i = 0; i < 10_000_000; i++) {
-    result = result + get(i);
+  let arr = new Array();
+  for (let i = 0; i < 1_000_000; i++) { // 1_000_000보다 크게 하면, 오히려 Bad case가 더 빠름
+    arr[i] = { x: 42, y: 0 };
   }
   const end = performance.now();
-  console.log(`Result: ${result}`);
   console.log(`Bad case: ${end - start}ms`);
 }
 
 console.log('--- 1회차 ---');
 runTest();
+global.gc();
 console.log('--- 2회차 ---');
 runTest();
+global.gc();
 console.log('--- 3회차 ---');
 runTest();
+global.gc();
 console.log('--- 4회차 ---');
 runTest();
+global.gc();
 console.log('--- 5회차 ---');
 runTest();
+global.gc();
