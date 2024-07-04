@@ -25,7 +25,7 @@ function runTest() {
   }
   const end = performance.now();
   console.log(`Result: ${result}`);
-  console.log(`Best case: ${end - start}ms`);
+  console.log(`Better case: ${end - start}ms`);
 }
 
 console.log('--- 1회차 ---');

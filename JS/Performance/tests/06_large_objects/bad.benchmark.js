@@ -1,19 +1,20 @@
 const { performance } = require('perf_hooks');
-const { v4: uuidv4 } = require('uuid');
 
-const arr = Array.from({ length: 1_000_000 }, () => uuidv4());
+const byId = {};
+
+for (let i = 0; i < 1_000_000; i++) {
+  byId[i] = { id: i+1, name: 'name' };
+}
 
 function runTest() {
   const start = performance.now();
-  let cnt = 0;
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i].substring(0, 2) == 'ab') {
-      cnt++;
-    }
-  }
+  let result = 0;
+  Object.entries(byId).forEach(([_, user]) => {
+    result += user.id;
+  })
   const end = performance.now();
-  console.log(`Count: ${cnt}`);
-  console.log(`Better case: ${end - start}ms`);
+  console.log(`Result: ${result}`);
+  console.log(`Bad case: ${end - start}ms`);
 }
 
 console.log('--- 1회차 ---');

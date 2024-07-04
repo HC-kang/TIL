@@ -13,7 +13,7 @@ function runTest() {
   }
   const end = performance.now();
   console.log(`Count: ${cnt}`);
-  console.log(`Bad case: ${end - start}ms`);
+  console.log(`Best case: ${end - start}ms`);
 }
 
 console.log('--- 1회차 ---');

@@ -1,19 +1,15 @@
 const { performance } = require('perf_hooks');
-const { v4: uuidv4 } = require('uuid');
 
-const arr = Array.from({ length: 1_000_000 }, () => uuidv4());
+const classNames = new Array(100_000).fill(['primary', 'selected', 'active', 'medium']).flat();
 
 function runTest() {
   const start = performance.now();
-  let cnt = 0;
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i].substring(0, 2) == 'ab') {
-      cnt++;
-    }
-  }
+  const result = classNames
+    .map((c) => `button--${c}`)
+    .join(' ');
   const end = performance.now();
-  console.log(`Count: ${cnt}`);
-  console.log(`Better case: ${end - start}ms`);
+  console.log(result.length);
+  console.log(`Bad case: ${end - start}ms`);
 }
 
 console.log('--- 1회차 ---');

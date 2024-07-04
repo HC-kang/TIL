@@ -1,32 +1,22 @@
 === bad case ===
 --- 1회차 ---
-Result: 25030078
-Bad case: 384.66316599999993ms
+Bad case: 382.7807090000001ms
 --- 2회차 ---
-Result: 25030078
-Bad case: 328.579667ms
+Bad case: 336.0594580000002ms
 --- 3회차 ---
-Result: 25030078
-Bad case: 346.59020899999996ms
+Bad case: 345.68450000000007ms
 --- 4회차 ---
-Result: 25030078
-Bad case: 357.5033329999999ms
+Bad case: 348.44687499999986ms
 --- 5회차 ---
-Result: 25030078
-Bad case: 351.0172090000001ms
+Bad case: 359.49045899999965ms
 === good case ===
 --- 1회차 ---
-Result: 24984002
-Bad case: 117.872792ms
+Good case: 116.650083ms
 --- 2회차 ---
-Result: 24984002
-Bad case: 116.27145800000005ms
+Good case: 116.42833299999995ms
 --- 3회차 ---
-Result: 24984002
-Bad case: 116.946958ms
+Good case: 117.089833ms
 --- 4회차 ---
-Result: 24984002
-Bad case: 117.26341699999989ms
+Good case: 117.23012500000004ms
 --- 5회차 ---
-Result: 24984002
-Bad case: 115.52674999999999ms
+Good case: 115.87391700000012ms
