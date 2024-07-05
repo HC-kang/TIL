@@ -1,0 +1,445 @@
+=== for ===
+--- 1회차 ---
+for: 52.4497090000001ms
+Memory used: 619888 bytes
+--- 2회차 ---
+for: 39.433165999999915ms
+Memory used: 194792 bytes
+--- 3회차 ---
+for: 39.229625000000055ms
+Memory used: 191528 bytes
+--- 4회차 ---
+for: 39.36466699999994ms
+Memory used: 194440 bytes
+--- 5회차 ---
+for: 40.075500000000034ms
+Memory used: 191704 bytes
+--- 6회차 ---
+for: 39.488000000000056ms
+Memory used: 191832 bytes
+--- 7회차 ---
+for: 39.67512499999998ms
+Memory used: 191480 bytes
+--- 8회차 ---
+for: 39.872749999999996ms
+Memory used: -1870344 bytes
+--- 9회차 ---
+for: 39.46354100000008ms
+Memory used: 191608 bytes
+--- 10회차 ---
+for: 39.737791000000016ms
+Memory used: 191600 bytes
+--- 11회차 ---
+for: 39.785416999999825ms
+Memory used: 191600 bytes
+--- 12회차 ---
+for: 39.503958999999895ms
+Memory used: 191424 bytes
+--- 13회차 ---
+for: 39.524167000000034ms
+Memory used: 191472 bytes
+--- 14회차 ---
+for: 39.265707999999904ms
+Memory used: 191472 bytes
+--- 15회차 ---
+for: 39.490125000000035ms
+Memory used: 191424 bytes
+=== for2 ===
+--- 1회차 ---
+for: 49.61641700000001ms
+Memory used: 609048 bytes
+--- 2회차 ---
+for: 40.843166999999994ms
+Memory used: 194784 bytes
+--- 3회차 ---
+for: 40.53912500000001ms
+Memory used: 191528 bytes
+--- 4회차 ---
+for: 40.108082999999965ms
+Memory used: 194440 bytes
+--- 5회차 ---
+for: 39.47987499999999ms
+Memory used: 191704 bytes
+--- 6회차 ---
+for: 39.24199999999996ms
+Memory used: 191832 bytes
+--- 7회차 ---
+for: 39.23683300000005ms
+Memory used: 191480 bytes
+--- 8회차 ---
+for: 39.77987500000006ms
+Memory used: -1870344 bytes
+--- 9회차 ---
+for: 39.88254099999995ms
+Memory used: 191608 bytes
+--- 10회차 ---
+for: 39.41837499999997ms
+Memory used: 191600 bytes
+--- 11회차 ---
+for: 39.61579199999994ms
+Memory used: 191600 bytes
+--- 12회차 ---
+for: 39.965959ms
+Memory used: 191424 bytes
+--- 13회차 ---
+for: 40.480999999999995ms
+Memory used: 191480 bytes
+--- 14회차 ---
+for: 39.73062500000003ms
+Memory used: 191424 bytes
+--- 15회차 ---
+for: 39.52116699999988ms
+Memory used: 191424 bytes
+=== forIn ===
+--- 1회차 ---
+forIn: 989.6365000000001ms
+Memory used: 335765808 bytes
+--- 2회차 ---
+forIn: 1300.3269999999998ms
+Memory used: -5679440 bytes
+--- 3회차 ---
+forIn: 945.0239580000002ms
+Memory used: 314122904 bytes
+--- 4회차 ---
+forIn: 1025.3092079999997ms
+Memory used: 330616952 bytes
+--- 5회차 ---
+forIn: 1051.888583ms
+Memory used: 314119608 bytes
+--- 6회차 ---
+forIn: 1301.8361670000004ms
+Memory used: -958886824 bytes
+--- 7회차 ---
+forIn: 940.5754589999997ms
+Memory used: 314120856 bytes
+--- 8회차 ---
+forIn: 931.7079169999997ms
+Memory used: 330614008 bytes
+--- 9회차 ---
+forIn: 966.756374999999ms
+Memory used: 314119512 bytes
+--- 10회차 ---
+forIn: 1203.1634169999998ms
+Memory used: -958881768 bytes
+--- 11회차 ---
+forIn: 949.585833000001ms
+Memory used: 314120032 bytes
+--- 12회차 ---
+forIn: 932.6984170000014ms
+Memory used: 330614000 bytes
+--- 13회차 ---
+forIn: 960.62075ms
+Memory used: 314119392 bytes
+--- 14회차 ---
+forIn: 1204.7880409999998ms
+Memory used: -958877848 bytes
+--- 15회차 ---
+forIn: 968.043916999999ms
+Memory used: 314119920 bytes
+=== forOf ===
+--- 1회차 ---
+forOf: 95.242166ms
+Memory used: 678944 bytes
+--- 2회차 ---
+forOf: 92.13204100000007ms
+Memory used: 235840 bytes
+--- 3회차 ---
+forOf: 91.66087499999992ms
+Memory used: 232488 bytes
+--- 4회차 ---
+forOf: 88.54545800000005ms
+Memory used: 266592 bytes
+--- 5회차 ---
+forOf: 88.71216600000002ms
+Memory used: 232608 bytes
+--- 6회차 ---
+forOf: 88.55262499999992ms
+Memory used: -1829000 bytes
+--- 7회차 ---
+forOf: 91.77583300000003ms
+Memory used: 232448 bytes
+--- 8회차 ---
+forOf: 92.18950000000007ms
+Memory used: 232408 bytes
+--- 9회차 ---
+forOf: 91.16345899999988ms
+Memory used: 232512 bytes
+--- 10회차 ---
+forOf: 88.15549999999985ms
+Memory used: 232544 bytes
+--- 11회차 ---
+forOf: 88.99991599999998ms
+Memory used: 232544 bytes
+--- 12회차 ---
+forOf: 87.97825000000012ms
+Memory used: 232376 bytes
+--- 13회차 ---
+forOf: 88.19216700000015ms
+Memory used: 232432 bytes
+--- 14회차 ---
+forOf: 88.40812499999993ms
+Memory used: 232432 bytes
+--- 15회차 ---
+forOf: 89.01058399999988ms
+Memory used: -1829376 bytes
+=== forEach ===
+--- 1회차 ---
+forEach: 114.24516699999998ms
+Memory used: 637112 bytes
+--- 2회차 ---
+forEach: 111.634208ms
+Memory used: 202232 bytes
+--- 3회차 ---
+forEach: 108.15795800000001ms
+Memory used: 193032 bytes
+--- 4회차 ---
+forEach: 107.76983299999995ms
+Memory used: 195952 bytes
+--- 5회차 ---
+forEach: 107.78700000000003ms
+Memory used: 193216 bytes
+--- 6회차 ---
+forEach: 109.64083400000004ms
+Memory used: 193344 bytes
+--- 7회차 ---
+forEach: 108.74445899999989ms
+Memory used: 192992 bytes
+--- 8회차 ---
+forEach: 111.19299999999998ms
+Memory used: -1868816 bytes
+--- 9회차 ---
+forEach: 110.82749999999987ms
+Memory used: 193120 bytes
+--- 10회차 ---
+forEach: 108.01516700000002ms
+Memory used: 195264 bytes
+--- 11회차 ---
+forEach: 107.9190000000001ms
+Memory used: 193112 bytes
+--- 12회차 ---
+forEach: 107.52674999999999ms
+Memory used: 192984 bytes
+--- 13회차 ---
+forEach: 108.07720799999993ms
+Memory used: 192984 bytes
+--- 14회차 ---
+forEach: 107.46683399999984ms
+Memory used: 192936 bytes
+--- 15회차 ---
+forEach: 107.82541600000013ms
+Memory used: 192984 bytes
+=== map ===
+--- 1회차 ---
+map: 141.42174999999997ms
+--- 2회차 ---
+map: 156.56429199999997ms
+--- 3회차 ---
+map: 132.4453749999999ms
+--- 4회차 ---
+map: 131.59633400000007ms
+--- 5회차 ---
+map: 128.47008300000005ms
+--- 6회차 ---
+map: 128.30508299999997ms
+--- 7회차 ---
+map: 129.7417089999999ms
+--- 8회차 ---
+map: 129.71895800000016ms
+--- 9회차 ---
+map: 158.65925000000016ms
+--- 10회차 ---
+map: 128.71625000000017ms
+--- 11회차 ---
+map: 126.2347920000002ms
+--- 12회차 ---
+map: 127.94837499999994ms
+--- 13회차 ---
+map: 126.65079200000014ms
+--- 14회차 ---
+map: 128.7375830000001ms
+--- 15회차 ---
+map: 127.80929100000003ms
+=== reduce ===
+--- 1회차 ---
+reduce: 108.99574999999999ms
+Memory used: 635144 bytes
+--- 2회차 ---
+reduce: 112.65300000000002ms
+Memory used: 202232 bytes
+--- 3회차 ---
+reduce: 110.55262500000003ms
+Memory used: 193040 bytes
+--- 4회차 ---
+reduce: 107.67562499999997ms
+Memory used: 195952 bytes
+--- 5회차 ---
+reduce: 108.33604200000002ms
+Memory used: 193216 bytes
+--- 6회차 ---
+reduce: 108.88683300000002ms
+Memory used: 193344 bytes
+--- 7회차 ---
+reduce: 107.00433300000009ms
+Memory used: 192992 bytes
+--- 8회차 ---
+reduce: 107.84420899999986ms
+Memory used: -1868816 bytes
+--- 9회차 ---
+reduce: 106.883959ms
+Memory used: 193120 bytes
+--- 10회차 ---
+reduce: 106.72395800000004ms
+Memory used: 195256 bytes
+--- 11회차 ---
+reduce: 106.69500000000016ms
+Memory used: 193112 bytes
+--- 12회차 ---
+reduce: 107.22616599999992ms
+Memory used: 192984 bytes
+--- 13회차 ---
+reduce: 109.89429199999995ms
+Memory used: 192984 bytes
+--- 14회차 ---
+reduce: 110.87983299999996ms
+Memory used: 192936 bytes
+--- 15회차 ---
+reduce: 107.45704099999989ms
+Memory used: 192984 bytes
+=== filter ===
+--- 1회차 ---
+filter: 122.60075ms
+Memory used: 602952 bytes
+--- 2회차 ---
+filter: 116.50295899999998ms
+Memory used: 202752 bytes
+--- 3회차 ---
+filter: 116.38754200000005ms
+Memory used: 193136 bytes
+--- 4회차 ---
+filter: 116.86370800000009ms
+Memory used: 196048 bytes
+--- 5회차 ---
+filter: 115.98400000000004ms
+Memory used: 193312 bytes
+--- 6회차 ---
+filter: 119.46574999999996ms
+Memory used: 193440 bytes
+--- 7회차 ---
+filter: 119.67262500000015ms
+Memory used: 193088 bytes
+--- 8회차 ---
+filter: 119.47862499999997ms
+Memory used: -1868720 bytes
+--- 9회차 ---
+filter: 116.43824999999993ms
+Memory used: 193216 bytes
+--- 10회차 ---
+filter: 116.19450000000006ms
+Memory used: 195360 bytes
+--- 11회차 ---
+filter: 116.96545800000013ms
+Memory used: 193208 bytes
+--- 12회차 ---
+filter: 117.34891700000003ms
+Memory used: 193080 bytes
+--- 13회차 ---
+filter: 117.32458300000008ms
+Memory used: 193080 bytes
+--- 14회차 ---
+filter: 118.21262500000012ms
+Memory used: 193032 bytes
+--- 15회차 ---
+filter: 116.82508299999995ms
+Memory used: 193080 bytes
+=== while ===
+--- 1회차 ---
+while: 46.120791999999994ms
+Memory used: 611160 bytes
+--- 2회차 ---
+while: 38.838708999999994ms
+Memory used: 194784 bytes
+--- 3회차 ---
+while: 39.00691599999993ms
+Memory used: 191528 bytes
+--- 4회차 ---
+while: 39.18645900000001ms
+Memory used: 194440 bytes
+--- 5회차 ---
+while: 38.82441600000004ms
+Memory used: 191704 bytes
+--- 6회차 ---
+while: 39.11083299999996ms
+Memory used: 191832 bytes
+--- 7회차 ---
+while: 38.942833000000064ms
+Memory used: 191480 bytes
+--- 8회차 ---
+while: 39.135374999999954ms
+Memory used: -1870344 bytes
+--- 9회차 ---
+while: 39.02741600000002ms
+Memory used: 191608 bytes
+--- 10회차 ---
+while: 39.100874999999974ms
+Memory used: 191600 bytes
+--- 11회차 ---
+while: 40.1974580000001ms
+Memory used: 191600 bytes
+--- 12회차 ---
+while: 39.15579200000002ms
+Memory used: 191424 bytes
+--- 13회차 ---
+while: 39.16025000000002ms
+Memory used: 191472 bytes
+--- 14회차 ---
+while: 40.00633299999993ms
+Memory used: 191472 bytes
+--- 15회차 ---
+while: 39.14620900000011ms
+Memory used: 191424 bytes
+=== while2 ===
+--- 1회차 ---
+while: 44.604416999999955ms
+Memory used: 632352 bytes
+--- 2회차 ---
+while: 39.565ms
+Memory used: 194784 bytes
+--- 3회차 ---
+while: 39.56758300000001ms
+Memory used: 191528 bytes
+--- 4회차 ---
+while: 40.22566599999999ms
+Memory used: 194440 bytes
+--- 5회차 ---
+while: 39.95270799999997ms
+Memory used: 191704 bytes
+--- 6회차 ---
+while: 43.94908299999997ms
+Memory used: 191832 bytes
+--- 7회차 ---
+while: 45.7751669999999ms
+Memory used: 191480 bytes
+--- 8회차 ---
+while: 43.43783300000007ms
+Memory used: -1870344 bytes
+--- 9회차 ---
+while: 40.74812499999996ms
+Memory used: 191608 bytes
+--- 10회차 ---
+while: 39.72291699999994ms
+Memory used: 191600 bytes
+--- 11회차 ---
+while: 40.154042000000004ms
+Memory used: 191600 bytes
+--- 12회차 ---
+while: 39.908000000000015ms
+Memory used: 191424 bytes
+--- 13회차 ---
+while: 39.439959000000044ms
+Memory used: 191472 bytes
+--- 14회차 ---
+while: 40.24112500000001ms
+Memory used: 191472 bytes
+--- 15회차 ---
+while: 39.1803339999999ms
+Memory used: 191424 bytes
