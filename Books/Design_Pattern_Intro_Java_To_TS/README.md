@@ -11,52 +11,53 @@
 
     ```ts
     export interface Iterable<E> {
-        public abstract iterator<E>: Iterator<E>;
+        iterator(): Iterator<E>;
     }
 
     export interface Iterator<E> {
-        public abstract hasNext(): boolean;
-        public abstract next(): E;
+        hasNext(): boolean;
+        next(): E;
     }
 
     export class Book {
         constructor(private name: string) {}
 
-        public getName(): string {
+        getName(): string {
             return this.name;
         }
     }
 
     export class BookShelf implements Iterable<Book> {
         constructor(
-            private books: Book[] = [];
-            private last: number = 0;
+            private books: Book[] = [],
+            private last: number = 0,
         ) {}
 
-        public getBookAt(index: number): Book {
+        getBookAt(index: number): Book {
             return this.books[index];
         }
 
-        public appendBook(book: Book): void {
+        appendBook(book: Book): void {
             this.books[this.last] = book;
             this.last++;
         }
 
-        public getLength(): number {
+        getLength(): number {
             return this.last;
         }
 
-        public iterator(): Iterator<Book> {
+        iterator(): Iterator<Book> {
             return new BookShelfIterator(this);
         }
     }
 
     export class BookShelfIterator implements Iterator<Book> {
+        private index: number;
         constructor(private bookShelf: BookShelf) {
             this.index = 0;
         }
 
-        public hasNext(): boolean {
+        hasNext(): boolean {
             if (this.index < this.bookShelf.getLength()) {
                 return true;
             } else {
@@ -64,7 +65,7 @@
             }
         }
 
-        public next(): Book {
+        next(): Book {
             if (!this.hasNext()) {
                 throw new Error('No such element');
             }
