@@ -189,9 +189,59 @@ return result * result;
 
 #### 2.1.2 코드가 하는 일을 바꾸지 않고 유지보수하기
 
+- 코드를 일종의 블랙박스로 취급한다.
+- 외부의 동작을 유지한 채 내부의 로직을 변경 할 수 있다.
+  - 그러나 이 과정에서 성능적 손실이 발생할 수 있다.
+  - 왜냐하면, 대부분의 서비스에서 성능보다는 가독성과 유지보수성의 가치가 더 크기 때문이다.
+    - 종종 성능이 중요한 경우에는 이와 별도로 최적화 작업을 진행해야 한다.
+
 ### 2.2 속도, 유연성 및 안정성 확보
 
+- 리팩터링에는 다양한 수준과 방법이 있다.
+  - 추상적이고 전역전인 수준부터, 구체적이고 지역적인 수준까지
+  - 전반적인 아키텍처부터 함수 내 변수의 이름까지
+
 #### 2.2.1 상속보다는 컴포지션 사용
+
+- 상속은 GOF 시절부터 권장되지 않았음.
+  - 상속을 사용하면 범위가 제한되지 않는 불변속성이 퍼지게 된다.
+- 이들은 상속보다는 컴포지션을 사용하라고 권장하였음.
+- 예시
+
+  ```ts
+  // Inheritance
+  interface Bird {
+    hasBeak(): boolean;
+    canFly(): boolean;
+  }
+
+  class CommonBird implements Bird {
+    hasBeak() { return true; }
+    canFly() { return true; }
+  }
+  class Penguin extends CommonBird {
+    canFly() { return false; }
+  }
+
+  // Composition
+  interface Bird {
+    hasBeak(): boolean;
+    canFly(): boolean;
+  }
+
+  class CommonBird implements Bird {
+    hasBeak() { return true; }
+    canFly() { return true; }
+  }
+  class Penguin implements Bird {
+    private bird = new CommonBird();
+    hasBeak() { return this.bird.hasBeak(); } // <-- Composition
+    canFly() { return false; }
+  }
+  ```
+
+  - 만약 위 코드에서 `Bird` 인터페이스와 `CommonBird` 클래스에 canSwim() 메서드를 추가한다면, 상속을 사용한 코드는 모든 `Bird` 클래스에 자동으로 영향을 미칠 것이다.
+  - 반면, 컴포지션을 사용한 코드는 컴파일 에러가 발생할 것이고 개발자는 이를 눈치챌 수 있을 것이다.
 
 #### 2.2.2 수정이 아니라 추가로 코드를 변경
 
