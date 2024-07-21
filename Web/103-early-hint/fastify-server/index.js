@@ -5,6 +5,7 @@ const Fastify = require('fastify');
 
 const serverFactory = (handler, opts) => {
   const server = http2.createSecureServer({
+    allowHTTP1: true,
     key: fs.readFileSync('./ssl/cert.key'),
     cert: fs.readFileSync('./ssl/cert.crt')
   });

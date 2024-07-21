@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const options = {
   key: fs.readFileSync(join(__dirname, 'ssl', 'cert.key')),
   cert: fs.readFileSync(join(__dirname, 'ssl', 'cert.crt')),
-  allowHTTP1: false,
+  allowHTTP1: true,
 };
 
 const server = http2.createSecureServer(options);
@@ -19,8 +19,8 @@ server.on('stream', (stream, headers) => {
   const pathname = parsedUrl.pathname;
   const filePath = join(__dirname, 'public', pathname);
 
+  // 일반적인 단일 200 응답
   if (pathname === '/') {
-    // 일반적인 단일 200 응답
     fs.readFile(join(__dirname, 'public', 'index.html'), (err, data) => {
       if (err) {
         stream.respond({ ':status': 500 });
@@ -30,19 +30,18 @@ server.on('stream', (stream, headers) => {
 
       setTimeout(() => {
         stream.respond({
-          // 'link': '</image.png>; rel=preload; as=image, </script.js>; rel=preload; as=script, </style.css>; rel=preload; as=style',
           'content-type': 'text/html', ':status': 200
         });
         stream.end(data);
       }, 300);
     });
-  } else if (pathname === '/early-hints') {
-    // 103 Early Hints 응답 사용
+  }
+  // 103 Early Hints 응답 사용
+  else if (pathname === '/early-hints') {
     stream.additionalHeaders({
       ':status': 103,
-      'link': '</image.png>; rel=preload; as=image, </script.js>; rel=preload; as=script, </style.css>; rel=preload; as=style'
+      'Link': '</image.png>; rel=preload; as=image, </script.js>; rel=preload; as=script, </style.css>; rel=preload; as=style'
     });
-    stream.write('');
 
     fs.readFile(join(__dirname, 'public', 'index.html'), (err, data) => {
       if (err) {
@@ -53,13 +52,14 @@ server.on('stream', (stream, headers) => {
 
       setTimeout(() => {
         stream.respond({
-          // 'link': '</image.png>; rel=preload; as=image, </script.js>; rel=preload; as=script, </style.css>; rel=preload; as=style',
           'content-type': 'text/html', ':status': 200
         });
         stream.end(data);
       }, 300);
     });
-  } else if (pathname === '/style.css') {
+  }
+  // 이하는 기타 정적 파일 요청 처리
+  else if (pathname === '/style.css') {
     fs.readFile(filePath, (err, data) => {
       if (err) {
         stream.respond({ ':status': 500 });
