@@ -7,9 +7,9 @@ import { dirname, join } from 'path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const options = {
-  key: fs.readFileSync(join(__dirname, 'ssl', 'cert.key')),
-  cert: fs.readFileSync(join(__dirname, 'ssl', 'cert.crt')),
-  allowHTTP1: true,
+  key: fs.readFileSync(join(__dirname, 'ssl', 'localhost.key')),
+  cert: fs.readFileSync(join(__dirname, 'ssl', 'localhost.crt')),
+  allowHTTP1: false,
 };
 
 const server = http2.createSecureServer(options);
