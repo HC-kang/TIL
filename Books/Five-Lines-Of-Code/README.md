@@ -337,9 +337,107 @@ return result * result;
   }
   ```
 
+##### 스멜
+
+- 메서드가 길다는 것 자체가 스멜임.
+- 물론 예외가 있겠지만, 대체로 하나의 작업은 다섯 줄 이내로 끝낼 수 있음.
+
+##### 의도
+
+- 메서드의 이름을 통해서도 의도를 전달 할 수 있음.
+- 따라서 20줄짜리 하나의 메서드보다, 잘 명명된 5줄짜리 4개의 메서드로 나누는 것이 의도 전달이 더 명확함.
+- 이는 마치 5줄마다 주석을 남기는 것과도 같음. 동시에 주석과는 다르게 코드가 항상 최신 상태로 유지될 확률이 높음.
+
+##### 참조
+
+- 클린코드: 하나의 메서드는 한 가지 일만 해야 한다.
+- 리팩토링: 긴 메서드 자체가 스멜이다.
+
 ### 3.2 함수 분해를 위한 리팩터링 패턴 소개
 
-#### 3.2.1 리팩터링 패턴: 메서드 추출로
+- 메서드를 잘게 나눔으로서 메서드명을 통해 주석의 효과를 얻을 수 있음.
+- 주석의 경우 오용이나 남용되는 경우가 많음
+  - 주석을 남겼다는 사실을 잊고 최신화하지 않는 경우
+  - 주석을 지저분한 코드에 대한 일종의 탈취제로 사용하는 경우
+
+- 예시
+
+  ```ts
+  // before
+  function draw() {
+    let canvas = document.getElementById('GameCanvas') as HTMLCanvasElement;
+    let g = canvas.getContext('2d');
+
+    g.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 맵 그리기
+    for (let y = 0; map.length; y++) {
+      for (let x = 0; map[y].length; x++) {
+        if (map[y][x] === Tile.FLUX)
+          g.fillStyle = '#ccffcc';
+        else if (map[y][x] === Tile.UNBREAKABLE)
+          g.fillStyle = '#999999';
+        else if (map[y][x] === Tile.STONE || map[y][x] === Tile.FALLING_STONE)
+          g.fillStyle = '#0000cc';
+        else if (map[y][x] === Tile.BOX || map[y][x] === Tile.FALLING_BOX)
+          g.fillStyle = '#8b4513';
+        else if (map[y][x] === Tile.KEY1 || map[y][x] === Tile.LOCK1)
+          g.fillStyle = '#ffcc00';
+        else if (map[y][x] === Tile.KEY2 || map[y][x] === Tile.LOCK2)
+          g.fillStyle = '#00ccff';
+        
+        if (map[y][x] !== Tile.AIR && map[y][x] !== Tile.PLAYER)
+          g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      }
+    }
+
+    // 플레이어 그리기
+    g.fillStyle = '#ff0000';
+    g.fillRect(playerx * TILE_SIZE, playery * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  }
+  ```
+
+  ```ts
+  // after
+  function draw() {
+    let canvas = document.getElementById('GameCanvas') as HTMLCanvasElement;
+    let g = canvas.getContext('2d');
+
+    g.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawMap(g);
+    drawPlayer(g);
+  }
+
+  function drawMap(g: CanvasRenderingContext2D) {
+    for (let y = 0; map.length; y++) {
+      for (let x = 0; map[y].length; x++) {
+        if (map[y][x] === Tile.FLUX)
+          g.fillStyle = '#ccffcc';
+        else if (map[y][x] === Tile.UNBREAKABLE)
+          g.fillStyle = '#999999';
+        else if (map[y][x] === Tile.STONE || map[y][x] === Tile.FALLING_STONE)
+          g.fillStyle = '#0000cc';
+        else if (map[y][x] === Tile.BOX || map[y][x] === Tile.FALLING_BOX)
+          g.fillStyle = '#8b4513';
+        else if (map[y][x] === Tile.KEY1 || map[y][x] === Tile.LOCK1)
+          g.fillStyle = '#ffcc00';
+        else if (map[y][x] === Tile.KEY2 || map[y][x] === Tile.LOCK2)
+          g.fillStyle = '#00ccff';
+        
+        if (map[y][x] !== Tile.AIR && map[y][x] !== Tile.PLAYER)
+          g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      }
+    }
+  }
+
+  function drawPlayer(g: CanvasRenderingContext2D) {
+    g.fillStyle = '#ff0000';
+    g.fillRect(playerx * TILE_SIZE, playery * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  }
+  ```
+
+#### 3.2.1 리팩터링 패턴: 메서드 추출
 
 ### 3.3 추상화 수준을 맞추기 위한 함수 분해
 
