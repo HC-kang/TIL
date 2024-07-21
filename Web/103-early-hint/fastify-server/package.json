@@ -1,0 +1,16 @@
+{
+  "name": "fastify-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@fastify/early-hints": "^1.0.1",
+    "fastify": "^4.28.1"
+  }
+}
