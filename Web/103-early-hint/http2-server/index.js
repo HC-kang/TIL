@@ -30,6 +30,7 @@ server.on('stream', (stream, headers) => {
 
       setTimeout(() => {
         stream.respond({
+          // 'Link': '<https://fonts.gstatic.com/s/lato/v24/S6uyw4BMUTPHjx4wXiWtFCc.woff2>; rel=preload; as=font, </image.png>; rel=preload; as=image, </script.js>; rel=preload; as=script, </style.css>; rel=preload; as=style',
           'content-type': 'text/html', ':status': 200
         });
         stream.end(data);
@@ -40,7 +41,7 @@ server.on('stream', (stream, headers) => {
   else if (pathname === '/early-hints') {
     stream.additionalHeaders({
       ':status': 103,
-      'Link': '</image.png>; rel=preload; as=image, </script.js>; rel=preload; as=script, </style.css>; rel=preload; as=style'
+      'Link': '<https://fonts.gstatic.com/s/lato/v24/S6uyw4BMUTPHjx4wXiWtFCc.woff2>; rel=preload; as=font, </image.png>; rel=preload; as=image, </script.js>; rel=preload; as=script, </style.css>; rel=preload; as=style'
     });
 
     fs.readFile(join(__dirname, 'public', 'index.html'), (err, data) => {
@@ -52,6 +53,7 @@ server.on('stream', (stream, headers) => {
 
       setTimeout(() => {
         stream.respond({
+          // 'Link': '<https://fonts.gstatic.com/s/lato/v24/S6uyw4BMUTPHjx4wXiWtFCc.woff2>; rel=preload; as=font, </image.png>; rel=preload; as=image, </script.js>; rel=preload; as=script, </style.css>; rel=preload; as=style',
           'content-type': 'text/html', ':status': 200
         });
         stream.end(data);
