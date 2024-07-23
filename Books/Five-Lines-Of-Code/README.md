@@ -439,6 +439,97 @@ return result * result;
 
 #### 3.2.1 리팩터링 패턴: 메서드 추출
 
+- 방금 위에서 진행한 방식이 가장 간단한 메서드 추출 방식이다.
+- 많은 IDE에서 지원하는 기능이며, 이를 통해 메서드 추출을 쉽게 할 수 있다.
+- 대부분의 경우 아래에서 위로 올라가며 추출하는 것이 좋다.
+  - if문 등에서 일부 분기만 return을 가진 경우 등이 메서드 추출에 방해가 될 수 있기 때문이다.
+
+- 절차
+  1. 추출할 주변을 적당한 공백이나 주석으로 구분하여 잘라낸다.
+  2. 주석의 역할을 할 수 있는 적당한 이름으로 빈 메서드를 만든다.
+  3. 잘라낸 코드의 맨 위에서 메서드를 호출한다.
+  4. 코드의 모든 줄을 선택해서 새로운 메서드의 본문으로 삽입한다.
+  5. 매개변수가 필요한 경우 적당한 매개변수를 추가한다.
+  6. 매개변수를 리턴하는 경우 `return value;` 등을 추가하고, 호출부에서 이를 변수로 할당한다.
+  7. 인자나 변수의 조정이 필요한 경우 이를 수행한다.
+  8. 사용하지 않는 빈 줄과 주석, 코드를 정리한다.
+
+- 예제
+
+  ```ts
+  // before
+  function minimum(arr: number[][]) {
+    let result = Number.POSITIVE_INFINITY;
+    for (let x = 0; x < arr.length; x++)
+      for (let y = 0; y < arr[x].length; y++)
+
+        if (result > arr[x][y]) //
+          result = arr[x][y];   // <-- 추출할 코드
+
+    return result;
+  }
+  ```
+
+  ```ts
+  // phase 1/3
+  function minimum(arr: number[][]) {
+    let result = Number.POSITIVE_INFINITY;
+    for (let x = 0; x < arr.length; x++)
+      for (let y = 0; y < arr[x].length; y++)
+
+        min(); // <-- 새로운 메서드 호출
+
+    return result;
+  }
+
+  // 새로운 메서드 선언
+  function min() {
+    if (result > arr[x][y])
+      result = arr[x][y];
+  }
+  ```
+
+  ```ts
+  // phase 2/3
+  function minimum(arr: number[][]) {
+    let result = Number.POSITIVE_INFINITY;
+    for (let x = 0; x < arr.length; x++)
+      for (let y = 0; y < arr[x].length; y++)
+
+        result = min(); // <-- 변수 할당
+
+    return result;
+  }
+
+  function min() {
+    if (result > arr[x][y])
+      result = arr[x][y];
+    return result; // <-- 리턴 추가
+  }
+  ```
+
+  ```ts
+  // phase 3/3
+  function minimum(arr: number[][]) {
+    let result = Number.POSITIVE_INFINITY;
+    for (let x = 0; x < arr.length; x++)
+      for (let y = 0; y < arr[x].length; y++)
+        result = min(result, arr, x, y); // <-- 인자 추가
+    return result;
+  }
+
+  function min(
+    result: number,
+    arr: number[][],
+    x: number,
+    y: number
+  ) {
+    if (result > arr[x][y])
+      result = arr[x][y];
+    return result;
+  }
+  ```
+
 ### 3.3 추상화 수준을 맞추기 위한 함수 분해
 
 #### 3.3.1 규칙: 호출 또는 전달, 한 가지만 할 것
