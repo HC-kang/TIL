@@ -534,7 +534,83 @@ return result * result;
 
 #### 3.3.1 규칙: 호출 또는 전달, 한 가지만 할 것
 
+##### 정의
+
+- 함수 내에서는 
+  - 객체에 있는 메서드를 호출하거나
+  - 객체를 인자로 전달 할 수 있음.
+- 그러나 위 둘을 동시에 하는 것은 좋지 않다.
+  - 이는 추상화 수준이 다르기 때문이다.
+
+##### 설명
+
+- 함수 내에서 배열의 내부에 직접 접근하는 저수준의 작업을 수행 할 수도 있고 다른 함수에 인자로 전달하는 고수준의 작업도 처리 할 수 있다.
+- 그러나 이 둘을 하나의 함수에서 동시에 수행하면 추상화 수준이 혼란스러워진다.
+- 예시
+
+  ```ts
+  // before
+  function average(arr: number[]) {
+    return sum(arr) / arr.length;
+  }
+  ```
+
+  ```ts
+  // after
+  function average(arr: number[]) {
+    return sum(arr) / size(arr);
+  }
+  ```
+
+##### 스멜
+
+- '함수의 내용은 동일한 추상화 수준에 있어야 한다.'라는 말 자체가 스멜일 정도로 어렵게 쓰여져 있다.
+- 실제로는 인자로 전달된 변수 옆의 '.'(점)을 보면 알 수 있다.
+
+##### 의도
+
+- 이 규칙은 메서드의 기능 중 몇가지를 추출해서 추상화 할 때, 다른 연관된 부분도 추출해야 한다는 것을 의미한다.
+
+#### 3.3.2 규칙 적용
+
+- 예시
+
+  ```ts
+  // draw - before
+  function draw() {
+    let canvas = document.getElementById('GameCanvas') as HTMLCanvasElement;
+    let g = canvas.getContext('2d');
+
+    g.clearRect(0, 0, canvas.width, canvas.height); // <-- 저수준, 직접 접근
+
+    drawMap(g);    // <-- 고수준, 호출
+    drawPlayer(g); // <-- 고수준, 호출
+  }
+  ```
+
 ### 3.4 좋은 함수 이름의 속성
+
+- **정직하게** 함수의 의도를 설명해야 한다.
+- 함수가 하는 일을 **완전하게** 설명해야 한다.
+- **도메인에서 일하는 사람(비개발자)이 이해 할 수 있어야** 한다.
+
+- 수정된 코드 예시
+
+  ```ts
+  // draw - after
+  function createGraphics() {
+    let canvas = document.getElementById('GameCanvas') as HTMLCanvasElement;
+    let g = canvas.getContext('2d');
+    g.clearRect(0, 0, canvas.width, canvas.height);
+    return g;
+  }
+
+  function draw() {
+    let g = createGraphics();
+    drawMap(g);
+    drawPlayer(g);
+  }
+  ```
 
 ### 3.5 너무 많은 일을 하는 함수 분리하기
 
