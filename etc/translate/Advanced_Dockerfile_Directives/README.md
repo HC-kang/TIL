@@ -662,3 +662,260 @@ HEALTHCHECK \
     --retries=3 \
     CMD curl -f http://localhost/ || exit 1
 ```
+
+### 도커파일에서 `EXPOSE`와 `HEALTHCHECK` 지시어 사용해보기
+
+이번에는 아파치 웹서버를 도커라이즈 해서, 브라우저로 직접 접근해 봅시다. 추가적으로, 아파치 웹 서버의 상태 확인을 위한 헬스체크도 추가 해 볼겁니다.
+
+```bash
+mkdir expose-healthcheck-example
+cd expose-healthcheck-example
+code Dockerfile
+```
+
+그리고 도커파일은 아래와 같이 작성해줍니다.
+
+```Dockerfile
+FROM ubuntu:latest
+
+RUN apt-get update -y && apt-get upgrade -y
+
+RUN apt-get install apache2 curl -y
+
+HEALTHCHECK CMD curl -f http://localhost/ || exit 1
+
+EXPOSE 80
+
+ENTRYPOINT ["apache2ctl", "-D", "FOREGROUND"]
+```
+
+위의 도커파일은 우분투를 베이스로 아파치 웹 서버를 설치하고, 로컬호스트와 통신해서 컨테이너의 상태를 확인하기 위해 `HEALTHCHECK` 지시어를 통해 `curl -f http://localhost/ || exit 1` 명령어를 통해 아파치 웹 서버의 상태를 확인합니다. 노출된 80포트를 사용해서 외부에서 아파치 웹서버에 접근 할 수있습니다. 마지막으로 `ENTRYPOINT ["apache2ctl", "-D", "FOREGROUND"]`를 통해 아파치 웹 서버를 포그라운드로 실행하여 컨테이너가 종료되지 않도록 합니다. 이런 구성을 통해 아파치 웹 서버(80포트)를 도커 컨테이너로 실행할 수 있습니다.
+
+이제 이미지를 빌드 해보겠습니다.
+
+```bash
+docker image build -t expose-healthcheck-example .
+```
+
+아래와 같은 결과가 보이면 됩니다.
+
+```bash
+[+] Building 38.4s (7/7) FINISHED                                             
+ => [internal] load build definition from Dockerfile                     0.0s
+ => => transferring dockerfile: 256B                                     0.0s
+ => [internal] load metadata for docker.io/library/ubuntu:latest         2.2s
+ => [internal] load .dockerignore                                        0.0s
+ => => transferring context: 2B                                          0.0s
+ => [1/3] FROM docker.io/library/ubuntu:latest@sha256:2e863c44b718727c8  0.0s
+ => CACHED [2/3] RUN apt-get update -y && apt-get upgrade -y             0.0s
+ => [3/3] RUN apt-get install apache2 curl -y                           35.6s
+ => exporting to image                                                   0.4s
+ => => exporting layers                                                  0.4s
+ => => writing image sha256:40636f4aadb6c1aa5fc005e10aa5d61ae7a65107731  0.0s 
+ => => naming to docker.io/library/expose-healthcheck-example:latest     0.0s 
+```
+
+이제 컨테이너를 실행해보겠습니다.
+이번에는 `-p` 옵션을 사용하여 호스트의 8080포트와 컨테이너의 80포트를 연결해보겠습니다.  추가적으로, `--name` 옵션을 사용하여 컨테이너의 이름을 `expose-healthcheck-container`로 지정하고 `-d` 옵션을 사용하여 디테치드 모드(백그라운드)로 실행해보겠습니다.
+
+```bash
+docker container run -p 8080:80 --name expose-healthcheck-container -d expose-healthcheck-example
+```
+
+아래의 명령어로 현재 가동중인 컨테이너를 볼 수 있습니다
+
+```bash
+docker container list
+# or
+docker container ls
+# or
+docker ps
+```
+
+아래와 같은 형태를 보실 수 있을것이고, `STATUS`가 `healthy`로 표시되어야 합니다.
+
+```bash
+CONTAINER ID   IMAGE                        COMMAND                  CREATED          STATUS                    PORTS                                       NAMES
+eb26cb696dac   expose-healthcheck-example   "apache2ctl -D FOREG…"   42 seconds ago   Up 41 seconds (healthy)   0.0.0.0:8080->80/tcp, :::8080->80/tcp       expose-healthcheck-container
+```
+
+이제 브라우저를 열고 아파치 웹 서버에 접근 할 수 있습니다. 브라우저로 `http://localhost:8080`으로 접속해보시면 아파치 웹 서버의 기본 페이지가 보일겁니다.
+
+![alt text](./images/apache.png)
+
+### `ONBUILD` 지시어
+
+도커파일에서 `ONBUILD` 지시어는 후속되는 이미지 빌드에서 재사용 가능한 이미지를 만들 수 있도록 해 줍니다. 이 지시어를 통해 개발자는 '다른 이미지가 현재 이미지를 베이스 이미지로 사용할 때'에만 실행되는 명령어를 정의할 수 있습니다. 예를 들자면, 애플리케이션을 실행하는데 필요한 모든 전제조건과 구성을 포함하는 도커 이미지를 구성할 수 있습니다.
+
+이런 '전제가 되는' 이미지에 `ONBUILD` 지시어를 사용하면, 해당 이미지가 다른 도커 이미지의 베이스 이미지로 사용될 때까지 특정 명령어의 실행을 유보 할 수 있습니다. 이런 지연된 명령어들은 현재 이미지의 빌드 타임에는 사용되지 않으나, 후속되는 자식 이미지들의 빌드 타임에 실행됩니다. 이런 접근방식은 환경 설정의 프로세스를 간소화하고 기본 이미지에서 파생된 여러 프로젝트의 종속성 관리를 일관되게 처리 할 수 있게 보장해 줍니다.
+
+`ONBUILD` 지시어는 아래와 같은 형태로 사용됩니다.
+
+```Dockerfile
+ONBUILD <instruction>
+```
+
+예를 들어, 다음과 같은 `ONBUILD` 지시어를 사용하는 도커파일을 생각해 보겠습니다.
+
+```Dockerfile
+ONBUILD ENTRYPOINT ["echo", "Running an ONBUILD Directive"]
+```
+
+위에 표기된 'RUNNING AN ONBUILD DIRECTIVE'는 우리가 이 이미지로 컨테이너를 만들때에는 출력되지 않을 것이고, 이를 베이스 이미지로 하는 다른 컨테이너를 만들 때에만 출력될 것입니다.
+
+### 도커파일에서 `ONBUILD` 지시어 사용해보기
+
+이번에는 `ONBUILD` 지시어를 사용하여 부모가 될 베이스 이미지를 만들어보겠습니다. 동일하게 아파치 웹 서버를 사용하되, `ONBUILD` 지시어를 통해 `index.html` 파일을 복사하는 이미지를 만들어보겠습니다.
+
+```bash
+mkdir onbuild-parent-example
+cd onbuild-parent-example
+code Dockerfile
+```
+
+도커파일은 아래와 같이 작성해줍니다.
+
+```Dockerfile
+FROM ubuntu:latest
+
+RUN apt-get update -y && apt-get upgrade -y
+
+RUN apt-get install apache2 -y
+
+ONBUILD COPY *.html /var/www/html
+
+EXPOSE 80
+
+ENTRYPOINT ["apache2ctl", "-D", "FOREGROUND"]
+```
+
+아래의 명령어로 도커파일을 빌드 해 줍니다
+
+```bash
+docker image build -t onbuild-parent-example .
+```
+
+이런 결과를 보실 수 있습니다.
+
+```bash
+[+] Building 1.9s (7/7) FINISHED                                              
+ => [internal] load build definition from Dockerfile                     0.0s
+ => => transferring dockerfile: 233B                                     0.0s
+ => [internal] load metadata for docker.io/library/ubuntu:latest         1.8s
+ => [internal] load .dockerignore                                        0.0s
+ => => transferring context: 2B                                          0.0s
+ => [1/3] FROM docker.io/library/ubuntu:latest@sha256:2e863c44b718727c8  0.0s
+ => CACHED [2/3] RUN apt-get update -y && apt-get upgrade -y             0.0s
+ => CACHED [3/3] RUN apt-get install apache2 -y                          0.0s
+ => exporting to image                                                   0.0s
+ => => exporting layers                                                  0.0s
+ => => writing image sha256:7701b7f68f927796188e6670593b125000a7afdf70e  0.0s
+ => => naming to docker.io/library/onbuild-parent-example:latest         0.0s
+```
+
+이제 `onbuild-parent-example` 이미지를 가지고 컨테이너를 만들어보겠습니다.
+
+> (역자) 참고로, 이전부터 이어서 진행하고 있으시다면, 이전에 사용한 컨테이너를 종료해주셔야 합니다.
+> `docker container stop <container_id>` 명령어를 통해 컨테이너를 종료 할 수 있습니다.
+> 혹은 간단하게 `docker stop <container_id의 앞 3글자>` 도 가능합니다.
+> 이어서 `docker container rm <container_id>` 명령어를 통해 컨테이너를 제거해주시면 됩니다.
+> 이또한 간단하게 `docker rm <container_id의 앞 3글자>` 도 가능합니다.
+
+```bash
+docker container run -p 8080:80 --name onbuild-parent-container -d onbuild-parent-example
+```
+
+이번에도 브라우저를 통해 `http://localhost:8080`으로 접속해보시면 아파치 웹 서버의 기본 페이지가 보일겁니다.
+
+![alt text](./images/apache.png)
+
+이제 이 이미지를 사용한 자식 이미지를 만들어보겠습니다.
+그 전에, 포트가 중복되지 않도록 이전 이미지를 제거해 줍니다.
+
+```bash
+docker container stop onbuild-parent-container
+docker container rm onbuild-parent-container
+```
+
+이제 `onbuild-parent-example` 이미지를 베이스로 사용하는 자식 이미지를 만들어보겠습니다.
+이를 위해 새로운 `onbuild-child-example` 디렉토리를 만들어주시고, 그 안에 새로운 `index.html` 파일과 `Dockerfile`을 만들어줍니다.
+
+```bash
+cd ..
+mkdir onbuild-child-example
+cd onbuild-child-example
+```
+
+```
+code index.html
+```
+
+그리고 `index.html` 파일에 아래와 같은 내용을 작성해줍니다.
+
+```html
+<html>
+
+    <body>
+
+        <h1>Demonstrating Docker ONBUILD Directive</h1>
+
+    </body>
+
+</html>
+```
+
+이제 `Dockerfile`을 만들어줍니다.
+
+```bash
+code Dockerfile
+```
+
+그리고 `Dockerfile`에 아래와 같은 내용을 작성해줍니다.
+
+```Dockerfile
+FROM onbuild-parent-example
+```
+
+이 도커파일은 한줄의 지시어만 가지고있습니다. `onbuild-parent-example` 이미지를 베이스로 사용하겠다는 내용입니다.
+
+이제 이미지를 빌드 해보겠습니다.
+
+```bash
+docker image build -t onbuild-child-example .
+```
+
+아래의 결과를 보실수 있을겁니다.
+
+```bash
+[+] Building 0.3s (7/7) FINISHED                                              
+ => [internal] load build definition from Dockerfile                     0.0s
+ => => transferring dockerfile: 70B                                      0.0s
+ => [internal] load metadata for docker.io/library/onbuild-parent-examp  0.0s
+ => [internal] load .dockerignore                                        0.0s
+ => => transferring context: 2B                                          0.0s
+ => [internal] load build context                                        0.0s
+ => => transferring context: 134B                                        0.0s
+ => [1/1] FROM docker.io/library/onbuild-parent-example:latest           0.0s
+ => [2/1] COPY *.html /var/www/html                                      0.1s
+ => exporting to image                                                   0.0s
+ => => exporting layers                                                  0.0s
+ => => writing image sha256:69b6764629f22f8811bebd41d0ec4f19d3132e94690  0.0s
+ => => naming to docker.io/library/onbuild-child-example:latest          0.0s
+ ```
+
+이제 `onbuild-child-example` 이미지를 가지고 컨테이너를 만들어보겠습니다.
+
+```bash
+docker container run -p 8080:80 --name onbuild-child-container -d onbuild-child-example
+```
+
+이번에도 브라우저를 통해 `http://localhost:8080`으로 접속해보시면 웹 서버에 접근 하실 수 있을텐데, 이전과는 다르게 아래와 같은 페이지가 보일겁니다.
+만약 보이지 않으신다면 새로고침/강력 새로고침을 해보세요.
+
+![alt text](./images/custum_index.png)
+
+## 요약 정리
+
+이번 글에서는 도커 이미지를 만들어보는데에 집중했고, `ENV`, `ARG`, `WORKDIR`, `COPY`, `ADD`, `USER`, `VOLUME`, `EXPOSE`, `HEALTHCHECK`, 그리고 `ONBUILD`까지 다양한 고급 지시어를 사용해 보았습니다. 다음 글에서는 도커 레지스트리가 무엇인지, 프라이빗/퍼블릭 레지스트리가 무엇인지, 그리고 어떻게 이미지를 배포하는지에 대해 알아보겠습니다.
+
+> 이 글은 [Advanced Dockerfile Directives](https://dev.to/kalkwst/advanced-dockerfile-directives-193f?utm_source=oneoneone) 글을 번역(의역)한 글입니다.
