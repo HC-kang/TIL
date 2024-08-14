@@ -2,11 +2,11 @@ import { LeftAlignedStarPattern } from './LeftAlignedStarPattern';
 import { RightAlignedStarPattern } from './RightAlignedStarPattern';
 import { EquilateralStarPattern } from './EquilateralStarPattern';
 
-const rightAlignedStarPattern = new RightAlignedStarPattern(5);
-rightAlignedStarPattern.printPattern();
+const rightAlignedStarPattern = new RightAlignedStarPattern();
+rightAlignedStarPattern.printPattern(5);
 
-const leftAlignedStarPattern = new LeftAlignedStarPattern(5);
-leftAlignedStarPattern.printPattern();
+const leftAlignedStarPattern = new LeftAlignedStarPattern();
+leftAlignedStarPattern.printPattern(5);
 
-const equilateralStarPattern = new EquilateralStarPattern(5);
-equilateralStarPattern.printPattern();
+const equilateralStarPattern = new EquilateralStarPattern();
+equilateralStarPattern.printPattern(5);

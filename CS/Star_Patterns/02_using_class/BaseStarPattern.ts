@@ -1,7 +1,5 @@
 export abstract class BaseStarPattern {
-  constructor(protected height: number) {}
-
-  abstract printPattern(): void;
+  abstract printPattern(height: number): void;
 
   protected printLine(line: string): void {
     console.log(line);

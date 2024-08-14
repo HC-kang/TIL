@@ -8,28 +8,25 @@ import { EmojiStarFactory } from './EmojiStarFactory';
 
 const printable = new Printable();
 const simpleStarFactory = new SimpleStarFactory();
-const emojiStartFactory = new EmojiStarFactory();
+const emojiStarFactory = new EmojiStarFactory();
 const simpleSpaceFactory = new SimpleSpaceFactory();
 
 const rightAlignedStarPattern = new RightAlignedStarPattern(
   printable,
   simpleStarFactory,
   simpleSpaceFactory,
-  5
 );
 const leftAlignedStarPattern = new LeftAlignedStarPattern(
   printable,
   simpleStarFactory,
   simpleSpaceFactory,
-  5
 );
 const equilateralStarPattern = new EquilateralStarPattern(
   printable,
-  emojiStartFactory,
+  emojiStarFactory,
   simpleSpaceFactory,
-  5
 );
 
-rightAlignedStarPattern.printPattern();
-leftAlignedStarPattern.printPattern();
-equilateralStarPattern.printPattern();
+rightAlignedStarPattern.printPattern(5);
+leftAlignedStarPattern.printPattern(5);
+equilateralStarPattern.printPattern(5);

@@ -5,10 +5,10 @@ import { EquilateralStarPattern } from './EquilateralStarPattern';
 
 const printable = new Printable();
 
-const rightAlignedStarPattern = new RightAlignedStarPattern(printable, 5);
-const leftAlignedStarPattern = new LeftAlignedStarPattern(printable, 5);
-const equilateralStarPattern = new EquilateralStarPattern(printable, 5);
+const rightAlignedStarPattern = new RightAlignedStarPattern(printable);
+const leftAlignedStarPattern = new LeftAlignedStarPattern(printable);
+const equilateralStarPattern = new EquilateralStarPattern(printable);
 
-rightAlignedStarPattern.printPattern();
-leftAlignedStarPattern.printPattern();
-equilateralStarPattern.printPattern();
+rightAlignedStarPattern.printPattern(5);
+leftAlignedStarPattern.printPattern(5);
+equilateralStarPattern.printPattern(5);

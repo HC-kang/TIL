@@ -1,3 +1,3 @@
 export interface IStarPattern {
-  printPattern(n: number): void;
+  printPattern(height: number): void;
 }
