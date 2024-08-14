@@ -1,14 +1,16 @@
 import { Printable } from './Printable';
-import { IStarPattern } from './IStarPattern';
+import { StarPattern } from './StarPattern';
 import { ISpaceFactory } from './ISpaceFactory';
 import { IStarFactory } from './IStarFactory';
 
-export class EquilateralStarPattern implements IStarPattern {
+export class EquilateralStarPattern extends StarPattern {
   constructor(
-    private printable: Printable,
-    private starFactory: IStarFactory,
-    private spaceFactory: ISpaceFactory
-  ) {}
+    protected printable: Printable,
+    protected starFactory: IStarFactory,
+    protected spaceFactory: ISpaceFactory,
+  ) {
+    super(printable, starFactory, spaceFactory);
+  }
 
   printPattern(height: number): void {
     for (let i = 1; i <= height; i++) {
