@@ -927,3 +927,11 @@ equilateralStarPattern.printPattern(5);
 이번에 이렇게 별 찍기 문제를 통해 객체지향 프로그래밍의 기본적인 개념들을 다뤄보았는데요, 하면서 느낀점은 사람은 참 욕심이 끝이 없구나 하는 것이었습니다..
 중간중간 옵저버, 데코레이터, 전략 패턴 등을 사용해보고 싶었지만, 이렇게만 해도 길어지는 것 같아서 그만두었습니다.  
 다른 패턴들은 다음 기회에 좀 더 성장해서 다뤄 보아야겠습니다.
+
+---
+
+## 원래 하고자했던 것을 위한 자료들
+
+- [이모지 API](https://api.emojisworld.fr/v1/search?q=baby&limit=1)
+- [이모지 API2](https://github.com/abourtnik/emojis-world)
+- [문자 코드](https://ucdapi.org/unicode/latest/codepoint/hex/2603)
