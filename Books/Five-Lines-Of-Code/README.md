@@ -612,13 +612,168 @@ return result * result;
   }
   ```
 
+- 두 번째 예시
+
+  ```ts
+  // before
+  function update() {
+    while (inputs.length > 0) {
+      let current = inputs.pop();
+      if (current === Input.LEFT)
+        moveHorizontal(-1);
+      else if (current === Input.RIGHT)
+        moveHorizontal(1);
+      else if (current === Input.UP)
+        moveVertical(-1);
+      else if (current === Input.DOWN)
+        moveVertical(1);
+    }
+
+    for (let y = map.length - 1; y >= 0; y--) {
+      for (let x = 0; x < map[y].length; x++) {
+        if ((map[y][x] === Tile.STONE || map[y][x] === Tile.FALLING_STONE) && map[y + 1][x] = Tile.AIR) {
+          map[y + 1][x] = Tile.FALLING_STONE;
+          map[y][x] = Tile.AIR;
+        } else if ((map[y][x] === Tile.BOX || map[y][x] === Tile.FALLING_BOX) && map[y + 1][x] = Tile.AIR) {
+          map[y + 1][x] = Tile.FALLING_BOX;
+          map[y][x] = Tile.AIR;
+        } else if (map[y][x] === Tile.FALLING_STONE) {
+          map[y][x] = Tile.STONE;
+        } else if (map[y][x] === Tile.FALLING_BOX) {
+          map[y][x] = Tile.BOX;
+        }
+      }
+    }
+  }
+  ```
+
+    - 분리할 함수들의 네이밍 과정
+      1. 두 부분에서 각각 지배적인 역할을 하는 변수, 단어를 찾는다: `input`, `map`
+      2. 각각을 우선 임의로 `updateInput`, `updateMap`으로 이름을 붙인다.
+      3. `updateMap`은 정상적으로 명명된것으로 보임. 그러나 `updateInput`의 경우, 일반적으로 input값을 수정하지는 않으므로 `handleInputs`로 변경한다.
+    - 이 처럼 함수의 네이밍을 할 때에는, 함수가 더 작아지는 경우를 고려해야 한다.
+
+  ```ts
+  // after
+  function update() {
+    handleInputs();
+    updateMap();
+  }
+
+  function handleInputs() {
+    while (inputs.length > 0) {
+      let current = inputs.pop();
+      if (current === Input.LEFT)
+        moveHorizontal(-1);
+      else if (current === Input.RIGHT)
+        moveHorizontal(1);
+      else if (current === Input.UP)
+        moveVertical(-1);
+      else if (current === Input.DOWN)
+        moveVertical(1);
+    }
+  }
+
+  function updateMap() {
+    for (let y = map.length - 1; y >= 0; y--) {
+      for (let x = 0; x < map[y].length; x++) {
+        if ((map[y][x] === Tile.STONE || map[y][x] === Tile.FALLING_STONE) && map[y + 1][x] = Tile.AIR) {
+          map[y + 1][x] = Tile.FALLING_STONE;
+          map[y][x] = Tile.AIR;
+        } else if ((map[y][x] === Tile.BOX || map[y][x] === Tile.FALLING_BOX) && map[y + 1][x] = Tile.AIR) {
+          map[y + 1][x] = Tile.FALLING_BOX;
+          map[y][x] = Tile.AIR;
+        } else if (map[y][x] === Tile.FALLING_STONE) {
+          map[y][x] = Tile.STONE;
+        } else if (map[y][x] === Tile.FALLING_BOX) {
+          map[y][x] = Tile.BOX;
+        }
+      }
+    }
+  }
+  ```
+
 ### 3.5 너무 많은 일을 하는 함수 분리하기
 
 #### 3.5.1 규칙: if문은 함수의 시작에만 배치
 
+- 정의: if문이 있는 경우, if문은 함수의 시작에 위치해야 한다.
+- 설명
+  - 좋은 함수는 한가지 일만 하는 함수이다.
+  - if문은 무언가를 확인하는 일이고, 이는 한가지 일이다.
+  - 따라서 if문은 함수의 시작에 위치해야 한다.
+
+- 예시
+
+  ```ts
+  // 2에서 n까지의 소수를 출력하는 함수
+  // before
+  function reportPrime(n: number) {
+    for (let i = 2; i < n; i++)
+      if (isPrime(i))
+        console.log(`${i} is prime`);
+  }
+  ```
+
+    - 이 함수에는 두 가지 일이 존재함
+      1. 숫자를 순회한다.
+      2. 숫자가 소수인지 확인한다.
+
+  ```ts
+  // after
+  function reportPrime(n: number) {
+    for (let i = 2; i < n; i++) {
+      reportIfPrime(i);
+    }
+  }
+
+  function reportIfPrime(n: number): {
+    if (isPrime(n))
+      console.log(`${n} is prime`);
+  }
+  ```
+
 #### 3.5.2 규칙 적용
 
+- 이러한 규칙을 바탕으로 앞선 `updateMap`, `handleInputs`를 아래처럼 수정 할 수 있습니다.
+
+- `handleInputs`
+
+  ```ts
+  // after
+  function handleInputs() {
+    while (inputs.length > 0) {
+      let current = inputs.pop();
+      handleInput(current);
+    }
+  }
+
+  function handleInput(input: Input) {
+    if (input === Input.RIGHT)
+      moveHorizontal(1);
+    else if (input === Input.LEFT)
+      moveHorizontal(-1);
+    else if (input === Input.DOWN)
+      moveVertical(1);
+    else if (input === Input.UP)
+      moveVertical(-1);
+  }
+  ```
+
+    - 기존의 `current`라는 변수명은 루프 변수에서는 좋은 이름이지만, 이 경우에는 `input`이 더 적합하다.
+    - 함수를 분리함으로서 `handleInput` 함수 내에서 보다 더 적합한 이름을 사용할 수 있게 되었다.
+
 ### 요약
+
+- 다섯 줄 제한 규칙: 메서드는 다섯 줄 이내로 작성해야 한다.
+- 호출 또는 전달, 한 가지만 할 것: 하나의 메서드 내에서는 아래의 두 가지 일 중 하나만 수행해야 한다.
+  1. 객체에 있는 메서드를 호출한다.
+  2. 객체를 인자로 전달한다.
+- 메서드의 이름은 정직하고 완전하며 도메인에서 일하는 사람이 이해할 수 있어야 한다.
+  - 메서드 추출을 사용하면 가독성 향상을 위해 매개변수의 이름을 변경할 수 있다.
+- if문은 함수의 시작에만 배치한다.
+  - 조건을 확인하는 것 자체가 하나의 일이고, 함수는 하나의 일만 해야 한다.
+  - 따라서 조건문 외의 로직은 메서드 추출을 통해 분리해야 한다.
 
 ## 04장 타입 코드 처리하기
 
