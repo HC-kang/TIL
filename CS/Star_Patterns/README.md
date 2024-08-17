@@ -195,6 +195,44 @@ classDiagram
 
 ### 별 찍기 문제를 인터페이스로
 
+- 다이어그램
+
+  ```mermaid
+  classDiagram
+      class IPrintable {
+          <<interface>>
+          +printLine(line: string): void
+      }
+
+      class IStarPattern {
+          <<interface>>
+          +printPattern(height: number): void
+      }
+
+      class RightAlignedStarPattern {
+          +printLine(line: string): void
+          +printPattern(height: number): void
+      }
+
+      class LeftAlignedStarPattern {
+          +printLine(line: string): void
+          +printPattern(height: number): void
+      }
+
+      class EquilateralStarPattern {
+          +printLine(line: string): void
+          +printPattern(height: number): void
+      }
+
+      RightAlignedStarPattern ..|> IPrintable
+      LeftAlignedStarPattern ..|> IPrintable
+      EquilateralStarPattern ..|> IPrintable
+
+      IStarPattern <|.. RightAlignedStarPattern
+      IStarPattern <|.. LeftAlignedStarPattern
+      IStarPattern <|.. EquilateralStarPattern
+  ```
+
 - 코드 [🔍 깃허브에서 보기](https://github.com/HC-kang/TIL/tree/main/CS/Star_Patterns/03_interface)
 
   ```ts
@@ -275,6 +313,43 @@ classDiagram
 그런 의미에서 이번에는 컴포지션을 사용해보겠습니다.
 
 ### 별 찍기 문제를 컴포지션으로
+
+- 다이어그램
+
+  ```mermaid
+  classDiagram
+    class IStarPattern {
+        <<interface>>
+        +printPattern(height: number): void
+    }
+
+    class Printable {
+        +printLine(line: string): void
+    }
+
+    class RightAlignedStarPattern {
+        +printPattern(height: number): void
+        -Printable printable
+    }
+
+    class LeftAlignedStarPattern {
+        +printPattern(height: number): void
+        -Printable printable
+    }
+
+    class EquilateralStarPattern {
+        +printPattern(height: number): void
+        -Printable printable
+    }
+
+    IStarPattern <|.. RightAlignedStarPattern
+    IStarPattern <|.. LeftAlignedStarPattern
+    IStarPattern <|.. EquilateralStarPattern
+
+    RightAlignedStarPattern --> Printable
+    LeftAlignedStarPattern --> Printable
+    EquilateralStarPattern --> Printable
+  ```
 
 - 코드 [🔍 깃허브에서 보기](https://github.com/HC-kang/TIL/tree/main/CS/Star_Patterns/04_composition)
 
@@ -370,6 +445,50 @@ DI는 의존성 주입이라고 흔히 말합니다.
 이를 통해 클래스는 생성하는 책임을 가지지 않고, 주입받은 클래스를 사용하는 책임만 가지게 됩니다.
 
 ### 별 찍기 문제를 컴포지션으로 + DI
+
+- 다이어그램
+
+  ```mermaid
+  classDiagram
+    class IPrintable {
+        <<interface>>
+        +printLine(line: string): void
+    }
+
+    class Printable {
+        +printLine(line: string): void
+    }
+
+    IPrintable <|.. Printable
+
+    class IStarPattern {
+        <<interface>>
+        +printPattern(height: number): void
+    }
+
+    class RightAlignedStarPattern {
+        +printPattern(height: number): void
+        -IPrintable printable
+    }
+
+    class LeftAlignedStarPattern {
+        +printPattern(height: number): void
+        -IPrintable printable
+    }
+
+    class EquilateralStarPattern {
+        +printPattern(height: number): void
+        -IPrintable printable
+    }
+
+    IStarPattern <|.. RightAlignedStarPattern
+    IStarPattern <|.. LeftAlignedStarPattern
+    IStarPattern <|.. EquilateralStarPattern
+
+    RightAlignedStarPattern --> IPrintable
+    LeftAlignedStarPattern --> IPrintable
+    EquilateralStarPattern --> IPrintable
+  ```
 
 - 코드 [🔍 깃허브에서 보기](https://github.com/HC-kang/TIL/tree/main/CS/Star_Patterns/05_composition_DI)
 
@@ -480,6 +599,89 @@ rightAlignedStarPattern.printPattern(5); // do nothing
 팩토리 패턴을 정말 단순하게 설명하자면, 이름 그대로 뭔가를 만드는 공장입니다.  
 여기서는 별과 공백이 이어지는 문자열을 만들어주는 공장이라고 생각하시면 됩니다.
 
+- 다이어그램
+
+  ```mermaid
+  classDiagram
+    class IPrintable {
+        <<interface>>
+        +printLine(line: string): void
+    }
+
+    class Printable {
+        +printLine(line: string): void
+    }
+
+    IPrintable <|.. Printable
+
+    class IStarFactory {
+        <<interface>>
+        +createStar(count: number): string
+    }
+
+    class ISpaceFactory {
+        <<interface>>
+        +createSpace(count: number): string
+    }
+
+    class SimpleStarFactory {
+        +createStar(count: number): string
+    }
+
+    class EmojiStarFactory {
+        +createStar(count: number): string
+    }
+
+    class SimpleSpaceFactory {
+        +createSpace(count: number): string
+    }
+
+    class IStarPattern {
+        <<interface>>
+        +printPattern(height: number): void
+    }
+
+    class RightAlignedStarPattern {
+        +printPattern(height: number): void
+        -IPrintable printable
+        -IStarFactory starFactory
+        -ISpaceFactory spaceFactory
+    }
+
+    class LeftAlignedStarPattern {
+        +printPattern(height: number): void
+        -IPrintable printable
+        -IStarFactory starFactory
+        -ISpaceFactory spaceFactory
+    }
+
+    class EquilateralStarPattern {
+        +printPattern(height: number): void
+        -IPrintable printable
+        -IStarFactory starFactory
+        -ISpaceFactory spaceFactory
+    }
+
+    IStarFactory <|.. SimpleStarFactory
+    IStarFactory <|.. EmojiStarFactory
+    ISpaceFactory <|.. SimpleSpaceFactory
+
+    IStarPattern <|.. RightAlignedStarPattern
+    IStarPattern <|.. LeftAlignedStarPattern
+    IStarPattern <|.. EquilateralStarPattern
+
+    RightAlignedStarPattern --> IStarFactory
+    RightAlignedStarPattern --> ISpaceFactory
+    LeftAlignedStarPattern --> IStarFactory
+    LeftAlignedStarPattern --> ISpaceFactory
+    EquilateralStarPattern --> IStarFactory
+    EquilateralStarPattern --> ISpaceFactory
+
+    RightAlignedStarPattern --> IPrintable
+    LeftAlignedStarPattern --> IPrintable
+    EquilateralStarPattern --> IPrintable
+  ```
+
 - 코드 [🔍 깃허브에서 보기](https://github.com/HC-kang/TIL/tree/main/CS/Star_Patterns/06_factory_pattern)
 
   ```ts
@@ -523,7 +725,7 @@ rightAlignedStarPattern.printPattern(5); // do nothing
   // RightAlignedStarPattern.ts
   export class RightAlignedStarPattern implements IStarPattern {
     constructor(
-      private printable: Printable,
+      private printable: IPrintable,
       private starFactory: IStarFactory,
       private spaceFactory: ISpaceFactory,
     ) {}
@@ -540,7 +742,7 @@ rightAlignedStarPattern.printPattern(5); // do nothing
   // LeftAlignedStarPattern.ts
   export class LeftAlignedStarPattern implements IStarPattern {
     constructor(
-      private printable: Printable,
+      private printable: IPrintable,
       private starFactory: IStarFactory,
       private spaceFactory: ISpaceFactory,
     ) {}
@@ -557,7 +759,7 @@ rightAlignedStarPattern.printPattern(5); // do nothing
   // EquilateralStarPattern.ts
   export class EquilateralStarPattern implements IStarPattern {
     constructor(
-      private printable: Printable,
+      private printable: IPrintable,
       private starFactory: IStarFactory,
       private spaceFactory: ISpaceFactory,
     ) {}
@@ -624,6 +826,83 @@ rightAlignedStarPattern.printPattern(5); // do nothing
 
 그치만 새로 생긴 문제점 하나는 치우고 가야겠습니다. 팩토리가 생기면서 각 스타 패턴 클래스는 생성자에서 너무 많은 인자를 받게 되었습니다.  
 이렇게 되면 인터페이스만으로는 통일된 형태를 강제하기 어렵습니다. 이를 해결하기 위해 다시 추상 클래스를 사용해야겠어요.
+
+- 다이어그램
+
+  ```mermaid
+  classDiagram
+    class IPrintable {
+        <<interface>>
+        +printLine(line: string): void
+    }
+
+    class Printable {
+        +printLine(line: string): void
+    }
+
+    Printable ..|> IPrintable
+
+    class IStarFactory {
+        <<interface>>
+        +createStar(count: number): string
+    }
+
+    class ISpaceFactory {
+        <<interface>>
+        +createSpace(count: number): string
+    }
+
+    class SimpleStarFactory {
+        +createStar(count: number): string
+    }
+
+    class EmojiStarFactory {
+        +createStar(count: number): string
+    }
+
+    class SimpleSpaceFactory {
+        +createSpace(count: number): string
+    }
+
+    class StarPattern {
+        <<abstract>>
+        +printPattern(height: number): void
+        #Printable printable
+        #IStarFactory starFactory
+        #ISpaceFactory spaceFactory
+    }
+
+    class RightAlignedStarPattern {
+        +printPattern(height: number): void
+    }
+
+    class LeftAlignedStarPattern {
+        +printPattern(height: number): void
+    }
+
+    class EquilateralStarPattern {
+        +printPattern(height: number): void
+    }
+
+    IStarFactory <|.. SimpleStarFactory
+    IStarFactory <|.. EmojiStarFactory
+    ISpaceFactory <|.. SimpleSpaceFactory
+
+    StarPattern <|-- RightAlignedStarPattern
+    StarPattern <|-- LeftAlignedStarPattern
+    StarPattern <|-- EquilateralStarPattern
+
+    RightAlignedStarPattern --> IStarFactory
+    RightAlignedStarPattern --> ISpaceFactory
+    LeftAlignedStarPattern --> IStarFactory
+    LeftAlignedStarPattern --> ISpaceFactory
+    EquilateralStarPattern --> IStarFactory
+    EquilateralStarPattern --> ISpaceFactory
+
+    RightAlignedStarPattern --> Printable
+    LeftAlignedStarPattern --> Printable
+    EquilateralStarPattern --> Printable
+  ```
 
 - 코드 [🔍 깃허브에서 보기](https://github.com/HC-kang/TIL/tree/main/CS/Star_Patterns/06-1_factory_pattern)
 
@@ -754,6 +1033,105 @@ equilateralStarPattern.printPattern(5);
 커맨드 패턴은 요청을 객체로 캡슐화하여 사용자가 보낸 요청을 나중에(언제든?) 이용할 수 있도록 하는 패턴입니다.
 더욱 간단하게 말하자면, 사용자가 '딸깍' 하면 '컴퓨터가 켜진다'등의 동작이 발생하게 만드는 것이라고 볼 수 있습니다.
 
+- 다이어그램
+
+  ```mermaid
+  classDiagram
+    class IPrintable {
+        <<interface>>
+        +printLine(line: string): void
+    }
+
+    class Printable {
+        +printLine(line: string): void
+    }
+
+    IPrintable <|.. Printable
+
+    class ICommand {
+        <<interface>>
+        +execute(): void
+    }
+
+    class PrintPatternCommand {
+        +execute(): void
+        -StarPattern pattern
+        -int height
+    }
+
+    class PatternPrinter {
+        -ICommand command
+        +setCommand(command: ICommand): void
+        +print(): void
+    }
+
+    class IStarFactory {
+        <<interface>>
+        +createStar(count: number): string
+    }
+
+    class ISpaceFactory {
+        <<interface>>
+        +createSpace(count: number): string
+    }
+
+    class SimpleStarFactory {
+        +createStar(count: number): string
+    }
+
+    class EmojiStarFactory {
+        +createStar(count: number): string
+    }
+
+    class SimpleSpaceFactory {
+        +createSpace(count: number): string
+    }
+
+    class StarPattern {
+        <<abstract>>
+        +printPattern(height: number): void
+        #IPrintable printable
+        #IStarFactory starFactory
+        #ISpaceFactory spaceFactory
+    }
+
+    class RightAlignedStarPattern {
+        +printPattern(height: number): void
+    }
+
+    class LeftAlignedStarPattern {
+        +printPattern(height: number): void
+    }
+
+    class EquilateralStarPattern {
+        +printPattern(height: number): void
+    }
+
+    ICommand <|.. PrintPatternCommand
+    PrintPatternCommand --> StarPattern
+    PatternPrinter --> ICommand
+
+    IStarFactory <|.. SimpleStarFactory
+    IStarFactory <|.. EmojiStarFactory
+    ISpaceFactory <|.. SimpleSpaceFactory
+
+    StarPattern <|-- RightAlignedStarPattern
+    StarPattern <|-- LeftAlignedStarPattern
+    StarPattern <|-- EquilateralStarPattern
+
+    RightAlignedStarPattern --> IStarFactory
+    RightAlignedStarPattern --> ISpaceFactory
+    LeftAlignedStarPattern --> IStarFactory
+    LeftAlignedStarPattern --> ISpaceFactory
+    EquilateralStarPattern --> IStarFactory
+    EquilateralStarPattern --> ISpaceFactory
+
+    RightAlignedStarPattern --> IPrintable
+    LeftAlignedStarPattern --> IPrintable
+    EquilateralStarPattern --> IPrintable
+
+  ```
+
 - 코드 [🔍 깃허브에서 보기](https://github.com/HC-kang/TIL/tree/main/CS/Star_Patterns/07_command_pattern)
 
   ```ts
@@ -831,6 +1209,231 @@ equilateralStarPattern.printPattern(5);
 
 빌더 패턴은 복잡한 객체를 생성하는 과정을 캡슐화하여 정해진 순서나 조건에 따라 객체를 생성할 수 있도록 하는 패턴입니다.
 이는 직접 보여드리는게 더 이해가 빠를 것 같아 코드를 보여드리겠습니다.
+
+- 다이어그램
+
+  ```mermaid
+  classDiagram
+    class StarPattern {
+        <<abstract>>
+        -IPrintable printable
+        -IStarFactory starFactory
+        -ISpaceFactory spaceFactory
+        +printPattern(height: number): void
+    }
+
+    class EquilateralStarPattern {
+        +printPattern(height: number): void
+    }
+
+    class RightAlignedStarPattern {
+        +printPattern(height: number): void
+    }
+
+    class LeftAlignedStarPattern {
+        +printPattern(height: number): void
+    }
+
+    StarPattern <|-- EquilateralStarPattern
+    StarPattern <|-- RightAlignedStarPattern
+    StarPattern <|-- LeftAlignedStarPattern
+
+    class IPrintable {
+        <<interface>>
+        +printLine(line: string): void
+    }
+
+    class Printable {
+        +printLine(line: string): void
+    }
+
+    IPrintable <|.. Printable
+
+    class IStarFactory {
+        <<interface>>
+        +createStar(count: number): string
+    }
+
+    class ISpaceFactory {
+        <<interface>>
+        +createSpace(count: number): string
+    }
+
+    class SimpleStarFactory {
+        +createStar(count: number): string
+    }
+
+    class EmojiStarFactory {
+        +createStar(count: number): string
+    }
+
+    class SimpleSpaceFactory {
+        +createSpace(count: number): string
+    }
+
+    IStarFactory <|.. SimpleStarFactory
+    IStarFactory <|.. EmojiStarFactory
+
+    ISpaceFactory <|.. SimpleSpaceFactory
+
+    class ICommand {
+        <<interface>>
+        +execute(): void
+    }
+
+    class PrintPatternCommand {
+        -StarPattern pattern
+        -number height
+        +execute(): void
+    }
+
+    ICommand <|.. PrintPatternCommand
+
+    class PatternPrinter {
+        -ICommand command
+        +setCommand(command: ICommand): void
+        +print(): void
+    }
+
+    class PatternPrinterBuilder {
+        -IPrintable printable
+        -IStarFactory starFactory
+        -ISpaceFactory spaceFactory
+        -StarPattern patternClass
+        -number height
+        +setStarFactory(starFactory: IStarFactory): PatternPrinterBuilder
+        +setSpaceFactory(spaceFactory: ISpaceFactory): PatternPrinterBuilder
+        +setPatternType(patternClass: StarPattern): PatternPrinterBuilder
+        +setHeight(height: number): PatternPrinterBuilder
+        +build(): PatternPrinter
+    }
+
+    PatternPrinterBuilder --> PatternPrinter
+    PatternPrinter --> ICommand
+    PrintPatternCommand --> StarPattern
+    PatternPrinterBuilder --> IPrintable
+    PatternPrinterBuilder --> IStarFactory
+    PatternPrinterBuilder --> ISpaceFactory
+  ```
+
+  - 분할 1: `PatternPrinterBuilder`
+
+    ```mermaid
+    classDiagram
+        class IPrintable {
+            <<interface>>
+            +printLine(line: string): void
+        }
+
+        class Printable {
+            +printLine(line: string): void
+        }
+
+        IPrintable <|.. Printable
+
+        class IStarFactory {
+            <<interface>>
+            +createStar(count: number): string
+        }
+
+        class ISpaceFactory {
+            <<interface>>
+            +createSpace(count: number): string
+        }
+
+        class SimpleStarFactory {
+            +createStar(count: number): string
+        }
+
+        class EmojiStarFactory {
+            +createStar(count: number): string
+        }
+
+        class SimpleSpaceFactory {
+            +createSpace(count: number): string
+        }
+
+        IStarFactory <|.. SimpleStarFactory
+        IStarFactory <|.. EmojiStarFactory
+
+        ISpaceFactory <|.. SimpleSpaceFactory
+
+        class PatternPrinter {
+            -ICommand command
+            +setCommand(command: ICommand): void
+            +print(): void
+        }
+
+        class PatternPrinterBuilder {
+            -IPrintable printable
+            -IStarFactory starFactory
+            -ISpaceFactory spaceFactory
+            -StarPattern patternClass
+            -number height
+            +setStarFactory(starFactory: IStarFactory): PatternPrinterBuilder
+            +setSpaceFactory(spaceFactory: ISpaceFactory): PatternPrinterBuilder
+            +setPatternType(patternClass: StarPattern): PatternPrinterBuilder
+            +setHeight(height: number): PatternPrinterBuilder
+            +build(): PatternPrinter
+        }
+
+        PatternPrinterBuilder --> PatternPrinter
+        PatternPrinterBuilder --> IPrintable
+        PatternPrinterBuilder --> IStarFactory
+        PatternPrinterBuilder --> ISpaceFactory
+    ```
+
+  - 분할 2: `PatternPrinter`
+
+    ```mermaid
+    classDiagram
+        class StarPattern {
+            <<abstract>>
+            -IPrintable printable
+            -IStarFactory starFactory
+            -ISpaceFactory spaceFactory
+            +printPattern(height: number): void
+        }
+
+        class EquilateralStarPattern {
+            +printPattern(height: number): void
+        }
+
+        class RightAlignedStarPattern {
+            +printPattern(height: number): void
+        }
+
+        class LeftAlignedStarPattern {
+            +printPattern(height: number): void
+        }
+
+        StarPattern <|-- EquilateralStarPattern
+        StarPattern <|-- RightAlignedStarPattern
+        StarPattern <|-- LeftAlignedStarPattern
+
+        class ICommand {
+            <<interface>>
+            +execute(): void
+        }
+
+        class PrintPatternCommand {
+            -StarPattern pattern
+            -number height
+            +execute(): void
+        }
+
+        ICommand <|.. PrintPatternCommand
+
+        class PatternPrinter {
+            -ICommand command
+            +setCommand(command: ICommand): void
+            +print(): void
+        }
+
+        PatternPrinter --> ICommand
+        PrintPatternCommand --> StarPattern
+
+    ```
 
 - 코드 [🔍 깃허브에서 보기](https://github.com/HC-kang/TIL/tree/main/CS/Star_Patterns/08_builder_pattern)
 

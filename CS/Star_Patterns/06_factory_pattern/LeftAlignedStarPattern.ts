@@ -1,11 +1,11 @@
 import { IStarPattern } from './IStarPattern';
-import { Printable } from './Printable';
+import { IPrintable } from './IPrintable';
 import { IStarFactory } from './IStarFactory';
 import { ISpaceFactory } from './ISpaceFactory';
 
 export class LeftAlignedStarPattern implements IStarPattern {
   constructor(
-    private printable: Printable,
+    private printable: IPrintable,
     private starFactory: IStarFactory,
     private spaceFactory: ISpaceFactory
   ) {}

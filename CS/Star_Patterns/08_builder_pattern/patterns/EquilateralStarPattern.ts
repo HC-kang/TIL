@@ -1,11 +1,11 @@
 import { ISpaceFactory } from '../factories/ISpaceFactory';
 import { IStarFactory } from '../factories/IStarFactory';
-import { Printable } from '../printers/Printable';
+import { IPrintable } from '../printers/IPrintable';
 import { StarPattern } from './StarPattern';
 
 export class EquilateralStarPattern extends StarPattern {
   constructor(
-    protected printable: Printable,
+    protected printable: IPrintable,
     protected starFactory: IStarFactory,
     protected spaceFactory: ISpaceFactory
   ) {
