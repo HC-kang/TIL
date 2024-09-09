@@ -1,0 +1,22 @@
+classDiagram
+    class BaseStarPattern {
+        # height: number
+        + printPattern(): void
+        # printLine(line: string): void
+    }
+
+    class RightAlignedStarPattern {
+        + printPattern(): void
+    }
+
+    class LeftAlignedStarPattern {
+        + printPattern(): void
+    }
+
+    class EquilateralStarPattern {
+        + printPattern(): void
+    }
+
+    BaseStarPattern <|-- RightAlignedStarPattern
+    BaseStarPattern <|-- LeftAlignedStarPattern
+    BaseStarPattern <|-- EquilateralStarPattern

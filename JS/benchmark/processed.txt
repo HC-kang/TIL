@@ -1,0 +1,212 @@
+Statistical profiling result from isolate-0x158008000-85612-v8.log, (484 ticks, 81 unaccounted, 0 excluded).
+
+ [Shared libraries]:
+   ticks  total  nonlib   name
+
+ [JavaScript]:
+   ticks  total  nonlib   name
+    393   81.2%   81.2%  JS: *<anonymous> /Users/heechan/projects/personal/TIL/JS/benchmark/index.js:1:1
+      5    1.0%    1.0%  JS: +<anonymous> /Users/heechan/projects/personal/TIL/JS/benchmark/index.js:1:1
+      2    0.4%    0.4%  JS: +testFunction /Users/heechan/projects/personal/TIL/JS/benchmark/index.js:1:22
+      1    0.2%    0.2%  JS: ^testFunction /Users/heechan/projects/personal/TIL/JS/benchmark/index.js:1:22
+      1    0.2%    0.2%  Builtin: JSEntry
+      1    0.2%    0.2%  Builtin: InterpreterEntryTrampoline
+
+ [C++]:
+   ticks  total  nonlib   name
+
+ [Summary]:
+   ticks  total  nonlib   name
+    403   83.3%   83.3%  JavaScript
+      0    0.0%    0.0%  C++
+      1    0.2%    0.2%  GC
+      0    0.0%          Shared libraries
+     81   16.7%          Unaccounted
+
+ [C++ entry points]:
+   ticks    cpp   total   name
+
+ [Bottom up (heavy) profile]:
+  Note: percentage shows a share of a particular caller in the total
+  amount of its parent calls.
+  Callers occupying less than 1.0% are not shown.
+
+   ticks parent  name
+    393   81.2%  JS: *<anonymous> /Users/heechan/projects/personal/TIL/JS/benchmark/index.js:1:1
+    393  100.0%    JS: ~Module._compile node:internal/modules/cjs/loader:1374:37
+    393  100.0%      JS: ~Module._extensions..js node:internal/modules/cjs/loader:1467:37
+    393  100.0%        JS: ~Module.load node:internal/modules/cjs/loader:1236:33
+    393  100.0%          JS: ~Module._load node:internal/modules/cjs/loader:977:24
+    393  100.0%            JS: ~executeUserEntryPoint node:internal/modules/run_main:149:31
+
+     81   16.7%  UNKNOWN
+     19   23.5%    JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+     19  100.0%      JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      4   21.1%        JS: ~<anonymous> node:internal/streams/duplex:1:1
+      4  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      4  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      3   15.8%        JS: ~<anonymous> node:tty:1:1
+      3  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      3  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      3   15.8%        JS: ~<anonymous> node:net:1:1
+      3  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      3  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      2   10.5%        JS: ~createWritableStdioStream node:internal/bootstrap/switches/is_main_thread:50:35
+      2  100.0%          JS: ~getStdout node:internal/bootstrap/switches/is_main_thread:151:19
+      2  100.0%            JS: ~get node:internal/console/constructor:215:14
+      2   10.5%        JS: ~<anonymous> node:stream:1:1
+      2  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      2  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    5.3%        JS: ~lazyUtilColors node:internal/console/constructor:85:24
+      1  100.0%          JS: ~value node:internal/console/constructor:326:20
+      1  100.0%            JS: ~value node:internal/console/constructor:346:20
+      1    5.3%        JS: ~<anonymous> node:internal/streams/readable:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    5.3%        JS: ~<anonymous> node:internal/streams/pipeline:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    5.3%        JS: ~<anonymous> node:internal/streams/end-of-stream:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    5.3%        JS: ~<anonymous> node:internal/streams/compose:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      4    4.9%    JS: ~patchProcessObject node:internal/process/pre_execution:217:28
+      4  100.0%      JS: ~prepareExecution node:internal/process/pre_execution:95:26
+      4  100.0%        JS: ~prepareMainThreadExecution node:internal/process/pre_execution:51:36
+      4  100.0%          JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      4    4.9%    JS: ~normalizeString node:path:66:25
+      4  100.0%      JS: ~resolve node:path:1095:10
+      4  100.0%        JS: ~patchProcessObject node:internal/process/pre_execution:217:28
+      4  100.0%          JS: ~prepareExecution node:internal/process/pre_execution:95:26
+      4  100.0%            JS: ~prepareMainThreadExecution node:internal/process/pre_execution:51:36
+      3    3.7%    JS: ~toRealPath node:internal/modules/helpers:49:20
+      3  100.0%      JS: ~Module._findPath node:internal/modules/cjs/loader:627:28
+      3  100.0%        JS: ~resolveMainPath node:internal/modules/run_main:28:25
+      3  100.0%          JS: ~executeUserEntryPoint node:internal/modules/run_main:149:31
+      3  100.0%            JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      2    2.5%    JS: ~value node:internal/console/constructor:346:20
+      2  100.0%      JS: ~log node:internal/console/constructor:385:6
+      2  100.0%        Builtin: CallApiCallbackGeneric
+      2  100.0%          JS: ~<anonymous> /Users/heechan/projects/personal/TIL/JS/benchmark/index.js:1:1
+      2  100.0%            JS: ~Module._compile node:internal/modules/cjs/loader:1374:37
+      2    2.5%    JS: ~realpathSync node:fs:2632:22
+      2  100.0%      JS: ~toRealPath node:internal/modules/helpers:49:20
+      2  100.0%        JS: ~Module._findPath node:internal/modules/cjs/loader:627:28
+      2  100.0%          JS: ~resolveMainPath node:internal/modules/run_main:28:25
+      2  100.0%            JS: ~executeUserEntryPoint node:internal/modules/run_main:149:31
+      2    2.5%    JS: ~prepareExecution node:internal/process/pre_execution:95:26
+      2  100.0%      JS: ~prepareMainThreadExecution node:internal/process/pre_execution:51:36
+      2  100.0%        JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      2    2.5%    JS: ~initializeCJSLoader node:internal/process/pre_execution:637:29
+      2  100.0%      JS: ~setupUserModules node:internal/process/pre_execution:184:26
+      2  100.0%        JS: ~prepareExecution node:internal/process/pre_execution:95:26
+      2  100.0%          JS: ~prepareMainThreadExecution node:internal/process/pre_execution:51:36
+      2  100.0%            JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      2    2.5%    JS: ~WriteStream node:tty:89:21
+      2  100.0%      JS: ~createWritableStdioStream node:internal/bootstrap/switches/is_main_thread:50:35
+      2  100.0%        JS: ~getStdout node:internal/bootstrap/switches/is_main_thread:151:19
+      2  100.0%          JS: ~get node:internal/console/constructor:215:14
+      2  100.0%            JS: ~value node:internal/console/constructor:346:20
+      1    1.2%    JS: ~value node:internal/console/constructor:278:20
+      1  100.0%      JS: ~log node:internal/console/constructor:385:6
+      1  100.0%        Builtin: CallApiCallbackGeneric
+      1  100.0%          JS: ~<anonymous> /Users/heechan/projects/personal/TIL/JS/benchmark/index.js:1:1
+      1  100.0%            JS: ~Module._compile node:internal/modules/cjs/loader:1374:37
+      1    1.2%    JS: ~shouldColorize node:internal/util/colors:17:17
+      1  100.0%      JS: ~refresh node:internal/util/colors:25:10
+      1  100.0%        JS: ~<anonymous> node:internal/util/colors:1:1
+      1  100.0%          JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%            JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1    1.2%    JS: ~setupDebugEnv node:internal/process/pre_execution:418:23
+      1  100.0%      JS: ~prepareExecution node:internal/process/pre_execution:95:26
+      1  100.0%        JS: ~prepareMainThreadExecution node:internal/process/pre_execution:51:36
+      1  100.0%          JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    1.2%    JS: ~resolveMainPath node:internal/modules/run_main:28:25
+      1  100.0%      JS: ~executeUserEntryPoint node:internal/modules/run_main:149:31
+      1  100.0%        JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    1.2%    JS: ~resolve node:path:1095:10
+      1  100.0%      JS: ~Module._initPaths node:internal/modules/cjs/loader:1601:29
+      1  100.0%        JS: ~initializeCJS node:internal/modules/cjs/loader:383:23
+      1  100.0%          JS: ~initializeCJSLoader node:internal/process/pre_execution:637:29
+      1  100.0%            JS: ~setupUserModules node:internal/process/pre_execution:184:26
+      1    1.2%    JS: ~refreshRuntimeOptions node:internal/process/pre_execution:206:31
+      1  100.0%      JS: ~prepareExecution node:internal/process/pre_execution:95:26
+      1  100.0%        JS: ~prepareMainThreadExecution node:internal/process/pre_execution:51:36
+      1  100.0%          JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    1.2%    JS: ~nextTick node:internal/process/task_queues:103:18
+      1  100.0%      JS: ~onwrite node:internal/streams/writable:607:17
+      1  100.0%        JS: ~afterWriteDispatched node:internal/stream_base_commons:156:30
+      1  100.0%          JS: ~writeGeneric node:internal/stream_base_commons:148:22
+      1  100.0%            JS: ~Socket._writeGeneric node:net:922:42
+      1    1.2%    JS: ~initializeSourceMapsHandlers node:internal/process/pre_execution:659:38
+      1  100.0%      JS: ~prepareExecution node:internal/process/pre_execution:95:26
+      1  100.0%        JS: ~prepareMainThreadExecution node:internal/process/pre_execution:51:36
+      1  100.0%          JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    1.2%    JS: ~initializeESMLoader node:internal/process/pre_execution:642:29
+      1  100.0%      JS: ~setupUserModules node:internal/process/pre_execution:184:26
+      1  100.0%        JS: ~prepareExecution node:internal/process/pre_execution:95:26
+      1  100.0%          JS: ~prepareMainThreadExecution node:internal/process/pre_execution:51:36
+      1  100.0%            JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    1.2%    JS: ~initializeCJS node:internal/modules/cjs/loader:383:23
+      1  100.0%      JS: ~initializeCJSLoader node:internal/process/pre_execution:637:29
+      1  100.0%        JS: ~setupUserModules node:internal/process/pre_execution:184:26
+      1  100.0%          JS: ~prepareExecution node:internal/process/pre_execution:95:26
+      1  100.0%            JS: ~prepareMainThreadExecution node:internal/process/pre_execution:51:36
+      1    1.2%    JS: ~findLongestRegisteredExtension node:internal/modules/cjs/loader:506:40
+      1  100.0%      JS: ~Module.load node:internal/modules/cjs/loader:1236:33
+      1  100.0%        JS: ~Module._load node:internal/modules/cjs/loader:977:24
+      1  100.0%          JS: ~executeUserEntryPoint node:internal/modules/run_main:149:31
+      1  100.0%            JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    1.2%    JS: ~emitAfterScript node:internal/async_hooks:517:25
+      1  100.0%      JS: ~processTicksAndRejections node:internal/process/task_queues:67:35
+      1    1.2%    JS: ~assertEncoding node:internal/fs/utils:158:24
+      1  100.0%      JS: ~getOptions node:internal/fs/utils:324:20
+      1  100.0%        JS: ~readFileSync node:fs:441:22
+      1  100.0%          JS: ~getMaybeCachedSource node:internal/modules/cjs/loader:1448:30
+      1  100.0%            JS: ~Module._extensions..js node:internal/modules/cjs/loader:1467:37
+      1    1.2%    JS: ~_write node:internal/streams/writable:445:16
+      1  100.0%      JS: ~Writable.write node:internal/streams/writable:496:36
+      1  100.0%        JS: ~value node:internal/console/constructor:278:20
+      1  100.0%          JS: ~log node:internal/console/constructor:385:6
+      1  100.0%            Builtin: CallApiCallbackGeneric
+      1    1.2%    JS: ~Module._extensions..js node:internal/modules/cjs/loader:1467:37
+      1  100.0%      JS: ~Module.load node:internal/modules/cjs/loader:1236:33
+      1  100.0%        JS: ~Module._load node:internal/modules/cjs/loader:977:24
+      1  100.0%          JS: ~executeUserEntryPoint node:internal/modules/run_main:149:31
+      1  100.0%            JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    1.2%    JS: ~<anonymous> node:net:1:1
+      1  100.0%      JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%        JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1  100.0%          JS: ~<anonymous> node:tty:1:1
+      1  100.0%            JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1    1.2%    JS: ~<anonymous> node:internal/main/run_main_module:1:1
+      1    1.2%    JS: ~<anonymous> node:internal/abort_controller:1:1
+      1  100.0%      JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1  100.0%        JS: ^requireBuiltin node:internal/bootstrap/realm:420:24
+      1  100.0%          JS: ~<anonymous> node:internal/streams/operators:1:1
+      1  100.0%            JS: ^compileForInternalLoader node:internal/bootstrap/realm:383:27
+      1    1.2%    JS: ~<anonymous> /Users/heechan/projects/personal/TIL/JS/benchmark/index.js:1:1
+      1  100.0%      JS: ~Module._compile node:internal/modules/cjs/loader:1374:37
+      1  100.0%        JS: ~Module._extensions..js node:internal/modules/cjs/loader:1467:37
+      1  100.0%          JS: ~Module.load node:internal/modules/cjs/loader:1236:33
+      1  100.0%            JS: ~Module._load node:internal/modules/cjs/loader:977:24
+      1    1.2%    JS: ^wrappedFn node:internal/errors:535:21
+      1  100.0%      JS: ~realpathSync node:fs:2632:22
+      1  100.0%        JS: ~toRealPath node:internal/modules/helpers:49:20
+      1  100.0%          JS: ~Module._findPath node:internal/modules/cjs/loader:627:28
+      1  100.0%            JS: ~resolveMainPath node:internal/modules/run_main:28:25
+      1    1.2%    JS: ^normalizeString node:path:66:25
+      1  100.0%      JS: ^resolve node:path:1095:10
+      1  100.0%        JS: ~Module._nodeModulePaths node:internal/modules/cjs/loader:810:37
+      1  100.0%          JS: ~Module.load node:internal/modules/cjs/loader:1236:33
+      1  100.0%            JS: ~Module._load node:internal/modules/cjs/loader:977:24
+
+      5    1.0%  JS: +<anonymous> /Users/heechan/projects/personal/TIL/JS/benchmark/index.js:1:1
+      5  100.0%    JS: ~Module._compile node:internal/modules/cjs/loader:1374:37
+      5  100.0%      JS: ~Module._extensions..js node:internal/modules/cjs/loader:1467:37
+      5  100.0%        JS: ~Module.load node:internal/modules/cjs/loader:1236:33
+      5  100.0%          JS: ~Module._load node:internal/modules/cjs/loader:977:24
+      5  100.0%            JS: ~executeUserEntryPoint node:internal/modules/run_main:149:31
+

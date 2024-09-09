@@ -1,0 +1,17 @@
+{
+  "name": "compile",
+  "version": "1.0.0",
+  "description": "얼마 전, You don't know JS Yet라는 책을 꽤나 재미있게 읽었습니다. 그중에서도 저자가 주장했던 재미있는 부분을 하나 소개하고자 합니다.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/generator": "^7.24.7",
+    "@babel/parser": "^7.24.7",
+    "@babel/traverse": "^7.24.7"
+  }
+}

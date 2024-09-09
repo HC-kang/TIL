@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  - job_name: 'default-metrics'
+    static_configs:
+      - targets: ['default-metrics:3000']
+
+  - job_name: 'custom-metrics'
+    static_configs:
+      - targets: ['custom-metrics:3000']

@@ -1,0 +1,33 @@
+=== bad case ===
+--- 1회차 ---
+Bad case: 202.41725ms
+--- 2회차 ---
+Bad case: 201.478958ms
+--- 3회차 ---
+Bad case: 203.47116600000004ms
+--- 4회차 ---
+Bad case: 201.52175ms
+--- 5회차 ---
+Bad case: 206.63808299999994ms
+=== better case ===
+--- 1회차 ---
+Better case: 61.809292ms
+--- 2회차 ---
+Better case: 58.22912500000001ms
+--- 3회차 ---
+Better case: 57.93295800000001ms
+--- 4회차 ---
+Better case: 57.80870899999999ms
+--- 5회차 ---
+Better case: 58.250584ms
+=== best case ===
+--- 1회차 ---
+Best case: 13.181208000000002ms
+--- 2회차 ---
+Best case: 10.879542ms
+--- 3회차 ---
+Best case: 10.350458000000003ms
+--- 4회차 ---
+Best case: 10.300875000000005ms
+--- 5회차 ---
+Best case: 10.6755ms

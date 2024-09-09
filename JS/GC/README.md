@@ -85,4 +85,39 @@
 
     - Compacting: After sweeping, if required, all the survived objects will be moved to be together. This will decrease fragmentation and increase the performance of allocation of memory to newer objects.
 
-   
+## 메모리 누수를 일으키는 대표적인 방법
+
+### 1. 전역변수 사용
+
+- 전역변수는 프로그램이 종료될 때까지 메모리를 차지한다.
+- 전역변수를 사용할 때는 사용이 끝난 후에 null로 초기화하여 메모리를 해제해야한다.
+
+### 2. 클로저 사용
+
+- 클로저는 외부함수의 변수에 접근할 수 있는 내부함수를 말한다.
+- 클로저는 외부함수의 변수를 참조하고 있기 때문에 외부함수의 변수가 메모리에서 해제되지 않는다.
+
+### 3. 해제되지 않는 이벤트 리스너
+
+- 이벤트 리스너를 등록하면 이벤트가 발생할 때까지 메모리를 차지한다.
+- 이벤트 리스너를 등록할 때는 이벤트 리스너를 해제하는 함수를 만들어야한다.
+
+### 4. 해제되지 않는 타이머
+
+- 타이머를 등록하면 타이머가 종료될 때까지 메모리를 차지한다.
+- 타이머를 등록할 때는 타이머를 해제하는 함수를 만들어야한다.
+
+### 5. 해제되지 않는 파일 디스크립터
+
+- 파일 디스크립터를 열면 파일 디스크립터가 닫힐 때까지 메모리를 차지한다.
+- 파일 디스크립터를 열 때는 파일 디스크립터를 닫는 함수를 만들어야한다.
+
+## 메모리 누수를 탐지하는 방법
+
+### 1. node --trace_gc index.js
+
+### 2. node --inspect index.js
+
+### 3. javascript debug terminal
+
+### 4. pm2 monit

@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  outer-container:
+    build: .
+    privileged: true
+    volumes:
+      - ./shared:/usr/src/app/shared
+    ports:
+      - "3000:3000"
+
+volumes:
+  docker-data:

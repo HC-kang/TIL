@@ -1,0 +1,8 @@
+Running 1m test @ http://3.38.115.80:3000/network
+  32 threads and 400 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    87.59ms   25.42ms 353.91ms   88.24%
+    Req/Sec   137.63     30.45   242.00     74.81%
+  263171 requests in 1.00m, 63.50MB read
+Requests/sec:   4378.28
+Transfer/sec:      1.06MB

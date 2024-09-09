@@ -1,0 +1,10 @@
+Running 1m test @ http://3.36.78.116:3000/disk-io
+  3 threads and 4 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.07s   233.42ms   1.84s    75.61%
+    Req/Sec     0.19      0.44     2.00     83.03%
+  165 requests in 1.00m, 48.83KB read
+  Socket errors: connect 0, read 0, write 0, timeout 1
+  Non-2xx or 3xx responses: 81
+Requests/sec:      2.75
+Transfer/sec:     831.90B
