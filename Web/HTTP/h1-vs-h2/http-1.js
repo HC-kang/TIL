@@ -1,17 +1,17 @@
 import https from 'https';
 import fs from 'fs';
-import path from 'path';
+import { dirname, join } from 'path';
 import url from 'url';
 import { fileURLToPath } from 'url';
 
 // Helper to get __dirname in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Configuration for HTTPS
 const options = {
-  key: fs.readFileSync(path.join(__dirname, 'ssl', 'server.key')),
-  cert: fs.readFileSync(path.join(__dirname, 'ssl', 'server.crt')),
+  key: fs.readFileSync(join(__dirname, 'ssl', 'cert.key')),
+  cert: fs.readFileSync(join(__dirname, 'ssl', 'cert.crt')),
+  // ca: fs.readFileSync(join(__dirname, 'ssl', 'root.crt')),
 };
 
 const port = process.env.PORT || 3001;
@@ -27,7 +27,7 @@ const server = https.createServer(options, (req, res) => {
     res.end(JSON.stringify({ message: 'ok' }));
   } else if (pathname.startsWith('/img')) {
     // Static file serving for the /img directory
-    const filePath = path.join(__dirname, pathname);
+    const filePath = join(__dirname, pathname);
     fs.readFile(filePath, (err, data) => {
       if (err) {
         res.writeHead(404, { 'Content-Type': 'text/plain' });

@@ -779,9 +779,23 @@ return result * result;
 
 - 앞서 다룬 `handleInput`함수는 다섯 줄 제한 규칙을 준수하지 않기때문에, 이를 리팩토링 해야한다.
 
+- 초기 코드
+
+  ```ts
+  function handleInput(input: Input) {
+    if (input === Input.LEFT) moveHorizontal(-1);
+    else if (input === Input.RIGHT) moveHorizontal(1);
+    else if (input === Input.UP) moveVertical(-1);
+    else if (input === Input.DOWN) moveVertical(1);
+  }
+  ```
+
 ### 4.1 간단한 if문 리팩터링
 
 #### 4.1.1 규칙: if문에서 else를 사용하지 말 것
+
+- `프로그램에서 이해하지 못하는 타입 검사`를 제외한 경우에는 else를 사용하지 말라.
+  - `if-else`문은 하드코딩된 결정을 의미한다.
 
 #### 4.1.2 규칙 적용
 

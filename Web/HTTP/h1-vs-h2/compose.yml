@@ -25,18 +25,6 @@ services:
       - .:/app
     working_dir: /app
 
-  http3:
-    image: node
-    command: node --watch http-3.js
-    ports:
-      - "3003:3003"
-      - "8444:443"
-    networks:
-      - node_network
-    volumes:
-      - .:/app
-    working_dir: /app
-
   gateway:
     image: node
     command: node --watch http-gateway.js

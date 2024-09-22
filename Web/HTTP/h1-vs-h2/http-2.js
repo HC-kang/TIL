@@ -4,15 +4,15 @@ import url from 'url';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-// Get the directory name of the current module
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const port = process.env.PORT || 3002;
 
-// Configuration for HTTP/2
 const options = {
-  key: fs.readFileSync(join(__dirname, 'ssl', 'server.key')),
-  cert: fs.readFileSync(join(__dirname, 'ssl', 'server.crt')),
+  key: fs.readFileSync(join(__dirname, 'ssl', 'cert.key')),
+  cert: fs.readFileSync(join(__dirname, 'ssl', 'cert.crt')),
+  // ca: fs.readFileSync(join(__dirname, 'ssl', 'root.crt')),
+  allowHTTP1: false,
 };
 
 const server = http2.createSecureServer(options);
@@ -22,25 +22,43 @@ server.on('stream', (stream, headers) => {
   const pathname = parsedUrl.pathname;
 
   if (pathname === '/') {
-    // Root endpoint
     stream.respond({ 'content-type': 'application/json', ':status': 200 });
     stream.end(JSON.stringify({ message: 'ok' }));
   } else if (pathname.startsWith('/img')) {
-    // Static file serving for the /img directory
     const filePath = join(__dirname, pathname);
     fs.readFile(filePath, (err, data) => {
       if (err) {
         stream.respond({ 'content-type': 'text/plain', ':status': 404 });
         stream.end('404 Not Found');
       } else {
-        // Determine the content type based on file extension (simplified)
-        const contentType = 'image/jpeg'; // You can enhance this to detect various file types
+        // 파일 확장자에 따른 콘텐츠 타입 설정 (간단한 예시)
+        let contentType = 'application/octet-stream';
+        if (pathname.endsWith('.jpg') || pathname.endsWith('.jpeg')) {
+          contentType = 'image/jpeg';
+        } else if (pathname.endsWith('.png')) {
+          contentType = 'image/png';
+        }
+
         stream.respond({ 'content-type': contentType, ':status': 200 });
         stream.end(data);
       }
     });
+  } else if (pathname.startsWith('/NAVER_files')) {
+    const naverFilePath = join(__dirname, './resource/NAVER_files', pathname.split('/').pop());
+    fs.readFile(naverFilePath, (err, data) => {
+      if (err) {
+        stream.respond({ 'content-type': 'text/plain', ':status': 404 });
+        stream.end('404 Not Found');
+      } else {
+        stream.respond({ 'content-type': 'application/octet-stream', ':status': 200 });
+        stream.end(data);
+      }
+    });
+  } else if (pathname.startsWith('/naver')) {
+    const naverHtml = fs.readFileSync(join(__dirname, './resource/NAVER.html'));
+    stream.respond({ 'content-type': 'text/html', ':status': 200 });
+    stream.end(naverHtml);
   } else {
-    // Handle 404 for other paths
     stream.respond({ 'content-type': 'text/plain', ':status': 404 });
     stream.end('404 Not Found');
   }
