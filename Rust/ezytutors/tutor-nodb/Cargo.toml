@@ -2,10 +2,14 @@
 name = "tutor-nodb"
 version = "0.1.0"
 edition = "2021"
+default-run = "tutor-service"
+
+[[bin]]
+name = "basic-server"
+
+[[bin]]
+name = "tutor-service"
 
 [dependencies]
 actix-web = "4.2.1"
 actix-rt = "2.7.0"
-
-[[bin]]
-name = "basic-server"
