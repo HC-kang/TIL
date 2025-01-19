@@ -1166,3 +1166,40 @@ WHERE (latitude BETWEEN {:my_lat} - radius AND {:my_lat} + radius)
     - 데이터를 분석하고, 이상 징후를 감지하여 경보를 발생시킨다.
     - 다양한 통신 채널로 경보를 발송 할 수 있어야 한다.
   - 시각화(visualization): 지표를 시각화하여 사용자에게 제공한다.
+
+#### 데이터 모델
+
+- 지표 데이터는 통상 시계열 데이터로 기록한다.
+  - 예시
+
+    |metric_name|cpu.load|
+    |---|---|
+    |labels|host:i631,env:prod|
+    |timestamp|1613856000|
+    |value|0.29|
+
+- 또한, 통상적으로 행 프로토콜(line protocol)을 따른다.
+  - 예시
+
+    ```prometheus
+    CPU.load host=webserver01,region=us-east 1613856000 50
+    CPU.load host=webserver02,region=us-east 1613856000 29
+    CPU.load host=webserver01,region=us-east 1613857000 53
+    CPU.load host=webserver02,region=us-east 1613857000 31
+    ...
+    ```
+
+#### 데이터 접근 패턴
+
+- 이러한 형태의 데이터를 관리하는데에서, 쓰기 부하가 주로 발생하며 그 양이 매우 많다.
+- 이에 비해 읽기 부하는 매우 적다고 볼 수 있다.
+  - 필요한 경우에만 일시적으로 치솟았다 사라지는 Spiky 패턴이 발생한다.
+
+#### 데이터 저장소 시스템
+
+- 이러한 이유로, 저장소를 직접 설계하거나, MySQL과 같은 범용 저장소 시스템을 사용하는것은 추천하지 않는다.
+  - 이러한 규모의 데이터를 감당하려면, 전문가 수준의 튜닝이 필수적이고, 이는 비용이 매우 많이 든다.
+
+- NoSQL이 그나마 시계열 처리에 사용될 수 있으나, 추후 효율적인 확장과 질의를 위해서는 전문적인 스키마 설계가 필요하다. 이또한 비용이 많이 든다.
+
+- 결과적으로, `InfluxDB`, `Prometheus` 등의 전문적인 **시계열 데이터베이스**를 사용하는 것이 좋다.
