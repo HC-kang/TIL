@@ -9,8 +9,6 @@ interface ExpectResult {
   toEqual: (expected: unknown) => void;
   toContain: (item: unknown) => void;
   toThrow: (expected?: string | RegExp) => void;
-  toBeTruthy: () => void;
-  toBeFalsy: () => void;
 }
 
 export class TestSuite {
@@ -94,18 +92,6 @@ export class TestSuite {
           `Expected ${this.formatValue(actual)} to contain ${this.formatValue(
             item
           )}`
-        );
-      },
-      toBeTruthy: (): void => {
-        this.assertCondition(
-          !!actual,
-          `Expected ${this.formatValue(actual)} to be truthy`
-        );
-      },
-      toBeFalsy: (): void => {
-        this.assertCondition(
-          !actual,
-          `Expected ${this.formatValue(actual)} to be falsy`
         );
       },
       toThrow: (expected?: string | RegExp): void => {
