@@ -1561,5 +1561,8 @@ GET /v1/ads/popular_ads
 - 집계 윈도우의 종류에는 아래와 같이 네 가지가 있다.
   - 텀블링 윈도우(Tumbling Window) 혹은 고정 윈도우(Fixed Window)
   - 호핑 윈도우(Hopping Window)
+    - 고정 윈도우가 일정 단위시간 간격으로 이동하는 윈도우
   - 슬라이딩 윈도우(Sliding Window)
+    - 실시간으로 이동하는 윈도우
   - 세션 윈도우(Session Window)
+    - 특정 이벤트의 발생이나 타임아웃 등을 기준으로 정의되는 윈도우
