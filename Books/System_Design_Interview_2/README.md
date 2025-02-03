@@ -1691,3 +1691,84 @@ GET /v1/ads/popular_ads
   - 호텔 정보 조회: 300건
   - 객실 조회: 30건
   - 예약: 3건
+
+### 2단계: 개략적 설계안 제시 및 동의 구하기
+
+#### API 설계
+
+##### 호텔 관련 API
+
+| API | 설명 | 비고 |
+| --- | --- | --- |
+| GET /v1/hotels/:id | 호텔 정보 조회 | - |
+| POST /v1/hotels | 신규 호텔 추가 | 직원만 가능 |
+| PUT /v1/hotels/:id | 호텔 정보 업데이트 | 직원만 가능 |
+| DELETE /v1/hotels/:id | 호텔 삭제 | 직원만 가능 |
+
+##### 객실 관련 API
+
+| API | 설명 | 비고 |
+| --- | --- | --- |
+| GET /v1/hotels/:id/rooms/:id | 객실 정보 조회 | - |
+| POST /v1/hotels/:id/rooms | 신규 객실 추가 | 직원만 가능 |
+| PUT /v1/hotels/:id/rooms/:id | 객실 정보 업데이트 | 직원만 가능 |
+| DELETE /v1/hotels/:id/rooms/:id | 객실 삭제 | 직원만 가능 |
+
+##### 예약 관련 API
+
+| API | 설명 | 비고 |
+| --- | --- | --- |
+| GET /v1/reservations | 예약 이력 반환 | 로그인 사용자 |
+| GET /v1/reservations/:id | 예약 상세 조회 | 로그인 사용자 |
+| POST /v1/reservations | 예약 생성 | 로그인 사용자 |
+| DELETE /v1/reservations/:id | 예약 취소 | 로그인 사용자 |
+
+- 이 중 신규 예약시 사용할 인자의 형태는 아래와 같다.
+
+  ```json
+  {
+    "startDate": "2024-01-01",
+    "endDate": "2024-01-03",
+    "hotelID": "123",
+    "roomID": "U1234567890",
+    "reservationID": "1234567890"
+  }
+  ```
+
+  - 여기서 reservationID는 멱등키(idempotent key)이다.
+  - 이는 중복 예약을 방지하기 위해 사용된다.
+
+#### 데이터 모델
+
+- 이 시스템에서는 읽기 빈도가 쓰기에 비해 높다.
+- 또한 예약 시스템에는 ACID 속성이 매우 중요하다.
+- 따라서 관계형 데이터베이스를 사용하는 것이 적절하다.
+
+> ❗ ACID 속성
+> - 원자성(Atomicity): 트랜잭션이 완료되지 않은 상태로 남아있지 않다.
+> - 일관성(Consistency): 트랜잭션이 완료된 후 데이터베이스는 일관된 상태를 유지한다.
+> - 격리성(Isolation): 트랜잭션이 독립적으로 수행된다.
+> - 지속성(Durability): 트랜잭션이 완료된 후 데이터베이스는 영구적으로 보존된다.
+
+- 예약 서비스 테이블의 개략적인 스키마는 아래와 같다.
+
+  | 컬럼 | 설명 |
+  | --- | --- |
+  | reservation_id | PK |
+  | hotel_id | - |
+  | room_id | - |
+  | start_date | - |
+  | end_date | - |
+  | status | - |
+  | guest_id | - |
+
+  - 여기서 `status` 필드는 예약 상태를 나타내며, 아래와 같은 값을 가질 수 있다.
+    - `pending`, `paid`, `refunded`, `cancelled`, `rejected`
+  - 단, 여기서 `room_id`의 존재에 문제가 있다.
+    - 일반적으로 호텔에서는 '특정 객실'을 예약하는 것이 아니라, '특정 호텔의 특정 객실'을 예약하는 것이기 때문이다.
+
+#### 개략적 설계안
+
+- 해당 설계안에는 MSA 패턴을 사용한다.
+
+![7.4 개략적 설계안](./images/7-4-blueprint.png)
