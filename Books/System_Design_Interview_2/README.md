@@ -2046,7 +2046,81 @@ dig gmail.com MX +short
 
 - 전통적 메일 서버 아키텍처
 
-  - <img src="./images/8-3-traditional-mail-server.png" alt="8-1-1" width="500"/>
+  - <img src="./images/8-3-traditional-mail-server.png" alt="8-3" width="500"/>
 
 - 전통적 메일 서버는 파일 시스템(`maildir`)를 사용하여 이메일을 저장한다.
   - 그러나 이는 사용자가 많아지면 문제가 발생한다.
+
+##### 분산 메일 서버
+
+###### 이메일 API
+
+> POST /v1/messages  
+
+> GET /v1/folders  
+>   [{  
+>     "id": "1",  
+>     "name": "Inbox",  
+>     "user_id": "123",  
+>   }]  
+
+> GET /v1/folders/{:folderID}/messages  
+
+> GET /v1/messages/{:messageID}  
+>   {  
+>     "user_id": "123",  
+>     "from": { "name": "John Doe", "email": "john.doe@example.  com" },  
+>     "to": { "name": "Jane Smith", "email": "jane.smith@example.  com" },  
+>     "subject": "Hello, world!",  
+>     "body": "Hello, world!",  
+>     "is_read": false,  
+>   }   
+
+###### 분산 메일 서버 아키텍처
+
+- 개략적 설계안
+  - <img src="./images/8-5-blueprint.png" alt="8-5-blueprint" width="500"/>
+
+- 웹메일: 웹브라우저를 사용한 이메일 클라이언트
+- 웹서버: 사용자가 이용할 요청/응답 서비스. 로그인, 가입 등 관리기능 담담
+- 실시간 서버
+  - 실시간 메일 전송/수신 처리. 상태관리 필요
+  - 롱폴링, 웹소켓 등의 방법 사용
+- 메타데이터 데이터베이스: 이메일에 대한 정보 저장
+- 첨부 파일 저장소: 아마존 S3등의 객체 저장소 사용
+- 분산 캐시: 최근 수신된 메일은 자주 읽을 가능성이 훨씬 높다.
+  - 따라서 캐시를 사용하여 성능을 향상시킬 수 있다.
+
+##### 이메일 전송 절차
+
+- 이메일 전송 절차
+  - <img src="./images/8-6-email-sending-process.png" alt="8-6-email-sending-process" width="500"/>
+
+1. 사용자가 메일 전송, 요청 로드밸런서 도달
+2. 부하를 고려하여 각 웹 서버로 분배
+3. 웹서버에서 이메일 검증
+4. 작업 큐에 메일 추가
+5. 외부 전송담당 SMTP 프로세스가 작업 큐 소비, 스팸 및 바이러스 여부 확인
+6. '보낸 편지함'에 저장
+7. 수신자 서버로 메일 전송
+
+- 이 중 작업 큐(외부 전송 큐)에 주목해야한다.
+  - 이 큐의 크기가 지속적으로 증가하거나 오래 남아있다면 아래와 같은 문제가 발생할 수 있다.
+    - 수신자 측 메일 장애발생: 지수적 백오프(exponential backoff)
+    - 소비자 수 불충분: 소비자 스케일 아웃 필요
+
+
+##### 이메일 수신 절차
+
+- 이메일 수신 절차
+  - <img src="./images/8-7-email-receiving-process.png" alt="8-7-email-receiving-process" width="500"/>
+
+1. SMTP 로드밸런서가 이메일 수신
+2. SMTP 서버로 분배 및 필터링 작업(수신거부 등)
+3. 첨부파일이 매우 크다면 객체 저장소에 저장
+4. 수신 작업 큐에 저장
+5. 메일 처리 프로세스에서 스팸, 바이러스 차단
+6. 이메일과 첨부파일을 각각 저장소에 저장
+7. 사용자가 온라인이라면 실시간 서버로 전달
+8. 웹소켓을 통해 클라이언트에게 전달
+9. 웹서버는 메일과 첨부파일을 웹메일 클라이언트에게 전달
