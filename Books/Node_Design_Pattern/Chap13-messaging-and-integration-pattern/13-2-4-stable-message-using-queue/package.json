@@ -1,0 +1,22 @@
+{
+  "name": "13-2-4-stable-message-using-queue",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "amqplib": "^0.10.5",
+    "JSONStream": "^1.3.5",
+    "level": "^9.0.0",
+    "monotonic-timestamp": "^0.0.9",
+    "serve-handler": "^6.1.6",
+    "superagent": "^10.1.1",
+    "ws": "^8.18.1"
+  }
+}

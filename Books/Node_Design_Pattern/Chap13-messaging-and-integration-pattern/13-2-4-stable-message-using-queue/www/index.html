@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    Messages:
+    <div class="messages"></div>
+    <form id="msgForm">
+        <input type="text" placeholder="Send a message" id="msgBox">
+        <input type="submit" value="Send">
+    </form>
+    <script>
+        const ws = new WebSocket(`ws://${window.document.location.host}`);
+        
+        // 연결이 열렸을 때 이벤트 추가
+        ws.onopen = function() {
+            console.log("WebSocket 연결 완료");
+        };
+
+        ws.onmessage = function (message) {
+            const msgDiv = document.createElement('div');
+            msgDiv.innerHTML = message.data;
+            document.querySelector('.messages').appendChild(msgDiv);  // ID가 아닌 class로 수정
+        }
+
+        const form = document.getElementById('msgForm');
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            // 연결 상태 확인 후 메시지 전송
+            if (ws.readyState === WebSocket.OPEN) {
+                const message = document.getElementById('msgBox').value;
+                ws.send(message);
+                document.getElementById('msgBox').value = '';
+            } else {
+                console.log('WebSocket이 아직 연결되지 않았습니다.');
+            }
+        });
+    </script>
+</body>
+</html>
