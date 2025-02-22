@@ -1,0 +1,19 @@
+{
+  "name": "13-2-3-zeromq-p2p-pubsub",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "serve-handler": "^6.1.6",
+    "ws": "^8.18.1",
+    "yargs": "^17.7.2",
+    "zeromq": "^6.3.0"
+  }
+}
