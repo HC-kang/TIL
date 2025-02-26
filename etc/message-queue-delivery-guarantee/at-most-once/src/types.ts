@@ -6,7 +6,6 @@ export type QueueAdapter = {
   // 메시지 처리
   sendMessage(message: Message): Promise<void>;
   receiveMessage(): Promise<Message | null>;
-  acknowledgeMessage(message: Message): Promise<void>;
 };
 
 export type QueueOptions = {
@@ -16,6 +15,13 @@ export type QueueOptions = {
 // 메시지 인터페이스
 export type Message = {
   id: string;
-  content: string; // 색상
-  _redisStreamId?: string; // Redis Stream ID
+  content: string;
+};
+
+export type MessageStats = {
+  produced: number;
+  consumed: number;
+  lost: number;
+  failed: number;
+  total: number;
 };

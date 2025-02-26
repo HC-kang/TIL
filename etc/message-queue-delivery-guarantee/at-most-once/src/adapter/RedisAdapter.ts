@@ -2,7 +2,7 @@ import Redis from 'ioredis';
 import type { QueueOptions, Message, QueueAdapter } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
-export class AtMostOnceRedisAdapter implements QueueAdapter {
+export class RedisAdapter implements QueueAdapter {
   private client: Redis;
   private options: QueueOptions;
 
@@ -38,10 +38,5 @@ export class AtMostOnceRedisAdapter implements QueueAdapter {
     if (!result) return null;
     
     return JSON.parse(result) as Message;
-  }
-
-  async acknowledgeMessage(message: Message): Promise<void> {
-    // Redis의 rpop은 이미 메시지를 큐에서 제거하므로 별도 작업 필요 없음
-    return Promise.resolve();
   }
 }

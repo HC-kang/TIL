@@ -1,6 +1,6 @@
 export const config = {
-  server: {
-    port: 3000,
+  redis: {
+    url: 'redis://localhost:6379',
   },
   producer: {
     colors: ['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'pink'],
@@ -9,8 +9,5 @@ export const config = {
     lossRate: 0.2,
     failureRate: 0.1,
     processTimeAboutMS: 50,
-  },
-  redis: {
-    url: 'redis://localhost:6379',
   },
 };

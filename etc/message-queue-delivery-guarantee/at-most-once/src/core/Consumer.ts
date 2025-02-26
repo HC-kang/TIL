@@ -49,10 +49,6 @@ export class Consumer {
     return message;
   }
 
-  async acknowledgeMessage(message: Message): Promise<void> {
-    await this.adapter.acknowledgeMessage(message);
-  }
-
   /**
    * 메시지 처리 시간을 랜덤하게 조정하여 부하를 분산한다.
    * 처리 중 실패 확률을 10%로 가정한다.
