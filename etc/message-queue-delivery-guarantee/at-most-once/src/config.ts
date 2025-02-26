@@ -6,6 +6,7 @@ export const config = {
     colors: ['red', 'green', 'blue', 'yellow', 'purple', 'orange', 'pink'],
   },
   consumer: {
+    receiveTimeAboutMS: 10,
     lossRate: 0.2,
     failureRate: 0.1,
     processTimeAboutMS: 50,

@@ -7,7 +7,7 @@ import { RedisAdapter } from './adapter/RedisAdapter';
  * @param produceCount 생성할 메시지 총 개수
  */
 async function runMessageQueueSystem(produceCount = 100) {
-  const queueName = 'test-queue';
+  const queueName = 'test-queue-at-most-once';
 
   // 메시지 카운터 초기화
   const messageCounter = new MessageCounter();
@@ -19,11 +19,11 @@ async function runMessageQueueSystem(produceCount = 100) {
 
   // 컨슈머 설정
   const consumerAdapter1 = new RedisAdapter(config.redis.url, { queueName });
-  const consumer1 = new Consumer(consumerAdapter1, messageCounter);
+  const consumer1 = new Consumer('consumer-1', consumerAdapter1, messageCounter);
   await consumer1.connect();
 
   const consumerAdapter2 = new RedisAdapter(config.redis.url, { queueName });
-  const consumer2 = new Consumer(consumerAdapter2, messageCounter);
+  const consumer2 = new Consumer('consumer-2', consumerAdapter2, messageCounter);
   await consumer2.connect();
 
   try {
