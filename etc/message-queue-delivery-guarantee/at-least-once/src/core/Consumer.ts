@@ -7,6 +7,8 @@ const { consumer } = config;
  * 메시지 처리시간을 임의의 시간으로 조정하여 실제 메시지 처리를 모의한다.
  */
 export class Consumer {
+  public messageList: Message[] = []; // 결과 비교를 위한 메시지 별도 저장
+
   private name: string;
   private adapter: QueueAdapter;
   private messageCounter: MessageCounter;
@@ -99,6 +101,7 @@ export class Consumer {
       
       // 성공적으로 처리된 메시지는 ACK 처리
       await this.adapter.acknowledgeMessage(message);
+      this.messageList.push(message);
     } catch (error) {
       // 실패한 메시지는 ACK하지 않음 (자동으로 PEL에 남음)
       console.error(`[${this.name}] Error processing message: ${message.id}`, error);
@@ -110,14 +113,14 @@ export class Consumer {
    * 처리되지 않은 메시지를 주기적으로 확인하고 재처리한다.
    */
   private startRetryProcess(): void {
-    // 3초마다 처리되지 않은 메시지 확인
+    // 지정 시간마다 처리되지 않은 메시지 확인
     this.retryInterval = setInterval(async () => {
       try {
         await this.retryPendingMessages();
       } catch (error) {
         console.error(`[${this.name}] Error in retry process:`, error);
       }
-    }, 3000); // 3초마다 실행
+    }, consumer.retryInterval); // 지정 시간마다 실행
   }
 
   /**
@@ -142,22 +145,24 @@ export class Consumer {
       
       // 메시지 재할당
       await this.adapter.claimMessage(message);
+
+      // 유실 확률 처리
+      if (Math.random() < consumer.lossRate) {
+        console.log(`[${this.name}] Message loss - ${message.id} ${message.content}`);
+        this.messageCounter.incrementLostMessages();
+        continue;
+      }
       
-      // 메시지 처리 (실패 확률 낮춤)
+      // 메시지 재처리
       try {
-        // 재시도 시에는 처리 시간을 줄이고 실패 확률도 낮춤
-        const retryProcessTime = this.jitter(consumer.processTimeAboutMS / 2);
+        const retryProcessTime = this.jitter(consumer.processTimeAboutMS);
         await new Promise((resolve) => setTimeout(resolve, retryProcessTime));
         
-        // 재시도 시 실패 확률 50% 감소
-        if (Math.random() < consumer.failureRate * 0.5) {
+        if (Math.random() < consumer.failureRate) {
           console.log(
             `[${this.name}] Retry failed for message: ${message.id}`
           );
           this.messageCounter.incrementFailedMessages();
-          // 3번 이상 실패한 메시지는 로깅하고 ACK 처리 (데드레터 큐로 이동 가능)
-          // 여기서는 간단히 ACK 처리
-          await this.adapter.acknowledgeMessage(message);
           continue;
         }
         
@@ -165,6 +170,7 @@ export class Consumer {
         this.messageCounter.incrementConsumedMessages();
         console.log(`[${this.name}] Successfully retried message: ${message.id}`);
         await this.adapter.acknowledgeMessage(message);
+        this.messageList.push(message);
       } catch (error) {
         console.error(`[${this.name}] Error retrying message: ${message.id}`, error);
         // 재시도 실패 시 ACK하지 않음 (다음 재시도 기회에 다시 처리)

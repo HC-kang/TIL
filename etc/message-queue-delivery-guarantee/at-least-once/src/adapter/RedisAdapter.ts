@@ -60,14 +60,17 @@ export class RedisAdapter implements QueueAdapter {
   }
 
   async sendMessage(message: Message): Promise<void> {
-    const id = await this.client.xadd(
+    const streamId = await this.client.xadd(
       this.options.queueName,
       '*',  // 자동 ID 생성
-      'id', message.id || uuidv4(),
+      'applicationId', message.id || uuidv4(),
       'data', JSON.stringify(message.content),
       'timestamp', Date.now().toString()
     );
-    console.log(`메시지가 전송되었습니다. ID: ${id}`);
+    
+    // 메시지 객체에 streamId 추가 (참조로 전달된 경우 유용)
+    message.streamId = streamId || undefined;
+    console.log(`메시지가 전송되었습니다. 애플리케이션 ID: ${message.id}, Stream ID: ${streamId}`);
   }
 
   async receiveMessage(): Promise<Message | null> {
@@ -94,7 +97,6 @@ export class RedisAdapter implements QueueAdapter {
       return null;
     }
 
-    const messageId = messages[0][0];
     const messageFields = messages[0][1];
     
     // 메시지 필드를 객체로 변환
@@ -103,19 +105,27 @@ export class RedisAdapter implements QueueAdapter {
       messageData[messageFields[i]] = messageFields[i + 1];
     }
 
+    const streamId = messages[0][0]; // Redis Stream ID
+
     return {
-      id: messageId, // Redis 스트림의 메시지 ID 사용
+      id: messageData['applicationId'],
+      streamId: streamId,
       content: JSON.parse(messageData['data']),
     };
   }
 
   async acknowledgeMessage(message: Message): Promise<void> {
+    // 항상 streamId를 사용하여 명확하게 구분
+    if (!message.streamId) {
+      throw new Error('Stream ID가 없어 메시지를 확인할 수 없습니다.');
+    }
+    
     await this.client.xack(
       this.options.queueName,
       this.options.queueName + '-group',
-      message.id
+      message.streamId
     );
-    console.log(`메시지 ${message.id} 처리 완료 확인됨`);
+    console.log(`메시지 확인됨 - 애플리케이션 ID: ${message.id}, Stream ID: ${message.streamId}`);
   }
 
   async getPendingMessages(): Promise<Message[]> {
@@ -136,13 +146,13 @@ export class RedisAdapter implements QueueAdapter {
     
     // 각 pending 메시지에 대해 실제 데이터 조회
     for (const pendingInfo of pendingMessages) {
-      const messageId = pendingInfo[0];
+      const streamId = pendingInfo[0];
       
       // XRANGE로 메시지 내용 조회
       const messageData = await this.client.xrange(
         this.options.queueName,
-        messageId,
-        messageId
+        streamId,
+        streamId
       );
       
       if (messageData && messageData.length > 0) {
@@ -154,7 +164,8 @@ export class RedisAdapter implements QueueAdapter {
         }
         
         messages.push({
-          id: messageId,
+          id: data['applicationId'],
+          streamId: streamId,
           content: JSON.parse(data['data']),
         });
       }
@@ -164,20 +175,24 @@ export class RedisAdapter implements QueueAdapter {
   }
 
   async claimMessage(message: Message): Promise<void> {
+    if (!message.streamId) {
+      throw new Error('Stream ID가 없어 메시지를 재할당할 수 없습니다.');
+    }
+    
     // 메시지 재할당 (다른 소비자가 처리 중이던 메시지를 현재 소비자가 가져옴)
     const claimedMessages = await this.client.xclaim(
       this.options.queueName,
       this.options.queueName + '-group',
       'consumer-retry', // 재시도 전용 소비자 이름
       60000,            // 최소 유휴 시간 (ms)
-      message.id,       // 재할당할 메시지 ID
+      message.streamId, // 재할당할 메시지의 Stream ID
       'JUSTID'          // ID만 반환 (메시지 내용은 필요 없음)
     );
     
     if (claimedMessages && claimedMessages.length > 0) {
-      console.log(`메시지 ${message.id} 재할당 성공`);
+      console.log(`메시지 재할당 성공 - 애플리케이션 ID: ${message.id}, Stream ID: ${message.streamId}`);
     } else {
-      console.log(`메시지 ${message.id} 재할당 실패 (이미 다른 소비자에게 할당되었거나 존재하지 않음)`);
+      console.log(`메시지 재할당 실패 - 애플리케이션 ID: ${message.id}, Stream ID: ${message.streamId} (이미 다른 소비자에게 할당되었거나 존재하지 않음)`);
     }
   }
 }

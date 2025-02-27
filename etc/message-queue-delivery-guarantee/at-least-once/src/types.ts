@@ -17,7 +17,8 @@ export type QueueOptions = {
 
 // 메시지 인터페이스
 export type Message = {
-  id: string;
+  id: string;            // 애플리케이션 메시지 ID (비즈니스 ID)
+  streamId?: string;     // Redis Stream ID
   content: string;
 };
 

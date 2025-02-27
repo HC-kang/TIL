@@ -8,9 +8,12 @@ import { v4 as uuidv4 } from 'uuid';
  * 7가지 색상 중 랜덤하게 하나를 선택하여 메시지를 생산한다.
  */
 export class Producer {
+  public messageList: Message[] = []; // 결과 비교를 위한 메시지 별도 저장
+
   private adapter: QueueAdapter;
   private colors: string[];
   private messageCounter: MessageCounter;
+
   constructor(adapter: QueueAdapter, messageCounter: MessageCounter ) {
     this.adapter = adapter;
     this.colors = config.producer.colors;
@@ -37,10 +40,13 @@ export class Producer {
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     const color = this.colors[Math.floor(Math.random() * this.colors.length)];
-    return {
+    const message = {
       id: uuidv4(),
       content: color,
     };
+
+    this.messageList.push(message);
+    return message;
   }
 
   async produceMessages(count: number): Promise<void> {
