@@ -93,7 +93,9 @@ async function processMessages(
       console.log(
         `추가 대기 시간 시작 - ${config.consumer.additionalWaitTime}ms`
       );
-      await new Promise((resolve) => setTimeout(resolve, config.consumer.additionalWaitTime));
+      await new Promise((resolve) =>
+        setTimeout(resolve, config.consumer.additionalWaitTime)
+      );
 
       // 마지막 상태 확인
       const finalStats = messageCounter.getStats();
@@ -154,61 +156,100 @@ runMessageQueueSystem().catch((error) => {
   process.exit(1);
 });
 
-/**
- * 생성, 소비된 메시지를 ID 기반으로 비교
- */
 function compareMessageLists(
   producerMessageList: Message[],
   consumer1MessageList: Message[],
   consumer2MessageList: Message[]
-) {
-  const uniqueProduced = new Set(producerMessageList.map((msg) => msg.id));
-  const uniqueConsumed = new Set([
+): void {
+  console.log('\n===== 메시지 처리 결과 분석 =====');
+
+  // 고유 메시지 ID 집합 생성
+  const uniqueProducedIds = new Set(producerMessageList.map((msg) => msg.id));
+  const uniqueConsumedIds = new Set([
     ...consumer1MessageList.map((msg) => msg.id),
     ...consumer2MessageList.map((msg) => msg.id),
   ]);
 
-  // 생성되었지만 소비되지 않은 메시지
-  const unprocessedMessages = Array.from(uniqueProduced).filter(
-    (id) => !uniqueConsumed.has(id)
+  // 1. 생성되었지만 소비되지 않은 메시지 분석
+  const unprocessedIds = Array.from(uniqueProducedIds).filter(
+    (id) => !uniqueConsumedIds.has(id)
   );
+
+  console.log('\n[1] 생성되었지만 소비되지 않은 메시지:');
+  if (unprocessedIds.length === 0) {
+    console.log('  없음 (모든 생성된 메시지가 처리됨)');
+  } else {
+    console.log(
+      `  총 ${unprocessedIds.length}개 메시지 미처리: ${unprocessedIds.join(
+        ', '
+      )}`
+    );
+  }
+
+  // 2. 소비되었지만 생성되지 않은 메시지 분석 (비정상 케이스)
+  const unexpectedIds = Array.from(uniqueConsumedIds).filter(
+    (id) => !uniqueProducedIds.has(id)
+  );
+
+  console.log('\n[2] 소비되었지만 생성되지 않은 메시지 (비정상):');
+  if (unexpectedIds.length === 0) {
+    console.log('  없음 (정상)');
+  } else {
+    console.log(
+      `  총 ${unexpectedIds.length}개 비정상 메시지: ${unexpectedIds.join(
+        ', '
+      )}`
+    );
+  }
+
+  // 3. 메시지별 처리 횟수 계산
+  const messageProcessCounts: Record<string, number> = {};
+
+  // 모든 소비자가 처리한 메시지를 합쳐서 ID별 처리 횟수 계산
+  [...consumer1MessageList, ...consumer2MessageList].forEach((msg) => {
+    messageProcessCounts[msg.id] = (messageProcessCounts[msg.id] || 0) + 1;
+  });
+
+  // 4. 중복 처리된 메시지 분석 (at-least-once 특성)
+  const duplicateMessages = Object.entries(messageProcessCounts)
+    .filter(([_, count]) => count >= 2)
+    .sort((a, b) => b[1] - a[1]); // 처리 횟수 내림차순 정렬
+
+  console.log('\n[3] 중복 처리된 메시지 (at-least-once 특성):');
+  if (duplicateMessages.length === 0) {
+    console.log('  없음 (모든 메시지가 정확히 1번씩 처리됨)');
+  } else {
+    console.log(`  총 ${duplicateMessages.length}개 메시지가 중복 처리됨:`);
+    duplicateMessages.forEach(([id, count]) => {
+      console.log(`  - 메시지 ID: ${id}, 처리 횟수: ${count}회`);
+    });
+  }
+
+  // 5. 전체 통계 요약
+  const uniqueProcessedCount = Object.keys(messageProcessCounts).length;
+  const totalExpectedCount = config.consumer.produceCount;
+  const isAllProcessed = uniqueProcessedCount === totalExpectedCount;
+
+  console.log('\n[4] 전체 처리 통계:');
+  console.log(`  - 생산된 메시지 수: ${totalExpectedCount}개`);
+  console.log(`  - 처리된 고유 메시지 수: ${uniqueProcessedCount}개`);
+  console.log(`  - 중복 처리된 메시지 수: ${duplicateMessages.length}개`);
   console.log(
-    '생성되었지만 소비되지 않은 메시지:',
-    unprocessedMessages.length === 0 ? '없음' : unprocessedMessages
+    `  - 총 처리 횟수: ${
+      consumer1MessageList.length + consumer2MessageList.length
+    }회`
   );
 
-  // 소비되었지만 생성되지 않은 메시지
-  const unproducedMessages = Array.from(uniqueConsumed).filter(
-    (id) => !uniqueProduced.has(id)
-  );
-  console.log(
-    '소비되었지만 생성되지 않은 메시지:',
-    unproducedMessages.length === 0 ? '없음' : unproducedMessages
-  );
+  console.log('\n[5] 최종 검증 결과:');
+  if (isAllProcessed) {
+    console.log('  ✅ 성공: 모든 메시지가 최소 1회 이상 처리되었습니다.');
+  } else {
+    console.log(
+      `  ❌ 실패: ${
+        totalExpectedCount - uniqueProcessedCount
+      }개 메시지가 처리되지 않았습니다.`
+    );
+  }
 
-  // 처리된 고유 메시지, 횟수
-  const processedMessages = [...consumer1MessageList, ...consumer2MessageList]
-    .filter((msg) => uniqueConsumed.has(msg.id))
-    .reduce((acc, msg) => {
-      acc[msg.id] = (acc[msg.id] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-  // 2회 이상 처리된 고유 메시지만 필터링
-  const duplicateMessages = Object.entries(processedMessages).filter(
-    ([_, count]) => count >= 2
-  );
-
-  // 전체 생산 메시지 수 = 모든 컨슈머가 소비한 메시지 수 - 중복 처리된 메시지 수 + 생산되었으나 소비되지 않은 메시지 수
-  const uniqueProcessedMessages = processedMessages.length;
-  console.log('생산된 메시지 수:', config.consumer.produceCount);
-  console.log('1회이상 처리된 고유메시지 수:', uniqueProcessedMessages ?? '없음');
-  console.log(
-    `전체 수행결과 검증: ${config.consumer.produceCount === uniqueProcessedMessages}`
-  );
-
-  console.log(
-    '2회 이상 처리된 고유 메시지/횟수:',
-    duplicateMessages.length === 0 ? '없음' : duplicateMessages
-  );
+  console.log('\n===============================\n');
 }
