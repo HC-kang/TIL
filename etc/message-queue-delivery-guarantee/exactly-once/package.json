@@ -1,0 +1,20 @@
+{
+  "name": "message-queue",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run src/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "ioredis": "^5.5.0",
+    "uuid": "^11.1.0"
+  }
+}
