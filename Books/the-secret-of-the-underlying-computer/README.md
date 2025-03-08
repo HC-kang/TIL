@@ -762,11 +762,11 @@
 
 - 일반적인 함수
 
-  ![일반적인 함수](/images/normal-function.jpeg)
+  ![일반적인 함수](./images/normal-function.jpeg)
 
 - 코루틴
 
-  ![코루틴](/images/coroutine-function.jpeg)
+  ![코루틴](./images/coroutine-function.jpeg)
 
 #### 2.4.4 함수는 그저 코루틴의 특별한 예에 불과하다
 
@@ -788,12 +788,12 @@
 - 스레드의 구현
   - 일시중지 될 때의 상태를 저장하고, 다시 실행될 때 이를 복원한다.
     - 스택 프레임에 CPU 레지스터 정보, 함수 실행 시 상태정보 등을 저장한다.
-      ![스택 프레임](/images/stack-frame.jpeg)
+      ![스택 프레임](./images/stack-frame.jpeg)
 
 - 코루틴의 구현
   - 코루틴은 스레드와 마찬가지로 일시중지 될 때의 상태를 저장하고, 다시 실행될 때 이를 복원한다.
     - 힙 영역에 CPU 레지스터 정보, 함수 실행 시 상태정보 등을 저장한다.
-      ![힙 영역](/images/coroutine.jpeg)
+      ![힙 영역](./images/coroutine.jpeg)
         - 해당 주소공간에는 스레드 한개와 코루틴 두개가 존재한다.
         - 총 세 개의 실행 흐름이 존재한다.
 
@@ -1917,7 +1917,7 @@ void memory_leak()
 
 #### 4.1.5 신기한 기억 능력
 
-![alt text](images/memory-circuit.png)
+![메모리 회로](./images/memory-circuit.png)
 
 - 위 그림은 1비트의 메모리 회로이다.
 - WE(Write Enable) 신호가 1이면, 데이터 입력 신호를 기억한다.
@@ -3286,7 +3286,7 @@ void memory_leak()
 
 - 컴퓨터 시스템의 각 작업에서 발생하는 지연시간(2012)
 
-![alt text](images/latency.png)
+![지연시간](./images/latency.png)
 
 ### 6.7 요약
 
