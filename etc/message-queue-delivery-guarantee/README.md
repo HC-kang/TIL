@@ -113,24 +113,24 @@ export type QueueAdapter = {
  * 이 과정에서 약 lossRate의 유실 확률을 가진다.
  */
 async receiveMessage(lossRate = consumer.lossRate): Promise<Message | null> {
-// 수신 소요시간
-const receiveTimeAboutMS = this.jitter(consumer.receiveTimeAboutMS);
-await new Promise((resolve) => setTimeout(resolve, receiveTimeAboutMS));
+  // 수신 소요시간
+  const receiveTimeAboutMS = this.jitter(consumer.receiveTimeAboutMS);
+  await new Promise((resolve) => setTimeout(resolve, receiveTimeAboutMS));
 
-const message = await this.adapter.receiveMessage();
-if (!message) {
-    console.log(`[${this.name}] No message received`);
-    return null;
-}
+  const message = await this.adapter.receiveMessage();
+  if (!message) {
+      console.log(`[${this.name}] No message received`);
+      return null;
+  }
 
-// 유실 확률을 처리한다.
-if (Math.random() < lossRate) {
-    console.log(
-    `[${this.name}] Message loss - ${message?.id} ${message?.content}`
-    );
-    this.messageCounter.incrementLostMessages();
-    return null;
-}
+  // 유실 확률을 모의합니다. 큐의 구현과는 무관하지만 '네트워크상에서의 유실'을 흉내내기 위한 코드입니다.
+  if (Math.random() < lossRate) {
+      console.log(
+      `[${this.name}] Message loss - ${message?.id} ${message?.content}`
+      );
+      this.messageCounter.incrementLostMessages();
+      return null;
+  }
 
 return message;
 }
@@ -241,21 +241,95 @@ Done
 하지만 이렇게되면 최소 한 번 전달처럼 중복되어 전달될 수 있는데요,  
 이를 해결하기 위해 보통 메시지 처리의 멱등성(idempotence)을 보장하는 방식을 사용합니다.  
 
-사실 이건 정확한 예시를 들기가 좀 어렵네요.. 혹시 아이디어 있으시면 알려주세요!
+사실 이건 실생활에서 정확한 예시를 들기가 좀 어렵네요.. 혹시 아이디어 있으시면 알려주세요!
 
-코드 예제는 아직 구현중이라, 추후 업데이트 예정입니다.  
-다만 위에서 말씀드린것처럼, 최소 한번 전달에서 멱등성을 보장하는 방식으로 구현하게 될 것 같습니다.
+전체 코드는 [이곳에서 확인하실 수 있습니다.](https://github.com/HC-kang/TIL/tree/main/etc/message-queue-delivery-guarantee/exactly-once)
+
+이번에는 최소 한 번 전달에서 멱등성을 보장하는 방식으로 구현하였고, `Consumer` 클래스에서 이를 처리하는 부분만 추가되었습니다.
+
+```ts
+/**
+ * 컨슈머가 사용하는 큐 어댑터
+ */
+export type QueueAdapter = {
+  // 메시지 처리
+  sendMessage(message: Message): Promise<void>;
+  receiveMessage(): Promise<Message | null>;
+  acknowledgeMessage(message: Message): Promise<void>;
+  getPendingMessages(): Promise<Message[]>;
+  claimMessage(message: Message): Promise<void>;
+  
+  // 멱등성 처리를 위한 메서드가 추가되었습니다.
+  isMessageProcessed(messageId: string): Promise<boolean>;
+  markMessageAsProcessed(messageId: string): Promise<void>;
+};
+
+// 컨슈머에서 메시지를 처리하기 전에 아래와 같이 처리 여부를 확인합니다.
+const isProcessed = await this.adapter.isMessageProcessed(message.id);
+
+...
+
+// 메시지가 처리되었다면 처리 기록을 남깁니다.
+await this.adapter.markMessageAsProcessed(message.id);
+```
+
+실행한 결과는 아래와 같습니다.
+
+```bash
+Redis에 연결되었습니다.
+소비자 그룹이 이미 존재합니다.
+메시지가 전송되었습니다. 애플리케이션 ID: e833a747-04b1-4c20-af19-96875a499722, Stream ID: 1740897918361-0
+[Producer] Produced message: green
+
+...
+
+메시지 확인됨 - 애플리케이션 ID: 2477f6eb-cb8b-4b4e-a010-208f57aeb0d6, Stream ID: 1740897925343-0
+[Produced: 84, Consumed: 91, Lost: 13, Failed: 8, Total: 112]
+[consumer-1] Checking for pending messages...
+[consumer-2] Checking for pending messages...
+[consumer-2] No pending messages found
+[consumer-1] No pending messages found
+최종 메시지 처리 상태:
+생산: 100, 소비: 113, 유실: 15, 실패: 9
+Redis 연결이 종료되었습니다.
+
+===== 메시지 처리 결과 분석 =====
+
+[1] 생성되었지만 소비되지 않은 메시지:
+  없음 (모든 생성된 메시지가 처리됨)
+
+[2] 소비되었지만 생성되지 않은 메시지 (비정상):
+  없음 (정상)
+
+[3] 중복 시도되었지만 처리되지 않은 메시지 (exactly-once 특성):
+  총 13개 메시지가 중복 시도됨:
+  - 메시지 ID: 7a70e2d9-8d47-43ef-adcf-a127292ad078, 처리 횟수: 2회
+  ...
+  - 메시지 ID: 1a96b4cb-d467-4234-9069-a51c7eb4d7c1, 처리 횟수: 2회
+
+[4] 전체 처리 통계:
+  - 생산된 메시지 수: 100개
+  - 처리된 고유 메시지 수: 100개
+  - 중복 시도되었지만 처리되지 않은 메시지 수: 13개
+
+[5] 최종 검증 결과:
+  ✅ 성공: 모든 메시지가 정확히 1회 처리되었습니다.
+
+===============================
+
+Done
+```
 
 ## 정리
 
-이제 위에서 알아보았던 세 가지 전달 보장 수준을 표로 정리하고 마무리 하겠습니다.
+지금까지 메시지 큐의 개념과 세 가지 전달 보장 수준(최대 한 번, 최소 한 번, 정확히 한 번)에 대해 알아보았는데요.  
+
+이제 위에서 알아보았던 세 가지 전달 보장 수준을 표로 간략하게 정리하고 마무리 하겠습니다.
 
 | 전달 보장 수준 | 설명 | ack | 목적 | 용도 |
 |-----------------|------|------|------|------|
 | 최대 한 번 전달 | 메시지를 전달하고 수신확인을 하지 않습니다. | 0 | 메시지 유실이 허용되는 경우 | 중요하지 않은 정보 전달 |
 | 최소 한 번 전달 | 메시지를 전달하고 수신확인을 합니다. | n | 중복 처리가 허용되는 경우 | 이메일 등 꼭 필요한 정보 전달 |
 | 정확히 한 번 전달 | 메시지를 전달하고 수신확인을 합니다. | 1 | 메시지 유실이나 중복 처리가 허용되지 않는 경우 | 예금 이체, 거래 등 |
-
-마지막으로 이렇게 정리하면 좀 더 기억에 남으시지 않을까 싶어 포인트만 정리해 보았습니다.
 
 여기까지 읽어주셔서 감사하고, 혹시 잘못된 부분이나 추가할 내용이 있으시다면 댓글로 알려주시면 감사하겠습니다!
