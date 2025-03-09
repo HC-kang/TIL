@@ -2695,6 +2695,8 @@ dig gmail.com MX +short
 
 #### 대금 수신 흐름
 
+<img src="./images/11-2-payment-flow.png" alt="11-2-payment-flow" width="600"/>
+
 ##### 결제 서비스
 
 - 결제 서비스는 사용자로부터 결제 이벤트를 수신하고 프로세스를 조율한다.
@@ -2712,9 +2714,92 @@ dig gmail.com MX +short
 > 묶음 주문의 경우, 고객은 하나의 결제 이벤트에서 여러 판매자의 대금을 결제할 수 있음. 이로인해 여러 판매자에 대한 결제 주문이 동시에 발생할 수 있음.
 > 자동 결제 처리의 경우, 한번의 결제 이벤트를 통해 월, 월 주기 등의 반복적인 다수건의 결제 주문이 발생 할 수 있음.
 
+##### 결제 서비스 공급자
+
+- 결제 서비스 공급자(PSP; Payment Service Provider)는 계정간 송금 처리를 담당한다.
+
+##### 원장
+
+- 원장(ledger)은 결제 트랜잭션에 대한 금융 기록이다.
+- 결제 후 분석(post-payment analysis)을 위해 결제 트랜잭션 정보를 저장한다.
+
+##### 지갑
+
+- 지갑(wallet)은 판매지(merchant)의 계정 잔액을 기록한다.
+
+##### 일반적인 결제 흐름
+
+1. 사용자가 '주문하기' 버튼을 클릭하여 주문을 요청한다.
+2. 결제 서비스는 결제 이벤트를 생성하고 이를 데이터베이스에 저장한다.
+3. 결제에 여러 주문이 포함된 경우, 결제 서비스는 각 주문마다 결제 실행자를 호출한다.
+4. 결제 실행자는 결제 주문을 데이터베이스에 저장한다.
+5. 결제 실행자가 외부 PSP를 호출하여 결제를 실제로 처리한다.
+6. 실제 결제가 성공하면 결제 서비스는 지갑을 갱신하여 판매자의 잔고 갱신을 요청한다.
+7. 지갑 서버는 요청을 바탕으로 데이터베이스를 갱신한다.
+8. 지갑 서비스가 DB 갱신을 성공하면 결제 서비스는 원장 서비스를 호출한다.
+9. 원장 서비스는 결제 트랜잭션을 데이터베이스에 저장한다.
+
 #### 결제 서비스 API
 
+##### POST /v1/payments
+
+- 요청 매개변수
+
+  | 필드 | 설명 | 자료형 |
+  |------|------|--------|
+  | buyer_info | 구매자 정보 | JSON |
+  | checkout_id | 결제 이벤트의 전역 ID | string |
+  | credit_card_info | 암호화된 신용카드의 토큰. PSP에서 제공 | json |
+  | payment_orders | 결제 주문 목록 - 다수 주문이 포함될 수 있음 | list |
+
+  - 각 payment_order는 아래와 같은 매개변수를 포함한다.
+
+    | 필드 | 설명 | 자료형 |
+    |------|------|--------|
+    | seller_account | 판매자의 계정 | string |
+    | amount | 결제 금액 | **string** |
+    | currency | 주문 통화 | string([ISO 4217](https://ko.wikipedia.org/wiki/ISO_4217)) |
+    | payment_order_id | 결제 주문의 고유 ID | string |
+
+      - `amount`가 `double`이나 `number`가 아니라 `string`인 점에 유의하자.
+      - 이는 소수점 자리수가 많고, 자리수가 큰 통화에서 발생할 수 있는 문제를 방지하기 위함이다.
+
+##### GET /v1/payments/{:payment_order_id}
+
+- 단일 결제주문의 진행상태를 조회한다.
+
 #### 결제 서비스 데이터 모델
+
+- 결제 서비스에는 `결제 이벤트(payment event)`와 `결제 주문(payment order)` 두 가지 테이블이 필요하다.
+- 결제 시스템 저장소의 요건
+  - 결제 시스템의 저장소에서 가장 중요한것은 무엇보다 안정성이다.
+    - 예시) 최근 5년 이내에 다른 대형 서비스에서 긍정적인 결과를 얻은 경우
+  - 모니터링과 데이터 분석이 용이한가?
+  - DBA 채용에 문제가 없는가?
+- 결제 시스템의 저장소 선택
+  - 위의 요건에 따라, 일반적으로 ACID 트랜잭션을 지원하는 관계형 데이터베이스를 사용한다.
+
+##### 결제 이벤트 테이블
+
+| 필드 | 자료형 |
+|------|--------|
+| checkout_id | string PK |
+| buyer_info | string |
+| seller_info | string |
+| credit_card_info | json - PSP마다 다름 |
+| is_payment_done | boolean |
+
+##### 결제 주문 테이블
+
+| 필드 | 자료형 |
+| payment_order_id | string PK |
+| buyer_account | string |
+| amount | string |
+| currency | string |
+| checkout_id | string FK |
+| payment_order_status | string |
+| ledger_updated | boolean |
+| wallet_updated | boolean |
 
 #### 복식부기 원장 시스템
 
