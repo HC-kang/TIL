@@ -2792,6 +2792,7 @@ dig gmail.com MX +short
 ##### 결제 주문 테이블
 
 | 필드 | 자료형 |
+|------|--------|
 | payment_order_id | string PK |
 | buyer_account | string |
 | amount | string |
