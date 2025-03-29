@@ -133,7 +133,6 @@ uplinks:
     max_fails: 5 # 최대 실패 횟수
     cache: true # 캐시 사용 여부
 
-
 # 웹 UI 관련 설정
 web:
   title: "사내 패키지 레지스트리"
@@ -141,6 +140,9 @@ web:
   primary_color: "#4b5e40"
   darkMode: true
   enable_theme_selector: true
+
+# 기본값은 10mb. 필요시 좀 더 큰 모듈 업로드가 필요한 경우 사용
+max_body_size: 30mb
 
 # 패키지 설정
 packages:
