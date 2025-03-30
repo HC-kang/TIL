@@ -113,16 +113,16 @@ services:
 
 ```yaml
 # 저장소 경로
-storage: ./storage
+storage: /verdaccio/storage
 
 # 플러그인 경로
 plugins:
-  - ./plugins/
+  - /verdaccio/plugins/
 
 # 인증 설정
 auth:
   htpasswd:
-    file: ./htpasswd
+    file: /verdaccio/conf/htpasswd
     max_users: 1000
 
 # 업스트림 레지스트리 설정
@@ -177,16 +177,69 @@ docker-compose up -d
 사용자 관리는 아래와 같은 명령어로 진행할 수 있습니다.
 
 ```bash
-npm adduser --registry http://localhost:4873
+$ npm adduser --registry http://localhost:4873
+
+> npm notice Log in on http://localhost:4873/
+> Username: test
+> Password: test
+> Email: test@test.com
+
+> Logged in on http://localhost:4873/.
+> ...
 ```
 
 이렇게 하면 사용자를 등록할 수 있습니다.  
+이후에는 아래와 같이 로그인을 진행할 수 있습니다.
 
-이후에는 사용자를 등록하고, 패키지를 배포하면 됩니다.  
+```bash
+$ npm login --registry http://localhost:4873
+
+> Username: test
+> Password: test
+
+> Logged in on http://localhost:4873/.
+> ...
+```
+
+## 4. 패키지 배포
+
+패키지 배포는 아래와 같은 명령어로 진행할 수 있습니다.
 
 ```bash
 npm publish --registry http://localhost:4873
 ```
 
-이렇게 하면 패키지를 배포할 수 있습니다.  
+당연하게도 배포시에는 로그인이 필요한데요, 이게 귀찮으시다면 배포할 패키지의 루트에 `.npmrc` 파일을 통해 아래와 같이 토큰을 미리 설정해 둘 수 있습니다.
 
+```bash
+# .npmrc
+registry=http://localhost:4873
+//localhost:4873/:_authToken=ZDJkOGFjMGYwZDE5ZDE0ZmE4YjQ4NTYwYmFjNTU0NDQ6M2UxYjI5OWVhOTQ5ZGY0MzA0
+```
+
+이렇게 하면 패키지 배포시에 로그인 없이 배포가 가능합니다. 
+
+<img src="./images/published-package.png" alt="published-package" width="500">
+
+## 5. 패키지 설치
+
+패키지 설치 방식은 기존 npm 방식과 완전히 동일합니다. 다만, 바라볼 레지스트리만 지정해주면 되는데요.  
+
+```bash
+npm install --registry http://localhost:4873
+```
+
+역시 이런 방법은 귀찮고 실수가 발생할 수 있기 때문에, 아래와 같이 프로젝트 루트에 `.npmrc` 파일을 통해 미리 지정해 둘 수 있습니다.
+
+```bash
+# .npmrc
+registry=http://localhost:4873
+```
+
+이렇게 하면 패키지 설치시에 바라볼 레지스트리를 지정해주지 않아도 됩니다.  
+
+## 마치며
+
+오늘은 사내 프라이빗 패키지 사용을 위한 프록시 레지스트리를 구축하는 과정을 공유드렸습니다.  
+이 글을 통해 조금이나마 각자의 서비스 운영에 도움이 되셨으면 좋겠네요.  
+읽어주셔서 감사합니다!
