@@ -27,3 +27,13 @@
 > ### 옵저버 패턴 (Observer Pattern)
 > - 객체의 상태 변화를 다른 객체들에게 자동으로 알리는 패턴
 > - 일대다(one-to-many) 의존성 관계를 구현
+
+## Chapter 03 - Decorator Pattern
+
+> [!NOTE]
+> ### 데코레이터 패턴 (Decorator Pattern)
+> - 
+
+> [!TIP]
+> ### 디자인 원칙
+> 클래스는 확장에는 열려있어야 하지만, 변경에는 닫혀있어야 한다.
