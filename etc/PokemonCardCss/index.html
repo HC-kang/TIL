@@ -278,8 +278,14 @@
     const overlay = document.getElementById('overlay');
     
     // 변수 초기화
+    let clickTimer;
+    let touchTimer;
+    let flipTimer;
+    let touchedAt;
+    let isTouched = false;
     let isFlipped = false;
     let isExpanded = false;
+    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     
     // 마우스 움직임 처리
     card.addEventListener('mousemove', handleInteraction);
@@ -290,10 +296,62 @@
     card.addEventListener('touchend', resetCard);
     
     // 클릭 이벤트
-    card.addEventListener('click', flipCard);
-    card.addEventListener('dblclick', expandCard);
-    overlay.addEventListener('click', closeExpand);
-    
+    if (isMobile) {
+      card.addEventListener('touchstart', onTouchStart);
+      card.addEventListener('touchend', onTouchEnd);
+      overlay.addEventListener('click', closeExpand);
+    } else {
+      card.addEventListener('click', onClick);
+      overlay.addEventListener('click', closeExpand);
+    }
+
+    // click과 dbclick을 분리해서 직접 처리
+    function onClick(e) {
+      console.log(e.detail)
+      // 더블클릭까지 300ms 대기 후, 더블클릭이라면 일반 클릭은 무시
+      if (e.detail === 1) {
+        // 첫 클릭 시 더블클릭 타이머 시작
+        clickTimer = setTimeout(() => {
+          flipCard(e);
+        }, 300);
+      } else if (e.detail === 2) {
+        clearTimeout(clickTimer);
+        expandCard();
+      }
+    }
+
+    function onTouchStart(e) {
+      touchedAt = Date.now();
+    }
+
+    function onTouchEnd(e) {
+      const now = Date.now();
+      touchTimer = setTimeout(() => {
+        isTouched = false;
+      }, 300);
+
+      if (isTouched && now - touchedAt < 500) {
+        // 더블탭으로 판단
+        clearTimeout(flipTimer);
+        expandCard();
+        isTouched = false;
+        touchedAt = 0;
+      } else if (!isTouched 
+      && now - touchedAt > 50
+      && now - touchedAt < 300
+    ) {
+        // 단일탭
+        flipTimer = setTimeout(() => {
+          flipCard(e);
+        }, 200);
+        isTouched = false;
+        touchedAt = 0;
+      }
+      // 더블탭 판별을 위한 상태 갱신
+      isTouched = true;
+      touchedAt = now;
+    }
+
     // 마우스/터치 위치 핸들링
     function handleInteraction(e) {
       e.preventDefault();
