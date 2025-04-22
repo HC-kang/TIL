@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>포켓몬 카드 효과 데모</title>
+  <style>
+    /* 기본 스타일 */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 20px;
+      perspective: 1000px;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    .title {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .instructions {
+      font-size: 14px;
+      color: #666;
+      margin: 20px 0;
+      text-align: center;
+      max-width: 500px;
+    }
+    
+    /* 카드 컨테이너 */
+    .card-container {
+      width: 300px;
+      height: 420px;
+      position: relative;
+      perspective: 1500px;
+      margin: 20px auto;
+      transform-style: preserve-3d;
+    }
+    
+    /* 카드 기본 스타일 */
+    .card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 5%;
+      transform-style: preserve-3d;
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+    
+    /* 카드 앞면과 뒷면 공통 스타일 */
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 5%;
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+    
+    /* 카드 이미지 스타일 */
+    .card-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 5%;
+    }
+    
+    /* 카드 뒷면 회전 */
+    .card-back {
+      transform: rotateY(180deg);
+    }
+    
+    /* 카드 뒤집기 상태 */
+    .card.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    /* 글레어 효과 (반짝임) */
+    .card-glare {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      border-radius: 5%;
+      opacity: 0;
+      background: radial-gradient(
+        circle at 50% 50%, 
+        rgba(255, 255, 255, 0.6) 0%, 
+        rgba(255, 255, 255, 0) 40%
+      );
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    
+    /* 코스모스 포일 효과 (홀로그램) */
+    .card-cosmos {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      border-radius: 5%;
+      background-image: url('./images/cosmos-top.png');
+      background-size: 250% 250%;
+      background-position: 50% 50%;
+      mix-blend-mode: color-dodge;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s;
+      filter: brightness(1.2) contrast(1.2);
+    }
+    
+    /* 무지개 포일 효과 (홀로그램) */
+    .card-foil {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      border-radius: 5%;
+      /* 무지개 그라데이션 효과 */
+      background: linear-gradient(
+        125deg,
+        rgba(255, 0, 0, 0.5) 0%, 
+        rgba(255, 255, 0, 0.5) 16.6%,
+        rgba(0, 255, 0, 0.5) 33.3%,
+        rgba(0, 255, 255, 0.5) 50%,
+        rgba(0, 0, 255, 0.5) 66.6%,
+        rgba(255, 0, 255, 0.5) 83.3%,
+        rgba(255, 0, 0, 0.5) 100%
+      );
+      background-size: 200% 200%;
+      background-position: 50% 50%;
+      mix-blend-mode: color-dodge;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    
+    /* 홀로그램 오버레이 효과 */
+    .card-overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      border-radius: 5%;
+      background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 219, 112, 0.6) 45%,
+        rgba(132, 50, 255, 0.4) 50%,
+        transparent 54%
+      );
+      background-size: 200% 200%;
+      background-position: 0% 50%;
+      mix-blend-mode: color-dodge;
+      filter: brightness(1.2) opacity(0.7);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s, background-position 0.3s ease-out;
+    }
+    
+    /* 모달 확대 상태 */
+    .card-container.is-expanded {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 80vw;
+      max-width: 600px;
+      height: calc(80vw * 1.4);
+      max-height: 840px;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+    }
+    
+    /* 오버레이 배경 */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s;
+      z-index: 999;
+    }
+    
+    .overlay.is-visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    /* 호버 및 액티브 상태 */
+    .card-container:hover .card-glare,
+    .card-container.is-active .card-glare {
+      opacity: 0.7;
+    }
+    
+    .card-container:hover .card-foil,
+    .card-container.is-active .card-foil {
+      opacity: 0.4;
+    }
+    
+    .card-container:hover .card-cosmos,
+    .card-container.is-active .card-cosmos {
+      opacity: 0.75;
+    }
+    
+    .card-container:hover .card-overlay,
+    .card-container.is-active .card-overlay {
+      opacity: 1;
+    }
+
+    /* 모바일 중단점 */
+    @media (max-width: 768px) {
+      .card-container.is-expanded {
+        width: 90vw;
+        height: calc(90vw * 1.4);
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="title">포켓몬 카드 효과 데모</h1>
+  
+  <div class="card-container" id="card">
+    <div class="card" id="cardElem">
+      <div class="card-face card-front">
+        <img src="https://images.pokemontcg.io/swsh4/25_hires.png" alt="피카츄 포켓몬 카드" class="card-img">
+        <div class="card-cosmos" id="cosmos"></div>
+        <div class="card-overlay" id="overlay-effect"></div>
+        <div class="card-glare" id="glare"></div>
+        <div class="card-foil"></div>
+      </div>
+      <div class="card-face card-back">
+        <img src="https://tcg.pokemon.com/assets/img/global/tcg-card-back-2x.jpg" alt="포켓몬 카드 뒷면" class="card-img">
+      </div>
+    </div>
+  </div>
+  
+  <div class="overlay" id="overlay"></div>
+  
+  <p class="instructions">
+    카드 위에 마우스를 올리거나 터치하여 움직여보세요.<br>
+    클릭하면 카드가 뒤집히고, 더블클릭하면 확대됩니다.
+  </p>
+
+  <script>
+    // DOM 요소 선택
+    const card = document.getElementById('card');
+    const cardElem = document.getElementById('cardElem');
+    const glare = document.getElementById('glare');
+    const cosmos = document.getElementById('cosmos');
+    const overlayEffect = document.getElementById('overlay-effect');
+    const overlay = document.getElementById('overlay');
+    
+    // 변수 초기화
+    let isFlipped = false;
+    let isExpanded = false;
+    
+    // 마우스 움직임 처리
+    card.addEventListener('mousemove', handleInteraction);
+    card.addEventListener('touchmove', handleInteraction);
+    
+    // 마우스/터치 벗어남 처리
+    card.addEventListener('mouseleave', resetCard);
+    card.addEventListener('touchend', resetCard);
+    
+    // 클릭 이벤트
+    let clickTimer = null;
+    let clickDelay = 300; // 밀리초 단위의 딜레이
+    
+    card.addEventListener('click', function(e) {
+      // 이전 클릭 타이머가 있다면 더블클릭으로 처리
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+        clickTimer = null;
+        expandCard(e); // 더블클릭으로 처리
+      } else {
+        // 첫 번째 클릭의 경우 타이머 설정
+        clickTimer = setTimeout(function() {
+          clickTimer = null;
+          flipCard(e); // 단일 클릭으로 처리
+        }, clickDelay);
+      }
+    });
+    
+    overlay.addEventListener('click', closeExpand);
+    
+    // 마우스/터치 위치 핸들링
+    function handleInteraction(e) {
+      e.preventDefault();
+      
+      // 터치 이벤트인지 확인
+      const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+      const clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+      
+      // 카드 내에서의 상대적 위치 계산
+      const rect = card.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      // 중앙에서의 거리를 -1~1로 정규화
+      const normalizedX = (clientX - centerX) / (rect.width / 2);
+      const normalizedY = (clientY - centerY) / (rect.height / 2);
+      
+      // 회전 각도 계산 (최대 15도)
+      const rotateY = normalizedX * 15;
+      const rotateX = -normalizedY * 15;
+      
+      // 글레어 효과 위치 계산 (백분율)
+      const glareX = ((clientX - rect.left) / rect.width) * 100;
+      const glareY = ((clientY - rect.top) / rect.height) * 100;
+      
+      // 카드 회전 적용
+      cardElem.style.transform = `
+        ${isFlipped ? 'rotateY(180deg)' : 'rotateY(0)'}
+        rotateX(${rotateX}deg) 
+        rotateY(${rotateY}deg)
+      `;
+      
+      // 글레어 효과 위치 업데이트 (마우스 위치에 직접 따라감)
+      glare.style.background = `
+        radial-gradient(
+          circle at ${glareX}% ${glareY}%, 
+          rgba(255, 255, 255, 0.6) 0%, 
+          rgba(255, 255, 255, 0) 40%
+        )
+      `;
+      
+      // 포일 효과는 카드에 고정된 패턴이지만 빛의 반사에 따른 미세한 변화 적용
+      // CSS의 background-position 속성으로 회전 각도에 따라 배경 위치 미세 조정
+      const foilElement = document.querySelector('.card-foil');
+      
+      // 원본 CSS에서 참고한 background-position 계산 방식
+      // 회전 각도가 클수록 배경 이미지가 더 많이 이동하지만 범위는 제한됨
+      const backgroundX = 50 + (normalizedX * -2); // 48-52% 사이의 제한된 움직임
+      const backgroundY = 50 + (normalizedY * -2); // 48-52% 사이의 제한된 움직임
+      
+      // 카드의 회전에 따른 무지개 패턴의 미세한 이동 적용 (거의 고정됨)
+      foilElement.style.backgroundPosition = `${backgroundX}% ${backgroundY}%`;
+      
+      // 오버레이 효과 이동 (회전에 따라 조금 더 크게 움직임)
+      // 회전 방향과 반대로 움직이면서 홀로그램처럼 보이게 함
+      const overlayPosition = 50 + (normalizedX * -20); // 30-70% 범위로 더 큰 움직임
+      overlayEffect.style.backgroundPosition = `${overlayPosition}% 50%`;
+      
+      // 카드 활성화 상태로 설정
+      card.classList.add('is-active');
+    }
+    
+    // 카드 원위치로 복귀
+    function resetCard() {
+      cardElem.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0)';
+      
+      // 포일 위치도 원래대로 복귀
+      const foilElement = document.querySelector('.card-foil');
+      foilElement.style.backgroundPosition = '50% 50%';
+      
+      // 오버레이도 원래 위치로 복귀
+      overlayEffect.style.backgroundPosition = '0% 50%';
+      
+      card.classList.remove('is-active');
+    }
+    
+    // 카드 뒤집기
+    function flipCard(e) {
+      isFlipped = !isFlipped;
+      cardElem.classList.toggle('is-flipped');
+    }
+    
+    // 카드 확대/축소
+    function expandCard(e) {
+      if (!isExpanded) {
+        card.classList.add('is-expanded');
+        overlay.classList.add('is-visible');
+        isExpanded = true;
+      } else {
+        closeExpand();
+      }
+    }
+    
+    // 확대 닫기
+    function closeExpand() {
+      card.classList.remove('is-expanded');
+      overlay.classList.remove('is-visible');
+      isExpanded = false;
+    }
+  </script>
+</body>
+</html>
