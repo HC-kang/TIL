@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>포켓몬 카드 효과 데모</title>
-  <style>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>포켓몬 카드 효과 데모</title>
+    <style>
     /* 기본 스타일 */
     *, *::before, *::after {
       box-sizing: border-box;
@@ -242,33 +243,36 @@
       }
     }
   </style>
-</head>
-<body>
-  <h1 class="title">포켓몬 카드 효과 데모</h1>
-  
-  <div class="card-container" id="card">
-    <div class="card" id="cardElem">
-      <div class="card-face card-front">
-        <img src="https://images.pokemontcg.io/swsh4/25_hires.png" alt="피카츄 포켓몬 카드" class="card-img">
-        <div class="card-cosmos" id="cosmos"></div>
-        <div class="card-overlay" id="overlay-effect"></div>
-        <div class="card-glare" id="glare"></div>
-        <div class="card-foil"></div>
-      </div>
-      <div class="card-face card-back">
-        <img src="https://tcg.pokemon.com/assets/img/global/tcg-card-back-2x.jpg" alt="포켓몬 카드 뒷면" class="card-img">
+  </head>
+  <body>
+    <h1 class="title">포켓몬 카드 효과 데모</h1>
+
+    <div class="card-container" id="card">
+      <div class="card" id="cardElem">
+        <div class="card-face card-front">
+          <img src="https://images.pokemontcg.io/swsh4/25_hires.png"
+            alt="피카츄 포켓몬 카드" class="card-img">
+          <div class="card-cosmos" id="cosmos"></div>
+          <div class="card-overlay" id="overlay-effect"></div>
+          <div class="card-glare" id="glare"></div>
+          <div class="card-foil"></div>
+        </div>
+        <div class="card-face card-back">
+          <img
+            src="https://tcg.pokemon.com/assets/img/global/tcg-card-back-2x.jpg"
+            alt="포켓몬 카드 뒷면" class="card-img">
+        </div>
       </div>
     </div>
-  </div>
-  
-  <div class="overlay" id="overlay"></div>
-  
-  <p class="instructions">
-    카드 위에 마우스를 올리거나 터치하여 움직여보세요.<br>
-    클릭하면 카드가 뒤집히고, 더블클릭하면 확대됩니다.
-  </p>
 
-  <script>
+    <div class="overlay" id="overlay"></div>
+
+    <p class="instructions">
+      카드 위에 마우스를 올리거나 터치하여 움직여보세요.<br>
+      클릭하면 카드가 뒤집히고, 더블클릭하면 확대됩니다.
+    </p>
+
+    <script>
     // DOM 요소 선택
     const card = document.getElementById('card');
     const cardElem = document.getElementById('cardElem');
@@ -307,7 +311,6 @@
 
     // click과 dbclick을 분리해서 직접 처리
     function onClick(e) {
-      console.log(e.detail)
       // 더블클릭까지 300ms 대기 후, 더블클릭이라면 일반 클릭은 무시
       if (e.detail === 1) {
         // 첫 클릭 시 더블클릭 타이머 시작
@@ -338,7 +341,7 @@
         touchedAt = 0;
       } else if (!isTouched 
       && now - touchedAt > 50
-      && now - touchedAt < 300
+      && now - touchedAt < 200
     ) {
         // 단일탭
         flipTimer = setTimeout(() => {
@@ -434,7 +437,7 @@
       if (e.detail > 1) return;
       
       isFlipped = !isFlipped;
-      cardElem.classList.toggle('is-flipped');
+      cardElem.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0)';
     }
     
     // 카드 확대/축소
@@ -455,5 +458,5 @@
       isExpanded = false;
     }
   </script>
-</body>
+  </body>
 </html>
