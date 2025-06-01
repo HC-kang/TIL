@@ -1,3 +1,10 @@
+---
+title: Postman
+date: 2024-04-31
+tags: [Postman, API, 테스트, 환경변수, 자동화]
+alias: [Postman]
+---
+
 # Postman
 
 ## bearer token 자동화

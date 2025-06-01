@@ -1,3 +1,9 @@
+---
+title: CORS
+date: 2024-06-23
+tags: [CORS, HTTP, 브라우저, 페이지 로딩, 헤더]
+---
+
 # CORS(Cross-Origin Resource Sharing)
 
 ## 1. CORS란?

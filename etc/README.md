@@ -1,3 +1,10 @@
+---
+title: 기타 알아둘것들
+date: 2022-08-04
+tags: [기타 알아둘것들, 하드웨어, 마케팅, 도메인, 용어, 노출, 도달, 빈도, 클릭, CTR, CTA, CPC, CPM, CPT, CPA, 전환, 전환 당 비용, 전환율, 반송, 이탈율, DAU, WAU, MAU, PU, ARPU, ARPPU, MoM, 롤링배너, 리치미디어 광고, 시즈널 키워드, 네이티브 광고, DA, SA, RTB, Vim, Redis, curl, Nginx, Supervisor, Ansible, Terraform, Hey]
+alias: [기타 알아둘것들]
+---
+
 # 기타 알아둘것들
 
 ## 쓸모있는 팁

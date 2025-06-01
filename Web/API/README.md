@@ -1,3 +1,10 @@
+---
+title: API
+date: 2024-01-09
+tags: [API, TCP, HTTP, REST, SOAP, GraphQL, gRPC, WebSockets]
+alias: [API]
+---
+
 # API
 
 ## API의 종류
@@ -64,7 +71,7 @@
   4. 다양한 언어를 지원하므로, 다양한 환경에서 사용하기 용이함.
 - **단점**
   1. HTTP/2를 기반으로 하므로, HTTP/2를 지원하지 않는 환경에서는 사용할 수 없음.
-  2. 바이너리 데이터를 사용하므로, 디버깅이 어려움.
+  2. 바이너리 TCP, 데이터를 사용하므로, 디버깅이 어려움.
 
 ### WebSockets
 

@@ -1,3 +1,10 @@
+---
+title: ddclient 사용법
+date: 2025-01-05
+tags: [ddclient, 클라우드플레어, 도메인, 네임서버, 라우팅, 홈서버, 네트워크, 보안]
+alias: [ddclient 사용법]
+---
+
 # ddclient 사용법
 
 ## 1. ddclient 설치

@@ -1,4 +1,11 @@
-# Dev lab
+---
+title: 항해 DevLab
+date: 2024-09-23
+tags: [스파르타, 코딩클럽, 향로, 이동욱, 테오, 허재]
+alias: [항해 DevLab]
+---
+
+# Dev Lab
 
 어제는 스파르타 코딩클럽에서 진행하는 Dev Lab 행사에 참여했습니다.
 

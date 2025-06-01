@@ -1,3 +1,10 @@
+---
+title: 고급 도커파일 지시어
+date: 2024-06-27
+tags: [dockerfile, docker, docker compose]
+alias: [고급 도커파일 지시어]
+---
+
 # 고급 도커파일 지시어
 
 ![alt text](./images/main.png)

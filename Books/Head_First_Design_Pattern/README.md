@@ -1,3 +1,10 @@
+---
+title: Head First Design Pattern
+date: 2025-04-08
+tags: [디자인 패턴, 전략 패턴, 옵저버 패턴, 데코레이터 패턴, 팩토리 패턴, 싱글턴 패턴, 커맨드 패턴, 어댑터 패턴, 퍼사드 패턴]
+alias: [헤드퍼스트 디자인패턴]
+---
+
 # Head First Design Pattern
 
 ## Chatper 01 - Strategy Pattern
@@ -32,7 +39,8 @@
 
 > [!NOTE]
 > ### 데코레이터 패턴 (Decorator Pattern)
-> - 
+> - 객체에 추가 요소를 동적으로 추가할 수 있음.
+> - 서브클래스를 만들 때 보다 훨씬 유연하게 기능을 확장 할 수 있음.
 
 > [!TIP]
 > ### 디자인 원칙
