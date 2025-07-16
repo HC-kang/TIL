@@ -1,0 +1,113 @@
+# C/C++ 컴파일 결과물
+*.o
+*.obj
+*.exe
+*.out
+*.app
+
+# 실행 파일 (확장자 없는 경우)
+*
+!*/
+!*.*
+!Makefile
+!makefile
+
+# 디버그 심볼 (macOS)
+*.dSYM/
+
+# 라이브러리 파일
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# CMake 관련
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+build/
+Build/
+
+# IDE 관련 파일
+## Visual Studio Code
+.vscode/
+*.code-workspace
+
+## Visual Studio
+.vs/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.pbxuser
+
+## CLion
+.idea/
+cmake-build-*/
+
+## Code::Blocks
+*.cbp
+*.layout
+*.depend
+
+# 컴파일러 관련
+*.gch
+*.pch
+
+# 임시 파일
+*~
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# 로그 파일
+*.log
+
+# Core dumps
+core
+*.core
+
+# Valgrind 출력
+*.memcheck
+vgcore.*
+
+# GDB 히스토리
+.gdb_history
+
+# 테스트 결과
+test_results/
+*.gcov
+*.gcda
+*.gcno
+
+# 패키지 관리자 관련
+## Conan
+conandata.yml
+conanfile.txt
+conaninfo.txt
+
+## vcpkg
+vcpkg_installed/
+
+# 프로젝트별 디렉터리
+bin/
+obj/
+out/
+target/
