@@ -7,7 +7,7 @@ alias: [헤드퍼스트 디자인패턴]
 
 # Head First Design Pattern
 
-**Building Extensible and Maintainable Object-Oriented Software**
+**Building Extensible and Maintainable Object-Oriented Software**  
 *저자: Eric Freeman, Elisabeth Robson*
 
 > 디자인 패턴은 개발자들이 반복적으로 마주치는 문제들에 대한 검증된 해결책입니다.  
