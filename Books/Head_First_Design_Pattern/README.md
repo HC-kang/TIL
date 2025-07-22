@@ -10,7 +10,8 @@ alias: [헤드퍼스트 디자인패턴]
 **Building Extensible and Maintainable Object-Oriented Software**
 *저자: Eric Freeman, Elisabeth Robson*
 
-> 디자인 패턴은 개발자들이 반복적으로 마주치는 문제들에 대한 검증된 해결책입니다. 코드 재사용이 아닌 경험의 재사용을 통해 더 나은 소프트웨어를 만들 수 있습니다.
+> 디자인 패턴은 개발자들이 반복적으로 마주치는 문제들에 대한 검증된 해결책입니다.  
+> 단순히 코드를 재사용하는 것이 아닌 '문제를 해결한 경험'의 재사용을 통해 더 나은 소프트웨어를 만들 수 있습니다.
 
 ## 목차
 - [Head First Design Pattern](#head-first-design-pattern)
@@ -41,7 +42,63 @@ alias: [헤드퍼스트 디자인패턴]
 > ### 전략 패턴 (Strategy Pattern)
 > - **정의**: 알고리즘군을 정의하고 캡슐화하여 각 알고리즘군을 수정해서 사용할 수 있도록 한다.
 > - **목적**: 알고리즘을 클라이언트와 독립적으로 변경할 수 있도록 한다.
-> - **예시**: 오리 시뮬레이터에서 다양한 나는 행동과 울음소리 구현
+> - **예시**: 
+>   - Passport.js의 인증 전략 (LocalStrategy, JWTStrategy, GoogleStrategy)
+>   - Express.js의 미들웨어 처리 방식도 전략 패턴으로 볼 수 있다.
+>   - 결제 시스템에서 다양한 결제 수단 처리 (카드, 페이팔, 암호화폐)
+> - **주의사항**:
+>   - 전략 패턴은 클라이언트가 어떤 전략을 사용할지 지정해야 한다.
+>   - 너무 많은 부분을 뽑아내려 하면 오히려 코드가 복잡해질 수 있다.
+>   - 따라서 명확한 목적을 가진 일부 부분만 뽑아내는 것이 좋다.
+
+> [!TIP]
+> ### Node.js 결제 시스템 구현 예시
+> ```javascript
+> /**
+> * 결제 전략 인터페이스
+> * 새 전략을 추가하고싶다면 processPayment() 메서드를 구현해야 한다.
+> */
+> class PaymentStrategy {
+>   async processPayment(amount) {
+>     throw new Error('processPayment() must be implemented');
+>   }
+> }
+> 
+> /**
+> * 구체적인 전략 예시 (CreditCardStrategy, PayPalStrategy)
+> * 이친구들은 `exends PaymentStrategy` 문구를 통해 전략 인터페이스를 구현하는데, 이를 통해 특정 메서드의 구현을 강제받는다.
+> */
+> class CreditCardStrategy extends PaymentStrategy {
+>   async processPayment(amount) {
+>     console.log(`Processing ${amount}원 via Credit Card`);
+>     // 카드 결제 로직
+>   }
+> }
+> 
+> class PayPalStrategy extends PaymentStrategy {
+>   async processPayment(amount) {
+>     console.log(`Processing ${amount}원 via PayPal`);
+>     // 페이팔 결제 로직
+>   }
+> }
+> 
+> /**
+> * 실제 컨텍스트에서 활용 예시
+> */
+> class PaymentContext {
+>   constructor(strategy) {
+>     this.strategy = strategy;
+>   }
+>   
+>   setStrategy(strategy) {
+>     this.strategy = strategy;
+>   }
+>   
+>   async executePayment(amount) {
+>     return await this.strategy.processPayment(amount);
+>   }
+> }
+> ```
 
 > [!TIP]
 > ### 핵심 디자인 원칙
@@ -58,13 +115,61 @@ alias: [헤드퍼스트 디자인패턴]
 > ### 옵저버 패턴 (Observer Pattern)
 > - **정의**: 한 객체의 상태가 바뀌면 그 객체에 의존하는 다른 객체들에게 연락이 가고 자동으로 내용이 갱신되는 일대다(one-to-many) 의존성을 정의한다.
 > - **목적**: 객체들 사이에 느슨한 결합(loose coupling)을 유지
-> - **예시**: 날씨 모니터링 시스템, GUI 이벤트 처리, MVC 패턴
+> - **예시**: 
+>   - Node.js의 EventEmitter (이벤트 기반 아키텍처)
+>   - Redux의 subscribe/dispatch 메커니즘
+>   - WebSocket을 통한 실시간 데이터 푸시
+>   - RxJS의 Observable 스트림
+> - **주의사항**:
+>   - 옵저버 패턴은 불필요한 코드 복잡성을 증가시킬 수 있다.
+>   - 옵저버와 구독자 간의 관계를 명확히 정의해야 한다. // TODO: 예시 추가
+
+> [!TIP]
+> ### HTML 버튼 요소로 보는 옵저버 패턴
+> ```javascript
+> /**
+> * HTML 버튼 요소가 Subject 역할
+> */
+> const button = document.querySelector('#submitBtn');
+> 
+> /**
+> * 여러 Observer(리스너)들이 클릭 이벤트를 구독한다.
+> */
+> button.addEventListener('click', (e) => {
+>   console.log('애널리틱스 이벤트 전송');
+>   analytics.track('button_clicked');
+> });
+> 
+> button.addEventListener('click', (e) => {
+>   console.log('버튼 비활성화');
+>   e.target.disabled = true;
+> });
+> 
+> button.addEventListener('click', (e) => {
+>   console.log('로딩 스피너 표시');
+>   document.querySelector('.spinner').style.display = 'block';
+> });
+> 
+> button.addEventListener('click', async (e) => {
+>   console.log('폼 데이터 서버 전송');
+>   const formData = new FormData(document.querySelector('#form'));
+>   await fetch('/api/submit', { 
+>     method: 'POST', 
+>     body: formData 
+>   });
+> });
+> 
+> /**
+> * 버튼 클릭 시 등록된 모든 리스너가 자동으로 실행된다.
+> * button.click() 또는 사용자가 실제로 클릭
+> */
+> ```
 
 > [!TIP]
 > ### 디자인 원칙
 > **느슨한 결합을 위해 노력하라**
-> - Subject는 Observer가 특정 인터페이스를 구현한다는 것만 안다
-> - Observer는 언제든지 새로 추가할 수 있다
+> - Subject는 Observer가 **특정 인터페이스를 가지고있다는 것**만 안다
+> - Observer는 언제든지 새로 추가할 수 있다. 이러한 추가나 제거가 Subject에 영향을 주지 않는다.
 > - 새로운 형식의 Observer를 추가해도 Subject를 변경할 필요가 없다
 
 ## Chapter 3: 데코레이터 패턴 (Decorator Pattern)
@@ -73,7 +178,15 @@ alias: [헤드퍼스트 디자인패턴]
 > ### 데코레이터 패턴 (Decorator Pattern)
 > - **정의**: 객체에 추가적인 책임을 동적으로 첨부한다. 서브클래스를 만드는 것보다 유연하게 기능을 확장할 수 있다.
 > - **목적**: 기존 코드를 수정하지 않고 행동을 확장
-> - **예시**: 커피 주문 시스템 (에스프레소 + 모카 + 휘핑크림), Java I/O 클래스
+> - **예시**: 
+>   - Express.js 미들웨어 체이닝 (cors + bodyParser + auth + logging)
+>   - Axios 인터셉터로 HTTP 요청/응답 꾸미기
+>   - Stream API에서 transform 스트림 체이닝
+>   - NestJS의 데코레이터 (@Controller, @Get, @UseGuards)
+> - **주의사항**:
+>   - 과도한 데코레이터 사용은 클래스 복잡성을 증가시킬 수 있다.
+>   - 데코레이터 체인이 길어지면 가독성이 떨어질 수 있다.
+>   - 따라서 데코레이터 체인을 짧게 유지하고, 각 데코레이터가 하는 일을 명확히 정의해야 한다.
 
 > [!TIP]
 > ### 디자인 원칙
@@ -104,7 +217,41 @@ alias: [헤드퍼스트 디자인패턴]
 > ### 싱글턴 패턴 (Singleton Pattern)
 > - **정의**: 클래스의 인스턴스가 오직 하나만 생성되도록 보장하고, 이에 대한 전역적인 접근점을 제공한다.
 > - **목적**: 전역 변수를 사용하지 않고 객체를 하나만 생성
-> - **주의사항**: 멀티스레드 환경에서의 동기화 문제 고려 필요
+> - **주의사항**: Node.js는 싱글 스레드지만 클러스터 모드에서는 주의 필요
+> 
+> ### Node.js에서의 싱글턴 구현
+> ```javascript
+> // database.js - 데이터베이스 연결 싱글턴
+> class Database {
+>   constructor() {
+>     if (Database.instance) {
+>       return Database.instance;
+>     }
+>     
+>     this.connection = null;
+>     Database.instance = this;
+>   }
+>   
+>   async connect() {
+>     if (!this.connection) {
+>       this.connection = await createConnection({
+>         host: process.env.DB_HOST,
+>         user: process.env.DB_USER,
+>         database: process.env.DB_NAME
+>       });
+>       console.log('Database connected');
+>     }
+>     return this.connection;
+>   }
+> }
+> 
+> // 모듈 캐싱을 활용한 간단한 싱글턴
+> module.exports = new Database();
+> 
+> // 사용 예시
+> const db = require('./database');
+> await db.connect(); // 첫 번째 호출에서만 실제 연결
+> ```
 
 > [!WARNING]
 > ### 싱글턴 패턴 사용 시 주의점
@@ -118,7 +265,11 @@ alias: [헤드퍼스트 디자인패턴]
 > ### 커맨드 패턴 (Command Pattern)
 > - **정의**: 요청을 객체로 캡슐화하여 서로 다른 요청, 큐, 로그, 실행 취소 등을 지원한다.
 > - **목적**: 요청하는 객체와 요청을 수행하는 객체를 분리
-> - **예시**: 리모컨, 작업 큐, 매크로 커맨드, 실행 취소 기능
+> - **예시**: 
+>   - Redux의 Action과 Dispatch 시스템
+>   - Bull Queue에서의 작업 큐잉과 처리
+>   - VS Code의 Command Palette 명령어 시스템
+>   - Git 명령어의 실행/취소 (commit, reset, revert)
 
 > [!TIP]
 > ### 활용 방안
@@ -132,10 +283,18 @@ alias: [헤드퍼스트 디자인패턴]
 > ### 어댑터 패턴 (Adapter Pattern)
 > - **정의**: 클래스의 인터페이스를 클라이언트가 원하는 다른 인터페이스로 변환한다.
 > - **목적**: 호환되지 않는 인터페이스들을 함께 동작하도록 한다.
+> - **예시**:
+>   - MongoDB 드라이버를 Mongoose ODM으로 감싸기
+>   - 다양한 로깅 라이브러리(Winston, Bunyan)를 통합 인터페이스로 제공
+>   - 레거시 SOAP API를 REST API로 변환하는 어댑터
 > 
 > ### 퍼사드 패턴 (Facade Pattern)
 > - **정의**: 서브시스템의 일련의 인터페이스에 대한 통합 인터페이스를 제공한다.
 > - **목적**: 복잡한 서브시스템을 간단한 인터페이스로 감싸서 사용하기 쉽게 만든다.
+> - **예시**:
+>   - Nodemailer로 복잡한 이메일 전송 과정 단순화
+>   - AWS SDK의 복잡한 API를 간단한 헬퍼 함수로 래핑
+>   - 여러 마이크로서비스를 하나의 API Gateway로 통합
 
 > [!TIP]
 > ### 디자인 원칙
@@ -149,7 +308,10 @@ alias: [헤드퍼스트 디자인패턴]
 > ### 템플릿 메소드 패턴 (Template Method Pattern)
 > - **정의**: 알고리즘의 골격을 정의하고, 일부 단계를 서브클래스에서 구현하도록 한다.
 > - **목적**: 알고리즘의 구조는 유지하면서 특정 단계를 재정의
-> - **예시**: 음료 제조 과정, 프레임워크의 라이프사이클 메소드
+> - **예시**: 
+>   - NestJS의 모듈 초기화 과정
+>   - Mongoose의 pre/post 훅 시스템
+>   - **Jest의 테스트 실행** 단계 (beforeEach, test, afterEach)
 
 > [!TIP]
 > ### 할리우드 원칙 (Hollywood Principle)
@@ -180,7 +342,11 @@ alias: [헤드퍼스트 디자인패턴]
 > ### 상태 패턴 (State Pattern)
 > - **정의**: 객체의 내부 상태가 바뀜에 따라 객체의 행동을 바꿀 수 있게 한다.
 > - **목적**: 객체가 마치 클래스를 바꾸는 것처럼 보이게 한다.
-> - **예시**: 뽑기 기계, TCP 연결 상태
+> - **예시**: 
+>   - WebSocket 연결 상태 관리 (connecting, open, closing, closed)
+>   - Promise 상태 (pending, fulfilled, rejected)
+>   - 주문 처리 시스템 (대기중, 처리중, 배송중, 완료)
+>   - 인증 토큰 상태 (유효, 만료됨, 갱신중)
 
 > [!TIP]
 > ### 전략 패턴 vs 상태 패턴
@@ -193,9 +359,13 @@ alias: [헤드퍼스트 디자인패턴]
 > ### 프록시 패턴 (Proxy Pattern)
 > - **정의**: 다른 객체에 대한 대리자 또는 자리표시자를 제공하여 그 객체에 대한 접근을 제어한다.
 > - **종류**:
->   - **원격 프록시**: 다른 JVM의 객체에 대한 로컬 대리자
->   - **가상 프록시**: 생성 비용이 높은 객체를 필요할 때까지 생성을 미룸
->   - **보호 프록시**: 접근 권한에 따라 객체 접근을 제어
+>   - **원격 프록시**: API Gateway, GraphQL 리졸버
+>   - **가상 프록시**: 이미지 lazy loading, 무한 스크롤 구현
+>   - **보호 프록시**: 인증/인가 미들웨어, API rate limiting
+> - **Node.js 예시**:
+>   - Proxy 객체를 사용한 객체 접근 제어
+>   - Redis 캐싱 레이어로 DB 접근 최적화
+>   - HTTP 프록시 서버 (http-proxy-middleware)
 
 ## Chapter 12: 복합 패턴 (Compound Pattern)
 
