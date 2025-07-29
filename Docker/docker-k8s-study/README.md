@@ -42,6 +42,8 @@
       - 컨테이너 끄지 않고 나가기
     - `docker attach <container_id>`
       - 컨테이너 접속: 맨날 `exec -it <container_id> bash` 썼었는데.. 이게 있었네..
+      - **다만 `Ctrl + C` 로 컨테이너를 종료하면 메인 프로세스가 종료될 수 있음.**
+      - 따라서 사실 `exec` 가 **더 안전**하다.
       - `run` 과 `attach` 커맨드의 차이점
         - <img src="./images/day2/run-vs-attach.png" width="500">
   - **볼륨 컨테이너의 개념**
@@ -100,7 +102,7 @@
     docker run -d
       --memory=1g # 메모리 제한
       --memory-swap=2g # 메모리 + 스왑 제한
-      --cpu-shares=1024 # CPU 가중치, 1024이면 100% 사용
+      --cpu-shares=1024 # 상대적 CPU 가중치, 1024이 최대
       --cpuset-cpus=0,1 # CPU 셋, 0번과 1번 코어만 사용
       --cpu-period=100000 # CPU 주기
       --cpu-quota=50000 # CPU 할당량, 주기 중 50% 사용
@@ -110,9 +112,10 @@
         - 이는 CPU를 직접 지정할 수 있으므로 CPU 친화성이 높고, 불필요한 캐시미스, 컨텍스트 스위칭을 방지하여 성능상 이점이 있다.
 
   - **도커 이미지 관리**
-    - `docker save` 명령어로 하나의 파일로 내보낼 수 있다.
+    - `docker save` 명령어로 이미지를 하나의 파일로 내보낼 수 있다.
       - 간단한 이미지를 바로 OCI 저장소에 올릴 수 있을듯.
-    - 반대로 `docker load` 명령어로 이미지를 불러올 수 있다.
+    - 반대로 `docker load` 명령어로 파일을 이미지로 불러올 수 있다.
+    - `docker export`, `docker import` 명령어로 컨테이너 <-> 이미지로 변환할 수 있다.
 
 - **적용해볼 내용**
   - `docker save` 명령어로, 사내에서 테스트에 사용할 골든 이미지 업로드 가능한지 적용해보기
