@@ -136,3 +136,121 @@ docker run -d
 
 - `docker save` 명령어로, 사내에서 테스트에 사용할 골든 이미지 업로드 가능한지 적용해보기
 - 홈 서버용 사설 레지스트리 구축 및 적용 해보기
+
+### Day 3 (7/30) - 도커파일과 도커 데몬
+
+**📖 진도**: 2.4, 2.5 / 110~167p
+
+#### **핵심 개념**
+
+- Dockerfile 작성법과 주요 명령어
+- Dockerfile 사용시 주의사항
+- 도커의 구조
+  - 도커 데몬과 도커 클라이언트
+  - <img src="./images/day3/docker-structure.png" width="500">
+- 도커 데몬 모니터링
+
+#### **실습 내용**
+
+- Dockerfile 작성
+  - 주요 명령어
+    - `FROM`, `RUN`, `COPY`, `ADD`, `CMD`, `ENTRYPOINT`, `EXPOSE`, `ENV`, `VOLUME`, `USER`, `WORKDIR`, `STOPSIGNAL`, `HEALTHCHECK`, `ONBUILD`
+  - 명령어 단위 레이어 생성 및 캐싱 활용
+- 도커 클라이언트와 데몬 연결
+  - 소켓을 사용한 연결(기본값)
+  - API를 사용한 원격 연결
+- 도커 데몬 모니터링
+
+#### **배운 내용**
+
+##### **Dockerfile 명령어의 올바른 사용**
+
+- `LABEL` 명령어를 사용해 이미지에 메타데이터를 추가할 수 있음. 이를 통해 `docker images --filter label=SOME_LABEL` 와 같은 필터링이 가능하다. 관리가 보다 용이해진다.
+- `COPY` 와 `ADD` 명령어의 차이점
+  - `COPY` 명령어는 파일을 복사한다.
+  - `ADD` 명령어는 1. 파일을 복사하기도 하고, 2. 파일을 다운로드(URL) 받기도 하며, 3. 압축파일을 풀어서 복사하기도 한다.
+    - 따라서 혼란을 유발하거나, 의도치 않은 변경된 리소스(URL)을 복사할 수 있다.
+  - 결론적으로, 어지간하면 `COPY` 명령어를 사용하자.
+
+##### **멀티 스테이지 빌드를 통한 이미지 크기 줄이기**
+
+- 멀티 스테이지 빌드를 통해, 빌드 환경과 실행 환경을 분리 할 수 있다.
+  - 이를 통해 실행 환경의 이미지를 더 가볍게 만들 수 있다.
+    ```dockerfile
+    # 빌드 환경 1 - 빌드를 위한 golang 이미지(대용량) 사용
+    FROM golang
+    ADD main.go /root
+    WORKDIR /root
+    RUN go build -o /root/mainApp /root/main.go
+
+    # 빌드 환경 2
+    FROM golang as builder2 # 이름을 지정해서 사용할 수도 있다.
+    ADD main2.go /root
+    WORKDIR /root
+    RUN go build -o /root/mainApp2 /root/main2.go
+
+    # 실행 환경 - alpine 이미지에 빌드된 파일만 복사
+    FROM alpine:latest
+    WORKDIR /root
+    COPY --from=0 /root/mainApp . # 빌드 환경 1의 결과물 복사(인덱스 0)
+    COPY --from=builder2 /root/mainApp2 . # 빌드 환경 2의 결과물 복사(이름 지정)
+    CMD ["SOME_CMD"]
+    ```
+
+##### **컨테이너 보안이 중요한 이유**
+
+- 컨테이너의 내부 사용자를 `root`로 사용하는 것을 피해야 하는 이유는, 볼륨이 공유된 경우 내부 사용자가 `root`로서 호스트의 파일 시스템에 접근할 수 있기 때문
+
+##### **STOPSIGNAL 명령어**
+
+- 컨테이너 종료 시 보내는 시그널을 설정한다.
+  - `STOPSIGNAL SIGKILL` 과 같이 설정할 수 있다.
+- `STOPSIGNAL` 기본값은 `SIGTERM`이며, 실제로 종료가 안전하게 되려면 애플리케이션이 해당 시그널을 수신하고 정리 작업을 수행할 수 있어야 한다.
+  - 특히 Node.js 등에서는 `process.on('SIGTERM')` 등의 핸들러 구현이 필요하다.
+
+##### **CMD와 ENTRYPOINT 명령어**
+
+- `CMD`와 `ENTRYPOINT` 명령어의 차이점
+  - `CMD`는 컨테이너 실행 시 실행되는 명령어를 설정한다.
+  - `ENTRYPOINT`는 `CMD`를 인자로 사용할 수 있는 스크립트의 역할을 할 수 있다.
+
+- 이에 유의하지 않으면 컨테이너의 상태 관측에 문제가 생길 수 있다.
+  - 컨테이너는 **PID 1** 프로세스를 기준으로 컨테이너의 상태를 판단한다.
+    - 따라서 어떤 프로세스가 **PID 1**을 차지하느냐가 신호 처리 및 종료 처리의 핵심이다.
+  - `ENTRYPOINT ["/bin/bash", "/entrypoint.sh"]`처럼 쉘을 통해 실제 실행 파일을 감싸면, **bash가 PID 1을 점유**하고 `/entrypoint.sh`는 그 하위 프로세스가 된다.
+    - 이 경우 시그널이 애플리케이션까지 전달되지 않아 graceful shutdown이 실패할 수 있으며, `exec "$@"`로 실행을 위임하는 방식이 필요하다.
+    - 따라서 복잡한 초기화 스크립트를 사용해야 하는 경우가 아니라면 **애플리케이션 바이너리나 런타임(node 등)을 직접 ENTRYPOINT로 설정**하는 것이 컨테이너 상태 추적 측면에서 가장 안전하다.
+  - 반면 `ENTRYPOINT ["node", "index.js"]`처럼 직접 실행할 경우, `node`가 PID 1이 되며 **signal, exit code, 상태 모니터링 등에서 문제가 생기지 않는다.**
+  - 이러한 이유로, 복잡한 초기화 스크립트를 사용해야 하는 경우가 아니라면 **애플리케이션 바이너리나 런타임(node 등)을 직접 ENTRYPOINT로 설정**하는 것이 컨테이너 상태 추적 측면에서 가장 안전하다.
+
+- `CMD`와 `ENTRYPOINT`는 조합해서 사용 가능하며, 그 조합은 다음과 같이 동작한다:
+  ```dockerfile
+  ENTRYPOINT ["/bin/bash"]
+  CMD ["entrypoint.sh"]
+  ```
+  → 실행 결과: `/bin/bash entrypoint.sh`  
+  → 이 경우도 마찬가지로 `bash`가 PID 1이며 `entrypoint.sh`는 하위 프로세스로 동작한다.
+
+##### **도커 데몬 제어**
+
+- 도커 데몬은 기본적으로 소켓을 통해 클라이언트와 통신한다. 따라서 아래의 두 명령어는 같은 의미이다.
+
+  ```bash
+  dockerd
+  dockerd -H unix:///var/run/docker.sock
+  ```
+
+- 이처럼 IP와 포트를 통해서도 도커 데몬과 통신할 수 있다. 다만 unix 소켓을 병기하지 않으면 도커 CLI를 통한 명령어 실행이 불가능하다.
+
+  ```bash
+  dockerd -H tcp://0.0.0.0:2375 --tls=false
+  ```
+
+- 도커 데몬 모니터링
+  - 도커 데몬을 모니터링 하거나, 문제가 생겼을 때, 가장 간단한 방법은 `dockerd -D`로 디버깅 모드를 활성화하는 것이다.
+  - 그 외에도 `docker events`, `docker stats`, `docker system df` 등 다양한 명령어를 통해 도커 데몬을 모니터링 할 수 있다.
+
+#### **적용해볼 내용**
+
+- 사용중인 도커 이미지에 `LABEL` 사용해서 관리 용이성 개선하기
+- 멀티 스테이지 빌드로, 사내 활용중인 이미지의 설치 빌드 분리하여 이미지 크기 줄이기
