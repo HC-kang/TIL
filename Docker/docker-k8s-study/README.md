@@ -493,3 +493,79 @@ graph LR
       done
       echo "depends_on container is ready"
       ```
+
+- 네트워크 정의
+
+  ```yaml
+  services:
+    myservice:
+      image: nginx
+      networks:
+        - mynetwork
+  networks:
+    mynetwork:
+      driver: overlay # 도커 스웜에서 overlay 네트워크 사용
+    ipam: # IP Address Manager 사용을 위한 옵션. 상세한 설정을 위해 사용
+      driver: mydriver
+      config:
+        sublet: 172.20.0.0/16 # 서브넷 범위
+        ip_range: 172.20.5.0/24 # 사용 가능한 IP 범위
+        gateway: 172.20.5.1 # 서브넷 내에서 사용할 게이트웨이 주소
+    other_network:
+      external: true # 외부 네트워크 사용
+  ```
+
+- 볼륨 정의
+
+  ```yaml
+  services:
+    mysql:
+      volumes:
+        - my_test_data:/data
+
+  volumes:
+    my_test_data:
+      driver: local
+
+    other_volume:
+      external: true
+  ```
+
+- `YAML` 파일 검증하기
+  - `docker compose config` 명령어로 파일 형식 검증 가능
+  - `-f ../some/other/file.yml` 옵션을 통해 다른 파일을 지정할 수 있음
+
+###### 4.3.2.2 도커 컴포즈 네트워크
+
+- `YAML` 파일에 네트워크를 별도로 지정하지 않으면, 도커 컴포즈는 각 프로젝트별로 브리지 타입 네트워크를 생성
+  - `docker compose up` 뿐 아니라, `docker compose scale` 명령어로 생성된 컨테이너도 이 네트워크에 속함
+- 이 브리지 네트워크 내의 컨테이너는 서비스의 이름으로 접근 가능(RR; Round Robin)
+
+###### 4.3.2.3 도커 스웜 모드와 함께 사용하기
+
+- 도커 컴포즈를 위해 정의된 `docker-compose.yml` 파일은 `docker stack` 명령어로 도커 스웜 모드에서 사용할 수 있음
+
+#### 4.4 도커 학습을 마치며: 도커 컨테이너 생태계
+
+```mermaid
+graph TD
+  A[User] -->|"User interacts with</br>the Docker Engine"| B[Docker Engine]
+  B -->|"Engine communicates</br>with containerd"| C[containerd]
+  C --> D[runC]
+  C -->|"containerd spins up runC</br>or other OCI compliant runtime</br>to run containers"| D2[runC]
+  C --> E["..."]
+  C --> F["..."]
+
+  style A fill:#f2f2f2,stroke:#333,stroke-width:1px
+  style B fill:#d9edf7,stroke:#31708f,stroke-width:1px
+  style C fill:#dff0d8,stroke:#3c763d,stroke-width:1px
+  style D fill:#fcf8e3,stroke:#8a6d3b,stroke-width:1px
+  style D2 fill:#fcf8e3,stroke:#8a6d3b,stroke-width:1px
+  style E fill:#fcf8e3,stroke:#8a6d3b,stroke-width:1px
+  style F fill:#fcf8e3,stroke:#8a6d3b,stroke-width:1px
+```
+
+- 컨테이너의 표준은 OCI(Open Container Initiative) 표준을 따름
+- 도커 엔진은 컨테이너를 관리하기 위해 `containerd`를 사용
+- `containerd`는 컨테이너를 실행하기 위해 `runC`를 사용
+- 결과적으로 도커 엔진은 컨테이너가 아니며, 단순히 `containerd`를 사용하기 위한 도구임
