@@ -374,3 +374,122 @@ docker run -d
 - `docker_gwbridge` 네트워크
   - 외부로 나가는 통신을 위한 네트워크
   - 오버레이 네트워크 트래픽의 종단점(VTEP; Virtual Tunnel End Point) 역할을 담당
+
+### Day 5 (8/1) - 도커 스택
+
+**📖 진도**: 4장 / 211~229p
+
+#### 4.1 도커 컴포즈를 사용하는 이유
+
+- 여러 컨테이너를 하나의 애플리케이션으로 사용시, `run` 커맨드를 여러 번 사용할수도 있지만, 이는 관리가 어려움
+- 이를 해결하기 위해 `docker-compose.yaml` 파일을 사용하여 여러 컨테이너를 하나의 애플리케이션으로 관리할 수 있음
+- 여러 컨테이너의 옵션과 환경을 미리 정의해두고 사용할 수 있음
+
+#### 4.2 도커 컴포즈 설치
+
+- 생략
+
+#### 4.3 도커 컴포즈 사용
+
+##### 4.3.1 도커 컴포즈 기본 사용법
+
+- 가장 먼저 `docker-compose.yaml` 파일을 정의해야 함
+
+###### 4.3.1.1 docker-compose.yaml 작성과 활용
+
+- `docker-compose.yaml`을 사용하지 않는 경우
+
+  ```bash
+  # docker run -d --name mysql \
+  alicek106/composetest:mysql \
+  mysqld
+
+  # docker run -d -p 80:80 \
+  --link mysql:db --name web \
+  alicek106/composetest:web \
+  apachectl -DFOREGROUND
+  ```
+
+- `docker-compose.yaml` 파일을 사용하는 경우
+
+  ```yaml
+  services:
+    web:
+      image: alicek106/composetest:web
+      ports:
+        - 80:80
+      links:
+        - mysql:db
+      command: apachectl -DFOREGROUND
+    mysql:
+      image: alicek106/composetest:mysql
+      command: mysqld
+  ```
+
+###### 4.3.1.2 도커 컴포즈의 프로젝트, 서비스, 컨테이너
+
+```mermaid
+graph LR
+  A[docker-compose.yml] --> B[프로젝트<br/>ubuntu]
+  B --> C[서비스<br/>web]
+  B --> D[서비스<br/>mysql]
+  C --> E[컨테이너<br/>web x2]
+  D --> F[컨테이너<br/>mysql]
+
+  style A fill:#fff,stroke:#333,stroke-width:1px
+  style B fill:#f0f0f0,stroke:#333,stroke-width:1px
+  style C fill:#d0f0ff,stroke:#333,stroke-width:1px
+  style D fill:#d0f0ff,stroke:#333,stroke-width:1px
+  style E fill:#c0ffc0,stroke:#333,stroke-width:1px
+  style F fill:#c0ffc0,stroke:#333,stroke-width:1px
+```
+
+- 필요한 경우 `docker compose scale mysql=2`와 같은 명령어로 컨테이너 수를 조정할 수 있음
+- 또한 `docker compose up -d mysql`과 같은 명령어로 컴포즈 파일에 정의된 특정 서비스의 컨테이너만 시작할 수도 있음
+- 프로젝트의 이름은 기본적으로 디렉토리명을 사용하나, `docker compose -p <project_name>`과 같은 옵션으로 지정할 수 있음
+
+##### 4.3.2 도커 컴포즈 활용
+
+###### 4.3.2.1 YAML 파일 작성
+
+- 도커 컴포즈 파일은 크게 세 부분으로 나뉨
+  - 서비스 정의(services)
+  - 볼륨 정의(volumes)
+  - 네트워크 정의(networks)
+
+- 서비스 정의
+
+  ```yaml
+  services:
+    web:
+      image: alicek106/composetest:web # 베이스로 사용할 이미지
+      links:
+        - mysql:db # 다른 서비스와 연결 - deprecated
+        - redis:cache
+      depends_on: # 의존성 설정
+        - mysql
+        - redis
+      environment:
+        - MYSQL_HOST=mysql
+        - MYSQL_PORT=3306
+        # 혹은
+        MYSQL_HOST: mysql
+        MYSQL_PORT: 3306
+      command: apachectl -DFOREGROUND
+  ```
+
+  - 그러나 `links`와 `depends_on`은 컨테이너의 가동만을 확인하며, 실제 어플리케이션의 구동은 확인하지 않음. 아래와 같은 방법으로 확인 가능
+    - `yaml`
+      ```yaml
+      ...
+      entrypoint: ./sync_script.sh mysql:3306
+      ```
+    
+    - 검증 스크립트
+      ```bash
+      until (<상태확인 명령어>); do
+        echo "depend container is not available yet"
+        sleep `
+      done
+      echo "depends_on container is ready"
+      ```
