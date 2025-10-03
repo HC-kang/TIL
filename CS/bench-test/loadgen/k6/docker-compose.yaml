@@ -1,0 +1,21 @@
+services:
+  k6:
+    image: grafana/k6:latest
+    container_name: bench-k6
+    volumes:
+      - ./ramping.js:/ramping.js:ro
+    environment:
+      TZ: "Asia/Seoul"
+    cpuset: "1-7"
+    cpus: 7
+    mem_limit: 7g
+    mem_reservation: 5g
+    ulimits:
+      nofile: 1048576
+    networks:
+      - bench-net
+
+networks:
+  bench-net:
+    external: true
+    name: bench-net
