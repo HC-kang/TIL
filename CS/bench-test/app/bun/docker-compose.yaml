@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: .
+    expose:
+      - "3000"
+    environment:
+      TZ: "Asia/Seoul"
+    restart: unless-stopped
+    cpuset: "0-1"
+    cpus: 2
+    mem_limit: 2g
+    mem_reservation: 1g
+    ulimits:
+      nofile: 1048576
+
+networks:
+  default:
+    external: true
+    name: bench-net

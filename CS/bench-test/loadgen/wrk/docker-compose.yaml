@@ -1,0 +1,22 @@
+# docker compose -f wrk-compose.yml run -T --rm wrk \ -t6 -c400 -d60s --latency http://app:3000/ 2>&1 | tee results/bench.txt
+
+services:
+  wrk:
+    build:
+      context: .
+    container_name: bench-wrk
+    environment:
+      TZ: "Asia/Seoul"
+    cpuset: "2-7"
+    cpus: 6
+    mem_limit: 6g
+    mem_reservation: 5g
+    ulimits:
+      nofile: 1048576
+    networks:
+      - bench-net
+
+networks:
+  bench-net:
+    external: true
+    name: bench-net
